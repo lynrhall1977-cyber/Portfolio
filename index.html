@@ -156,6 +156,29 @@ q{quotes:"\201C" "\201D"}
 footer{background:var(--navy);color:var(--on-navy-muted);border-top:1px solid rgba(243,237,227,.18);font-size:13px}
 footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px}
 
+
+/* contact form */
+.contact-grid{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:48px;align-items:start!important}
+.contact-intro{display:grid;gap:14px;align-content:start}
+.contact-intro p{margin-top:0}
+.contact-meta{font-size:14px}
+.contact-form{background:var(--white);color:var(--ink);border-radius:var(--radius);padding:28px;display:grid;gap:16px;border-top:4px solid var(--orange)}
+.field{display:grid;gap:6px}
+.field label{font-size:13px;font-weight:700;letter-spacing:.02em}
+.opt{font-weight:500;color:var(--muted)}
+.field input,.field textarea{font:inherit;font-size:15px;color:var(--ink);background:var(--white);border:1px solid #B9C2CA;border-radius:4px;padding:10px 12px;width:100%}
+.field textarea{resize:vertical;min-height:120px}
+.field input:focus,.field textarea:focus{outline:3px solid var(--orange);outline-offset:1px;border-color:var(--navy)}
+.field input[aria-invalid="true"],.field textarea[aria-invalid="true"]{border-color:#A3271B}
+.contact-form .btn-cta{justify-self:start;border:0;cursor:pointer}
+.contact-form .btn-cta:disabled{opacity:.6;cursor:not-allowed}
+.contact .contact-form .form-status{font-size:14px;min-height:1.4em;margin:0;color:var(--muted)}
+.contact .contact-form .form-status.ok{color:#1F6B3A;font-weight:600}
+.contact .contact-form .form-status.err{color:#A3271B;font-weight:600}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+@media (max-width:860px){.contact-grid{grid-template-columns:1fr;gap:28px}}
+@media (max-width:720px){.contact-form{padding:20px}}
+
 @media (max-width:960px){
   .hero .wrap{grid-template-columns:1fr;gap:32px;padding-block:52px 56px}
   .principles{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -192,7 +215,7 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
         <li><a href="#approach">Approach</a></li>
         <li><a href="#projects">Projects</a></li>
         <li><a href="#about">About</a></li>
-        <li><a href="#contact">Contact</a></li>
+        <li><a href="https://lynrhall1977-cyber.github.io/Portfolio/#contact">Contact</a></li>
       </ul>
     </nav>
   </div>
@@ -501,16 +524,42 @@ Full scorecard: INC-042 Subsequent Scorecard 2026-10-10 1529 EDT.pdf (Incident E
   </section>
 
   <section class="contact" id="contact" aria-labelledby="contact-h">
-    <div class="wrap">
-      <div>
+    <div class="wrap contact-grid">
+      <div class="contact-intro">
         <h2 id="contact-h">Let's talk</h2>
-        <p>Always glad to talk about security programs, GRC, and putting AI to work responsibly. Based in Waldoboro, Maine.</p>
+        <p>Always glad to talk about security programs, GRC, and putting AI to work responsibly. Send a note and I'll reply by email.</p>
+        <p class="contact-meta">Based in Waldoboro, Maine</p>
+        <!-- To show your LinkedIn button, paste your profile address between the quotes in data-linkedin below. -->
+        <div class="ctas" id="contact-links" data-linkedin="">
+          <a class="btn btn-line" id="li-btn" href="#" target="_blank" rel="noopener" hidden>Connect on LinkedIn</a>
+        </div>
       </div>
-      <!-- To show your LinkedIn button, paste your profile address between the quotes in data-linkedin below. -->
-      <div class="ctas" id="contact-links" data-linkedin="">
-        <a class="btn btn-cta" id="li-btn" href="#" target="_blank" rel="noopener" hidden>Connect on LinkedIn</a>
-        <a class="btn btn-line" href="#projects">Back to projects</a>
-      </div>
+
+      <!-- CONTACT FORM SETUP: get a free access key at https://web3forms.com using the email address that should receive messages,
+           then paste it between the quotes in data-access-key below. The key is designed to be public; your email address never appears on this page. -->
+      <form class="contact-form" id="contact-form" data-access-key="b5113e63-35b4-4a5d-bd09-5c71b668ae30" novalidate>
+        <input type="hidden" name="subject" value="New message from your portfolio website">
+        <input type="hidden" name="from_name" value="Lyn Hall Portfolio">
+        <input type="checkbox" name="botcheck" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="field">
+          <label for="cf-name">Name</label>
+          <input id="cf-name" name="name" type="text" autocomplete="name" required maxlength="120">
+        </div>
+        <div class="field">
+          <label for="cf-email">Email</label>
+          <input id="cf-email" name="email" type="email" autocomplete="email" required maxlength="200">
+        </div>
+        <div class="field">
+          <label for="cf-org">Organization <span class="opt">(optional)</span></label>
+          <input id="cf-org" name="organization" type="text" autocomplete="organization" maxlength="160">
+        </div>
+        <div class="field">
+          <label for="cf-msg">Message</label>
+          <textarea id="cf-msg" name="message" rows="5" required maxlength="4000"></textarea>
+        </div>
+        <button class="btn btn-cta" type="submit" id="cf-send">Send message</button>
+        <p class="form-status" id="cf-status" role="status" aria-live="polite"></p>
+      </form>
     </div>
   </section>
 </main>
@@ -522,6 +571,32 @@ Full scorecard: INC-042 Subsequent Scorecard 2026-10-10 1529 EDT.pdf (Incident E
 (function(){
   var box=document.getElementById('contact-links'), url=(box&&box.getAttribute('data-linkedin')||'').trim(), btn=document.getElementById('li-btn');
   if(btn && /^https:\/\//.test(url)){ btn.href=url; btn.hidden=false; }
+})();
+
+(function(){
+  var f=document.getElementById('contact-form'); if(!f) return;
+  var key=(f.getAttribute('data-access-key')||'').trim(), st=document.getElementById('cf-status'), btn=document.getElementById('cf-send');
+  function say(msg,cls){ st.textContent=msg; st.className='form-status'+(cls?' '+cls:''); }
+  if(!key){ btn.disabled=true; say('The contact form is not set up yet.',''); }
+  f.addEventListener('submit',function(e){
+    e.preventDefault();
+    var bad=null;
+    ['cf-name','cf-email','cf-msg'].forEach(function(id){ var el=document.getElementById(id); var ok=el.checkValidity()&&el.value.trim()!==''; el.setAttribute('aria-invalid',ok?'false':'true'); if(!ok&&!bad) bad=el; });
+    if(bad){ say('Please fill in your name, a valid email address, and a message.','err'); bad.focus(); return; }
+    if(!key){ say('The contact form is not set up yet.','err'); return; }
+    var data=Object.fromEntries(new FormData(f)); data.access_key=key;
+    if(data.botcheck){ return; }
+    delete data.botcheck;
+    btn.disabled=true; say('Sending...','');
+    fetch('https://api.web3forms.com/submit',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(data)})
+      .then(function(r){ return r.json().then(function(j){ return {ok:r.ok&&j.success!==false,j:j}; }); })
+      .then(function(res){
+        if(res.ok){ f.reset(); say('Thanks. Your message was sent, and I will reply by email.','ok'); }
+        else { say('Your message could not be sent: '+((res.j&&res.j.message)||'please try again later.'),'err'); }
+      })
+      .catch(function(){ say('Your message could not be sent. Check your connection and try again.','err'); })
+      .then(function(){ btn.disabled=false; });
+  });
 })();
 </script>
 </body>
