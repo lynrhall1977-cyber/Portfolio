@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lyn Hall | Security &amp; GRC AI Portfolio</title>
 <meta name="description" content="Lyn Hall, cybersecurity and GRC leader. A portfolio of AI-built tools for incident response, vulnerability intelligence, and security governance.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%23121B32'/%3E%3Crect x='14' y='14' width='16' height='4' fill='%23C09A6B'/%3E%3Ctext x='14' y='48' font-family='Arial,Helvetica,sans-serif' font-weight='700' font-size='26' fill='%23FFFFFF'%3ELH%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=JetBrains+Mono:wght@400;500&family=Montserrat:wght@400;500;600;700&display=swap">
@@ -39,10 +40,12 @@ a:hover{color:var(--orange)}
 /* top bar */
 .bar{position:sticky;top:0;z-index:50;background:var(--navy);color:var(--on-navy);border-bottom:2px solid var(--gold)}
 .bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px 24px;min-height:64px;flex-wrap:wrap;padding-block:8px}
-.mark{display:grid;gap:3px;text-decoration:none;color:var(--white)}
-.mark::before{content:"";width:22px;height:3px;background:var(--orange)}
-.mark b{font-weight:700;font-size:18px;letter-spacing:.06em;line-height:1}
+.mark{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--on-navy)}
+.mark img{height:40px;width:auto}
+.mark span{display:grid;gap:4px;padding-left:12px;border-left:1px solid var(--gold)}
+.mark b{font-family:var(--serif);font-weight:500;font-size:21px;letter-spacing:.01em;line-height:1}
 .mark small{font-size:10px;font-weight:600;letter-spacing:.3em;color:var(--on-navy-muted);line-height:1}
+.hero-logo{width:min(380px,100%);height:auto;margin-bottom:28px}
 nav ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px 22px}
 nav a{color:var(--on-navy);text-decoration:none;font-size:14px;font-weight:500;letter-spacing:.02em;padding:6px 0;border-bottom:2px solid transparent}
 nav a:hover{color:var(--white);border-bottom-color:var(--orange)}
@@ -216,7 +219,7 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
 
 <header class="bar">
   <div class="wrap">
-    <a class="mark" href="#top" aria-label="Lyn Hall, home"><b>LYN HALL</b><small>SECURITY &amp; GRC</small></a>
+    <a class="mark" href="#top" aria-label="Lyn Hall, Security and GRC, home"><img src="assets/logo-mark-reversed.webp" alt="" width="98" height="112"><span><b>Lyn Hall</b><small>SECURITY &amp; GRC</small></span></a>
     <nav aria-label="Main">
       <ul>
         <li><a href="#approach">Approach</a></li>
@@ -232,6 +235,7 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
   <div class="hero" id="top">
     <div class="wrap">
       <div>
+        <img class="hero-logo" src="assets/logo-lockup-reversed.webp" alt="Lyn Hall, Security &amp; GRC, AI Portfolio" width="804" height="240">
         <span class="eyebrow">Cybersecurity &amp; GRC Leader · AI Builder</span>
         <h1>Practical AI tools for <em>security and compliance</em> work.</h1>
         <p class="lede">I build security programs in regulated industries, and I use AI to make that work faster and more reliable. These are four tools I designed and directed with Claude. Each one keeps people in charge of decisions, keeps sensitive data where it belongs, and is clear about what it does not know.</p>
