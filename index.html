@@ -281,7 +281,7 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
           <div class="card-top"><span class="pid">AI-01</span><span class="status">In use</span></div>
           <h3>Incident Scoring System</h3>
           <p>Scores cybersecurity and physical security incidents from 0 to 100, sets the priority, and produces an evidence-ready PDF and a status update.</p>
-          <div class="tags"><span>Incident response</span><span>Offline web app</span></div>
+          <div class="tags"><span>Incident response</span><span>Google Workspace app</span><span>Offline web app</span></div>
           <span class="more">View project</span>
         </a>
         <a class="card" href="#virtual-ciso">
@@ -316,12 +316,12 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
         <div class="p-head">
           <div class="card-top"><span class="pid">AI-01</span><span class="status">In use</span></div>
           <h3 id="p1-h">Incident Scoring System</h3>
-          <p>A stand-alone scorecard that turns a responder's assessment into a 0 to 100 severity score, a priority level, an evidence-ready PDF, and a status update for the incident platform. It covers cybersecurity and physical security incidents and can be rebranded and re-weighted for any organization in minutes.</p>
+          <p>A stand-alone scorecard that turns a responder's assessment into a 0 to 100 severity score, a priority level, an evidence-ready PDF, and a status update for the incident platform. It covers cybersecurity and physical security incidents and can be rebranded and re-weighted for any organization in minutes. It now also runs as a Google app inside Google Workspace, with access limited to approved accounts and PDFs saved straight to a shared drive.</p>
         </div>
         <dl class="facts">
           <div><dt>Domain</dt><dd>Incident response, physical security</dd></div>
           <div><dt>Frameworks</dt><dd>NIST SP 800-61, CISA NCISS, ODNI threat framework, Purdue model</dd></div>
-          <div><dt>Delivered as</dt><dd>Single offline HTML file, PDF output, Claude Project branding kit</dd></div>
+          <div><dt>Delivered as</dt><dd>Google Workspace app or single offline HTML file, PDF output, Claude Project branding kit</dd></div>
         </dl>
         <div class="callout"><b>What the rebuild caught:</b> the legacy spreadsheet hard-coded its normalization range from an older set of weights. Its own sample incident scored 86.5 (Severe) when the correct result was 62.2 (Medium). The new tool recalculates the range whenever weights change.</div>
         <div class="shots">
@@ -337,12 +337,20 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
             <li>One-click status update for incident.io, Slack, or Teams, with a recommended platform severity</li>
           </ul></div>
           <div class="block"><h4>Safeguards</h4><ul>
-            <li>Runs offline in a browser with no server, account, or data sent anywhere</li>
+            <li>The offline edition runs in a browser with no server, account, or data sent anywhere</li>
+            <li>The Google Workspace edition limits use to approved Google accounts and saves PDFs to the organization's own shared drive</li>
             <li>Weights, options, and thresholds are editable per company, then can be locked in a distributed copy</li>
             <li>A Claude Project reads a company's brand guide and produces the branding file, with accessibility contrast checks and licensed-font rules</li>
             <li>Every PDF names who scored it, when, in which time zone, and what remains unconfirmed</li>
           </ul></div>
         </div>
+        <div class="block"><h4>Google Workspace edition</h4><ul>
+          <li>Runs as a Google app inside Google Workspace, so responders sign in with their existing Google accounts</li>
+          <li>Access is limited to the specific Google accounts the organization approves</li>
+          <li>A Settings button gives admins one place to change weights, options, thresholds, and branding</li>
+          <li>Setting changes take effect only after a second person approves them, keeping separation of duties between who edits and who approves</li>
+          <li>Settings link a Google shared drive folder, and every scorecard PDF is saved there automatically for the incident evidence record</li>
+        </ul></div>
         <div class="block"><h4>Sample status update</h4>
 <pre class="code">**INC-042 Cybersecurity scorecard (Subsequent): 62.2 / 100, Medium (Yellow)**
 Recommended incident.io severity: **SEV3**
@@ -357,7 +365,7 @@ Full scorecard: INC-042 Subsequent Scorecard 2026-10-10 1529 EDT.pdf (Incident E
           <a class="btn btn-cta" href="demo/incident-scorecard.html" target="_blank" rel="noopener">Try the live demo</a>
           <span class="note">Fully interactive, including PDF download. Opens in a new tab.</span>
         </div>
-        <div class="tags"><span>HTML / JavaScript</span><span>jsPDF</span><span>Claude</span><span>Claude Projects</span><span>Playwright testing</span></div>
+        <div class="tags"><span>HTML / JavaScript</span><span>Google Workspace</span><span>Google shared drives</span><span>jsPDF</span><span>Claude</span><span>Claude Projects</span><span>Playwright testing</span></div>
         <a class="back" href="#projects">Back to all projects</a>
       </article>
 
