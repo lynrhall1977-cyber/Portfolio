@@ -9,7 +9,7 @@
  * #toggle-goatcounter at the end of the address on each browser you use.
  */
 (function () {
-  var code = '';
+  var code = 'lynrhall1977';
   if (!/^[a-z0-9-]+$/i.test(code)) return;
   var s = document.createElement('script');
   s.async = true;
