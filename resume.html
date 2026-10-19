@@ -181,7 +181,7 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
 
 /* print: a clean, ink-light resume when saved as PDF */
 @media print{
-  @page{margin:0.55in 0.6in}
+  @page{margin:0.5in 0.55in}
   body{background:#fff;color:#1f2633;font-size:9.8pt;line-height:1.38}
   h2,h3,.sec-head{break-after:avoid-page}
   li{break-inside:avoid}
@@ -229,7 +229,10 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
   .chips span:not(:last-child)::after{content:"; "}
   .legend{display:none}
   .two{display:block}
-  .panel{border:0;padding:0;margin-bottom:8px;gap:6px}
+  .panel{border:0;padding:0;margin-bottom:6px;gap:4px}
+  .panel ul{gap:1px;font-size:9.8pt}
+  .entry b{font-size:10.5pt}
+  .entry span{font-size:9.8pt}
   .panel h3::before{content:none}
   a{color:inherit;text-decoration:none}
 }
@@ -265,7 +268,7 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
         <div class="ctas">
           <a class="btn btn-cta" href="index.html#contact">Get in touch</a>
           <a class="btn btn-line" href="index.html#projects">View the AI portfolio</a>
-          <button class="btn btn-line" type="button" id="print-btn">Save as PDF</button>
+          <a class="btn btn-line" href="Lyn-Hall-Resume.pdf" download="Lyn Hall - Resume.pdf" type="application/pdf">Download PDF <span aria-hidden="true">&#8595;</span></a>
         </div>
       </div>
       <aside class="glance" aria-labelledby="glance-h">
@@ -530,6 +533,7 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
       <div class="ctas">
         <a class="btn btn-cta" href="index.html#contact">Send a message</a>
         <a class="btn btn-line" href="index.html#projects">See the AI work</a>
+        <a class="btn btn-line" href="Lyn-Hall-Resume.pdf" download="Lyn Hall - Resume.pdf" type="application/pdf">Download PDF</a>
       </div>
     </div>
   </section>
@@ -540,13 +544,11 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
 </footer>
 <script>
 (function(){
-  var b=document.getElementById('print-btn');
   var ds=[].slice.call(document.querySelectorAll('details')), was=[];
   function openAll(){ was=ds.map(function(d){return d.open}); ds.forEach(function(d){d.open=true}); }
   function restore(){ ds.forEach(function(d,i){d.open=was[i]}); }
   window.addEventListener('beforeprint',openAll);
   window.addEventListener('afterprint',restore);
-  if(b) b.addEventListener('click',function(){ window.print(); });
   ds.forEach(function(d){
     var s=d.querySelector('summary'), n=d.querySelectorAll('li').length;
     d.addEventListener('toggle',function(){ s.textContent=d.open?'Show fewer':'Show '+n+' more'; });
