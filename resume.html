@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lyn Hall | Resume</title>
+<meta name="description" content="Resume of Lyn R. Hall, cybersecurity and GRC leader with 12+ years in information security, IT, governance, risk, compliance, and business continuity.">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Montserrat:wght@400;500;600;700&display=swap">
+<style>
+/* Premium Technology brand palette v1.0 — matches index.html */
+:root{
+  --navy:#121B32; --cool:#F3F5F7; --peri:#6478A8; --gold:#C09A6B; --graphite:#343D50; --white:#FFFFFF;
+  --gray:#E3E7ED; --peri-tint:#E8ECF4; --rule:rgba(18,27,50,.12);
+  --on-navy:#F3F5F7; --on-navy-muted:#B9C3D6;
+  --sans:"Montserrat","Segoe UI",system-ui,Arial,sans-serif;
+  --serif:"EB Garamond",Garamond,"Times New Roman",serif;
+  --radius:10px; --max:1120px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{margin:0;background:var(--cool);color:var(--graphite);font-family:var(--sans);font-size:16px;line-height:1.65}
+img{max-width:100%;height:auto;display:block}
+h1,h2,h3,h4,p{margin:0}
+h1,h2,h3{text-wrap:balance;color:var(--navy)}
+a{color:var(--navy);text-decoration-color:var(--gold);text-decoration-thickness:2px;text-underline-offset:4px}
+a:hover{color:var(--peri)}
+:focus-visible{outline:3px solid var(--peri);outline-offset:3px;border-radius:2px}
+.wrap{max-width:var(--max);margin:0 auto;padding-inline:24px}
+.skip{position:absolute;left:-9999px;top:8px;background:var(--white);padding:8px 12px;z-index:100}
+.skip:focus{left:16px}
+
+/* top bar */
+.bar{position:sticky;top:0;z-index:50;background:var(--navy);color:var(--on-navy);border-bottom:2px solid var(--gold)}
+.bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px 24px;min-height:64px;flex-wrap:wrap;padding-block:8px}
+.mark{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--on-navy)}
+.mark img{height:40px;width:auto}
+.mark span{display:grid;gap:4px;padding-left:12px;border-left:1px solid var(--gold)}
+.mark b{font-family:var(--serif);font-weight:500;font-size:21px;letter-spacing:.01em;line-height:1}
+.mark small{font-size:10px;font-weight:600;letter-spacing:.3em;color:var(--on-navy-muted);line-height:1}
+.mark:hover{color:var(--white)}
+nav ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px 22px}
+nav a{color:var(--on-navy);text-decoration:none;font-size:14px;font-weight:500;letter-spacing:.02em;padding:6px 0;border-bottom:2px solid transparent}
+nav a:hover,nav a[aria-current="page"]{color:var(--white);border-bottom-color:var(--gold)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--sans);border-radius:var(--radius);padding:12px 22px;line-height:1.2;cursor:pointer;border:0;transition:background .15s,color .15s,border-color .15s}
+.btn-cta{background:var(--cool);color:var(--navy);font-size:16px;font-weight:700}
+.btn-cta:hover{background:var(--gold);color:var(--navy)}
+.btn-line{background:transparent;border:2px solid currentColor;font-size:15px;font-weight:600;color:var(--on-navy)}
+.btn-line:hover{background:var(--on-navy);color:var(--navy);border-color:var(--on-navy)}
+.ctas{display:flex;flex-wrap:wrap;gap:12px}
+
+/* hero */
+.hero{background:var(--navy);color:var(--on-navy)}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:48px;padding-block:64px 72px;align-items:start}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--on-navy-muted)}
+.hero h1{font-family:var(--serif);font-weight:400;font-size:clamp(44px,5.6vw,66px);line-height:1.04;color:var(--on-navy);margin:12px 0 14px}
+.headline{font-size:17px;font-weight:600;color:var(--gold);line-height:1.45;max-width:34em}
+.summary{font-size:16.5px;color:var(--on-navy);margin:22px 0 28px;max-width:40em}
+.glance{background:rgba(255,255,255,.05);border:1px solid rgba(192,154,107,.45);border-radius:var(--radius);padding:26px}
+.glance h2{font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--on-navy-muted);margin-bottom:18px}
+.glance dl{margin:0;display:grid;gap:16px}
+.glance dt{font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--on-navy-muted)}
+.glance dd{margin:3px 0 0;font-size:15px;color:var(--white)}
+
+/* stats strip */
+.stats{background:var(--white);border-bottom:1px solid var(--rule)}
+.stats ul{list-style:none;margin:0 auto;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.stats li{padding:26px 24px;border-left:1px solid var(--gray);display:grid;gap:4px;align-content:start}
+.stats li:first-child{border-left:0;padding-left:0}
+.stats b{font-family:var(--serif);font-weight:500;font-size:40px;line-height:1;color:var(--navy);font-variant-numeric:lining-nums}
+.stats span{font-size:14px;color:var(--graphite);line-height:1.45}
+
+/* sections */
+section.sec{padding-block:64px}
+section.sec+section.sec{border-top:1px solid var(--rule)}
+.sec-head{display:grid;gap:10px;margin-bottom:32px;max-width:46em}
+.sec-head .eyebrow{color:var(--graphite);display:flex;align-items:center;gap:10px}
+.sec-head .eyebrow::before{content:"";width:22px;height:2px;background:var(--gold)}
+.sec-head h2{font-weight:600;font-size:clamp(24px,2.6vw,30px);line-height:1.2}
+.sec-head p{font-size:16px}
+
+/* achievements */
+.wins{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;counter-reset:win}
+.wins li{counter-increment:win;background:var(--white);border:1px solid var(--rule);border-radius:var(--radius);padding:22px 24px 22px 70px;position:relative;font-size:15.5px}
+.wins li::before{content:counter(win,decimal-leading-zero);position:absolute;left:24px;top:20px;font-family:var(--serif);font-size:24px;color:var(--gold);line-height:1.2}
+.wins b{color:var(--navy);font-weight:600}
+
+/* experience */
+.role{display:grid;grid-template-columns:240px minmax(0,1fr);gap:32px;padding:32px 0;border-top:1px solid var(--rule)}
+.role:first-of-type{border-top:0;padding-top:0}
+.when{display:grid;gap:6px;align-content:start}
+.dates{font-size:13px;font-weight:600;letter-spacing:.06em;color:var(--navy);font-variant-numeric:tabular-nums;text-transform:uppercase}
+.org{font-size:14.5px;color:var(--graphite);line-height:1.45}
+.now{justify-self:start;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:999px;background:var(--navy);color:var(--white)}
+.what{display:grid;gap:14px;min-width:0}
+.what h3{font-weight:600;font-size:21px;line-height:1.25}
+.lead{font-size:15.5px}
+.what ul{margin:0;padding-left:20px;display:grid;gap:8px}
+.what li{font-size:15.5px}
+.what li::marker{color:var(--gold)}
+details{border-top:1px dashed var(--rule);padding-top:12px}
+summary{cursor:pointer;font-size:14px;font-weight:600;color:var(--navy);list-style:none;display:inline-flex;align-items:center;gap:8px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-size:18px;line-height:1;color:var(--gold)}
+details[open] summary::after{content:"\2212"}
+details ul{margin-top:12px!important}
+.related{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:4px}
+.related>span{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--graphite);margin-right:4px}
+.related a{font-size:13px;font-weight:500;text-decoration:none;padding:4px 12px;border-radius:999px;background:var(--peri-tint);border:1px solid rgba(100,120,168,.45);color:var(--navy)}
+.related a:hover{border-color:var(--peri);background:var(--white)}
+
+/* competencies */
+.comp{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.comp div{background:var(--white);border-radius:var(--radius);padding:22px;border-top:2px solid var(--gold);box-shadow:0 1px 2px rgba(18,27,50,.05)}
+.comp h3{font-size:16px;font-weight:600;margin-bottom:8px;line-height:1.3}
+.comp p{font-size:14.5px}
+
+/* skills */
+.skills{background:var(--white);border:1px solid var(--rule);border-radius:var(--radius);overflow:hidden}
+.skill-row{display:grid;grid-template-columns:240px minmax(0,1fr);gap:24px;padding:20px 24px;border-top:1px solid var(--gray)}
+.skill-row:first-child{border-top:0}
+.skill-row h3{font-size:13px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;line-height:1.5;padding-top:4px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips span{font-size:13.5px;font-weight:500;padding:5px 12px;border-radius:999px;background:var(--white);border:1px solid #C9CFD9;color:var(--navy)}
+.chips span.core{background:var(--peri-tint);border-color:rgba(100,120,168,.45)}
+.chips em{font-style:normal;color:var(--graphite);font-weight:400}
+.legend{font-size:13.5px;margin-top:12px;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:999px;vertical-align:-1px;margin-right:6px;border:1px solid rgba(100,120,168,.45);background:var(--peri-tint)}
+.legend i.plain{background:var(--white);border-color:#AEB6C4}
+
+/* education + certs */
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.panel{background:var(--white);border:1px solid var(--rule);border-radius:var(--radius);padding:26px;display:grid;gap:18px;align-content:start}
+.panel h3{font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.panel h3::before{content:"";width:14px;height:2px;background:var(--gold)}
+.entry{display:grid;gap:2px}
+.entry b{color:var(--navy);font-weight:600;font-size:16px}
+.entry span{font-size:14.5px}
+.panel ul{margin:0;padding-left:20px;display:grid;gap:8px;font-size:15px}
+.panel li::marker{color:var(--gold)}
+.extra{margin-top:20px}
+
+/* closing band */
+.close{background:var(--navy);color:var(--on-navy)}
+.close .wrap{padding-block:56px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:24px}
+.close h2{font-family:var(--serif);font-weight:400;font-size:clamp(34px,4vw,48px);color:var(--on-navy)}
+.close p{color:var(--on-navy-muted);margin-top:6px;max-width:34em}
+footer{background:var(--navy);color:var(--on-navy-muted);border-top:1px solid rgba(192,154,107,.35);font-size:13px}
+footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px}
+.print-only{display:none}
+
+@media (max-width:960px){
+  .hero .wrap{grid-template-columns:1fr;gap:32px;padding-block:48px 56px}
+  .stats ul{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stats li:nth-child(3){border-left:0;padding-left:0}
+  .stats li:nth-child(n+3){border-top:1px solid var(--gray)}
+  .comp{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .role{grid-template-columns:1fr;gap:12px}
+  .skill-row{grid-template-columns:1fr;gap:10px}
+}
+@media (max-width:720px){
+  .wrap{padding-inline:16px}
+  section.sec{padding-block:48px}
+  .wins,.comp,.two{grid-template-columns:1fr}
+  .stats ul{grid-template-columns:1fr}
+  .stats li{border-left:0!important;padding:18px 0!important;border-top:1px solid var(--gray)}
+  .stats li:first-child{border-top:0}
+  nav ul{gap:2px 16px}
+  nav a{font-size:13px}
+  html{scroll-padding-top:110px}
+  .wins li{padding:20px 20px 20px 62px}
+  .wins li::before{left:20px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+
+/* print: a clean, ink-light resume when saved as PDF */
+@media print{
+  @page{margin:0.55in 0.6in}
+  body{background:#fff;color:#1f2633;font-size:9.8pt;line-height:1.38}
+  h2,h3,.sec-head{break-after:avoid-page}
+  li{break-inside:avoid}
+  .bar,.ctas,.close,footer,.related,.skip,summary{display:none!important}
+  .print-only{display:block}
+  details{border:0;padding:0}
+  details>ul{margin-top:8px!important}
+  .wrap{max-width:none;padding:0}
+  .hero{background:#fff;color:#1f2633;border-bottom:2px solid var(--gold)}
+  .hero .wrap{display:block;padding:0 0 14px}
+  .hero h1{color:var(--navy);font-size:30pt;margin:0 0 4px}
+  .eyebrow{display:none}
+  .headline{color:var(--navy);font-size:11pt}
+  .summary{color:#1f2633;margin:8px 0 0;font-size:9.8pt;max-width:none}
+  .glance{display:none}
+  .stats{display:none}
+  section.sec{padding:10px 0 0;border:0!important;background:#fff!important}
+  .sec-head{margin-bottom:8px}
+  .sec-head .eyebrow{display:none}
+  .sec-head h2{font-size:12pt;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid #c9ced8;padding-bottom:3px}
+  .sec-head p{display:none}
+  .wins{display:block;padding-left:18px;list-style:disc}
+  .wins li{background:none;border:0;padding:0;margin:0 0 4px;font-size:9.8pt;display:list-item}
+  .wins li::before{content:none}
+  .role{display:block;padding:6px 0;border:0}
+  .when,.what h3{break-after:avoid-page}
+  .role.short{break-inside:avoid-page}
+  .when{display:flex;flex-wrap:wrap;gap:4px 12px;margin-bottom:2px}
+  .now{display:none}
+  .what{gap:4px}
+  .what h3{font-size:11.5pt}
+  .what li,.lead{font-size:9.8pt}
+  .what ul{gap:2px}
+  .comp{display:block}
+  .comp div{background:none;border:0;box-shadow:none;padding:0;margin-bottom:4px}
+  .comp h3{display:inline;font-size:9.8pt}
+  .comp h3::after{content:" — "}
+  .comp p{display:inline;font-size:9.8pt}
+  .skills{border:0}
+  .skill-row{display:block;padding:3px 0;border:0;break-inside:avoid}
+  .skill-row h3{display:inline;font-size:10pt;letter-spacing:0;text-transform:none}
+  .skill-row h3::after{content:": "}
+  .chips{display:inline}
+  .chips span{display:inline;background:none!important;border:0;padding:0;font-size:9.8pt}
+  .chips span:not(:last-child)::after{content:"; "}
+  .legend{display:none}
+  .two{display:block}
+  .panel{border:0;padding:0;margin-bottom:8px;gap:6px}
+  .panel h3::before{content:none}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="bar">
+  <div class="wrap">
+    <a class="mark" href="index.html" aria-label="Lyn Hall, Security and GRC, portfolio home"><img src="assets/logo-mark-reversed.webp" alt="" width="98" height="112"><span><b>Lyn Hall</b><small>SECURITY &amp; GRC</small></span></a>
+    <nav aria-label="Main">
+      <ul>
+        <li><a href="index.html#projects">AI Portfolio</a></li>
+        <li><a href="resume.html" aria-current="page">Resume</a></li>
+        <li><a href="#experience">Experience</a></li>
+        <li><a href="#skills">Skills</a></li>
+        <li><a href="index.html#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="hero" id="top">
+    <div class="wrap">
+      <div>
+        <span class="eyebrow">Resume</span>
+        <h1>Lyn R. Hall</h1>
+        <p class="headline">Cybersecurity &amp; GRC Leader | Governance, Risk, Compliance, Business Continuity &amp; Security Operations</p>
+        <p class="print-only" style="margin-top:6px;font-size:10pt">Waldoboro, Maine · Remote · lynrhall1977-cyber.github.io/Portfolio</p>
+        <p class="summary">Cybersecurity and GRC leader with 12+ years in information security and 10+ years owning governance, risk, and compliance programs end to end. Carried CISO-level and director-level responsibilities without the title at two global SaaS companies, often as the only IT and security person in the department, and builds programs designed to run without a single point of failure. Coordinated multiple federal regulatory examinations as first-line owner, activated an enterprise business continuity plan in live production during COVID-19, and has owned SOC 2 Type II and PCI DSS audits solo. Builds AI governance under the NIST AI RMF and the EU AI Act, and builds working AI agents that turn reactive security work into scheduled, repeatable reporting.</p>
+        <div class="ctas">
+          <a class="btn btn-cta" href="index.html#contact">Get in touch</a>
+          <a class="btn btn-line" href="index.html#projects">View the AI portfolio</a>
+          <button class="btn btn-line" type="button" id="print-btn">Save as PDF</button>
+        </div>
+      </div>
+      <aside class="glance" aria-labelledby="glance-h">
+        <h2 id="glance-h">At a glance</h2>
+        <dl>
+          <div><dt>Current role</dt><dd>Security Engineering Manager, global SaaS company</dd></div>
+          <div><dt>Operating model</dt><dd>Often the only IT and security person, building departments with no single point of failure</dd></div>
+          <div><dt>Industries</dt><dd>Federally regulated banking, state government, global SaaS</dd></div>
+          <div><dt>Education</dt><dd>MS Cybersecurity, 4.0 GPA · BS Computer Information Science</dd></div>
+          <div><dt>Location</dt><dd>Waldoboro, Maine · Remote</dd></div>
+        </dl>
+      </aside>
+    </div>
+  </div>
+
+  <div class="stats" aria-label="Career highlights">
+    <ul class="wrap">
+      <li><b>12+</b><span>years in cybersecurity and IT</span></li>
+      <li><b>10+</b><span>years owning GRC programs end to end</span></li>
+      <li><b>5</b><span>years as primary owner of SOC 2 and PCI DSS</span></li>
+      <li><b>67% → 87%</b><span>on-time security training completion after one quarter</span></li>
+    </ul>
+  </div>
+
+  <section class="sec" id="achievements" aria-labelledby="ach-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Key achievements</span>
+        <h2 id="ach-h">Selected results</h2>
+      </div>
+      <ol class="wins">
+        <li><b>Built the security and GRC program from zero</b> at a PE-owned SaaS company, covering policy, controls, risk register, third-party risk, and AI governance, as sole owner and hands-on operator.</li>
+        <li><b>Coordinated multiple OCC regulatory examinations</b> as first-line owner and primary examiner point of contact.</li>
+        <li><b>Activated an enterprise BC/DR program in live production</b> during COVID-19, keeping a state agency running across facilities, systems, and a suddenly remote workforce.</li>
+        <li><b>Owned SOC 2 Type II and PCI DSS compliance</b> through full audit cycles as the sole compliance owner.</li>
+        <li><b>Raised on-time security awareness training completion from 67% to 87%</b> after one quarter and moved human and phishing risk from moderate to low.</li>
+        <li><b>Built a weekly cyber threat analysis agent</b> that compares CVEs with the company's tech stack, scores severity, and delivers remediation reports. It replaced a single CVE feed no one reviewed.</li>
+        <li><b>Built a custom incident scoring system</b> based on CISA's National Cyber Incident Scoring System (NCISS), with baseline, medium, and high/critical escalation tiers.</li>
+        <li><b>Consolidated the tech stack</b> and unified identity providers and mobile device management (MDM) platforms during a major acquisition.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="sec" id="experience" aria-labelledby="exp-h" style="background:var(--white)">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Professional experience</span>
+        <h2 id="exp-h">Where I've built programs</h2>
+        <p>Employer names are withheld on this public page. Full details are available on request.</p>
+      </div>
+
+      <article class="role">
+        <div class="when">
+          <span class="dates">Nov 2024 – Present</span>
+          <span class="org">Global SaaS company, private equity–owned · Remote</span>
+          <span class="now">Current</span>
+        </div>
+        <div class="what">
+          <h3>Security Engineering Manager</h3>
+          <p class="lead">Report to the CTO and the private equity firm's CISO; manage one direct report.</p>
+          <ul>
+            <li>Lead the SOC 2 Type I program build on a 67-task roadmap, starting with governance and a policy commitment reconciliation register.</li>
+            <li>Own PCI DSS compliance (SAQ A), including the PCI DSS 4.0 future-dated requirements that became mandatory in March 2025.</li>
+            <li>Deployed and tuned SentinelOne EDR and set up MDR coverage for macOS and Windows endpoints, where neither existed before.</li>
+            <li>Classified AI systems by EU AI Act risk tier and built AI policy and controls to meet its requirements and the NIST AI RMF.</li>
+            <li>Built vCISO-style GRC and contingency-leader AI agents for drafting policies and standards, contingency planning, incident scoring, and suspicious-email investigation.</li>
+          </ul>
+          <details>
+            <summary>Show 6 more</summary>
+            <ul>
+              <li>Configured and rolled out Microsoft Intune for macOS and Windows. When Engineering pushed back on losing Time Machine backups, built a separate approved-exception policy for encrypted, company-owned USB backups, so a replacement laptop is working in 1–2 hours instead of a full day.</li>
+              <li>Expanded SSO/SAML/SCIM to Google Workspace as the authoritative identity provider and configured MFA, data loss prevention (DLP), sharing restrictions, and alert center monitoring.</li>
+              <li>Built user access reviews from scratch: identity provider to HRIS reconciliation, terminated-account cleanup, and management-confirmed privileged access reviews.</li>
+              <li>Wrote trust boundary overviews and diagrams for company products.</li>
+              <li>Negotiated vendor contracts to secure more favorable pricing, saving 10–15% on average.</li>
+              <li>Built a repeatable device procurement and lifecycle process; complete annual cyber insurance renewal questionnaires and pre-acquisition security due diligence.</li>
+            </ul>
+          </details>
+          <div class="related"><span>Related AI work</span><a href="index.html#incident-scoring">Incident Scoring System</a><a href="index.html#virtual-ciso">Virtual CISO Kit</a><a href="index.html#cve-intelligence">Weekly CVE Intelligence</a></div>
+        </div>
+      </article>
+
+      <article class="role">
+        <div class="when">
+          <span class="dates">Apr 2021 – Sep 2024</span>
+          <span class="org">Global SaaS company, acquired during tenure</span>
+        </div>
+        <div class="what">
+          <h3>IT Security &amp; Compliance Manager</h3>
+          <ul>
+            <li>Ran each annual audit cycle in 6–8 weeks: assigned evidence requests to control owners, held live evidence-collection sessions when requests stalled, and escalated to management only after that.</li>
+            <li>Implemented SSO/SAML/SCIM on Microsoft Entra ID.</li>
+            <li>Configured Thoropass and Scrut integrations with the identity provider and cloud providers to automate evidence collection, and mapped controls across frameworks to reuse evidence.</li>
+            <li>Served as primary point of contact for enterprise security questionnaires, SIG questionnaires, customer due diligence, and RFP security response.</li>
+            <li>Handled GDPR and CCPA requirements: customer data processing agreements, data subject requests, and privacy policies and notices.</li>
+          </ul>
+          <details>
+            <summary>Show 9 more</summary>
+            <ul>
+              <li>Brought HIPAA protected health information (PHI) security to audit readiness; the audit was dropped after the acquisition. Contributed to HITRUST certification planning with FDA 21 CFR Part 11 relevance.</li>
+              <li>Supported FedRAMP and Canadian Protected B efforts at the coordination level, and reviewed NIST SP 800-171 for customers holding government contracts.</li>
+              <li>Reviewed threat models and secure design with Engineering so security was built into the product during development.</li>
+              <li>Coordinated on-premises and cloud penetration tests and tracked findings to closure; designed immutable and geo-redundant backups and ran restore tests.</li>
+              <li>Managed PCI DSS vulnerability scanning in Qualys, documenting false positives and reporting risk-prioritized remediation to IT.</li>
+              <li>Ran the KnowBe4 security awareness program and monthly role-based phishing campaigns, and won CFO approval for KnowBe4 PhishER by framing it as a headcount decision.</li>
+              <li>Configured Microsoft Intune as the MDM platform for macOS and Windows, ran help desk, and built a repeatable device procurement and lifecycle process.</li>
+              <li>Negotiated vendor contracts to secure more favorable pricing, saving 10–15% on average.</li>
+              <li>Completed cyber insurance renewal questionnaires and pre-acquisition security due diligence; administered SharePoint, Salesforce (basic administration and access audits), and Jira.</li>
+            </ul>
+          </details>
+        </div>
+      </article>
+
+      <article class="role short">
+        <div class="when">
+          <span class="dates">May 2019 – Apr 2021</span>
+          <span class="org">State government agency · Maine</span>
+        </div>
+        <div class="what">
+          <h3>Business Continuity Planner</h3>
+          <ul>
+            <li>Led incident response at the coordination and decision-making level, including on-premises physical drills and virtual tabletop exercises.</li>
+            <li>Conducted business impact analyses and risk assessments; designed and delivered preparedness training and tabletop exercises.</li>
+            <li>Performed internal audits and control testing of IT systems, managed POA&amp;Ms through remediation, and developed the agency's crisis communications plans.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="role">
+        <div class="when">
+          <span class="dates">Jul 2014 – May 2019</span>
+          <span class="org">Federally regulated bank, OCC-supervised · Maine</span>
+        </div>
+        <div class="what">
+          <h3>Assistant Vice President of IT</h3>
+          <ul>
+            <li>Owned IT and security end to end, including device management, IAM, help desk, and security awareness training with phishing simulations, with one direct report and a managed service provider (MSP).</li>
+            <li>Built the bank's joiner/mover/leaver process to address OCC examiners' access-management concerns.</li>
+            <li>Rewrote IT and security policies on NIST SP 800-53, replacing policies that followed no framework.</li>
+            <li>Reported IT and security metrics to the board of directors, including joiner/mover/leaver time to completion.</li>
+          </ul>
+          <details>
+            <summary>Show 4 more</summary>
+            <ul>
+              <li>Managed third-party and vendor risk, served as primary point of contact for internal and external IT audits, and took part in pre-acquisition security due diligence.</li>
+              <li>Owned or co-owned elements of the Bank Secrecy Act/anti-money laundering (BSA/AML) program and completed the FFIEC questionnaire.</li>
+              <li>Coordinated penetration tests and tracked findings to closure; designed immutable and geo-redundant backups and ran restore tests.</li>
+              <li>Built and tested BC/DR plans, and led physical security operations: access control, video surveillance, and guard and vendor management.</li>
+            </ul>
+          </details>
+        </div>
+      </article>
+
+      <article class="role short">
+        <div class="when">
+          <span class="dates">Mar 2010 – Jul 2014</span>
+          <span class="org">Financial services firm · Maine</span>
+        </div>
+        <div class="what">
+          <h3>Quality Analyst</h3>
+          <ul>
+            <li>Delivered quality assurance and quality-control review for financial-services client operations and coached staff.</li>
+          </ul>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="sec" id="competencies" aria-labelledby="comp-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Core competencies</span>
+        <h2 id="comp-h">What I own</h2>
+      </div>
+      <div class="comp">
+        <div><h3>GRC program ownership</h3><p>Zero-to-one program builds, SOC 2 Type I and Type II, PCI DSS 4.0, ISO 27001-aligned controls, cross-framework control mapping, continuous audit readiness</p></div>
+        <div><h3>Regulatory examination &amp; audit</h3><p>OCC examinations, internal audits and control testing, evidence management, POA&amp;Ms</p></div>
+        <div><h3>Privacy &amp; AI regulation</h3><p>GDPR, CCPA, EU AI Act risk-tier classification, NIST AI RMF, AI acceptable-use policy and vendor AI evaluation</p></div>
+        <div><h3>Business continuity &amp; DR</h3><p>Live production activation, business impact analysis, NIST SP 800-34, crisis communications, tabletop exercises, restore testing</p></div>
+        <div><h3>Risk management</h3><p>Risk register ownership, KRI/KPI development, NIST SP 800-37 RMF, third-party risk, SIG questionnaires, M&amp;A security due diligence</p></div>
+        <div><h3>Identity &amp; access</h3><p>SSO, SAML, and SCIM; joiner/mover/leaver processes; user and privileged access reviews</p></div>
+        <div><h3>Security operations</h3><p>Incident response leadership, EDR, MDR, vulnerability management, penetration test coordination, phishing simulation</p></div>
+        <div><h3>Executive communication</h3><p>Board reporting, customer due diligence, RFP security response</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="skills" aria-labelledby="skills-h" style="background:var(--white)">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Frameworks, tools &amp; platforms</span>
+        <h2 id="skills-h">Technical skills</h2>
+        <p>Depth is labeled honestly. Shaded items are ones I've owned or used hands-on in production.</p>
+      </div>
+      <div class="skills">
+        <div class="skill-row"><h3>Frameworks &amp; regulations</h3><div class="chips">
+          <span class="core">SOC 2 Type I &amp; II</span><span class="core">PCI DSS v4.0.1 <em>(SAQ A)</em></span><span class="core">NIST CSF</span><span class="core">NIST SP 800-53</span><span class="core">NIST SP 800-37 RMF</span><span class="core">NIST SP 800-34</span><span class="core">NIST AI RMF</span><span class="core">EU AI Act</span><span class="core">GDPR</span><span class="core">CCPA</span><span class="core">BSA/AML</span><span>ISO 27001-aligned <em>(supported one certification through audit)</em></span><span>NIST SP 800-171 <em>(reviewed)</em></span><span>HIPAA <em>(readiness)</em></span><span>HITRUST <em>(planning)</em></span><span>FFIEC <em>(questionnaire)</em></span><span>FedRAMP, CMMC, Canadian Protected B <em>(coordination)</em></span><span>Federal SSPs <em>(team contributor)</em></span>
+        </div></div>
+        <div class="skill-row"><h3>Identity &amp; access</h3><div class="chips">
+          <span class="core">SSO / SAML / SCIM</span><span class="core">Microsoft Entra ID</span><span class="core">Google Workspace admin security</span><span class="core">Joiner/mover/leaver</span><span class="core">Access certification reviews</span><span>Entra conditional access <em>(working)</em></span>
+        </div></div>
+        <div class="skill-row"><h3>Endpoint &amp; security tools</h3><div class="chips">
+          <span class="core">SentinelOne</span><span class="core">Microsoft Intune <em>(macOS &amp; Windows)</em></span><span class="core">Microsoft Defender for Endpoint &amp; Cloud</span><span class="core">Qualys</span><span class="core">KnowBe4 &amp; PhishER</span><span class="core">Webroot</span><span class="core">Imperva</span>
+        </div></div>
+        <div class="skill-row"><h3>Infrastructure &amp; recovery</h3><div class="chips">
+          <span class="core">Immutable &amp; geo-redundant backup design</span><span>Azure Site Recovery <em>(working)</em></span><span>Veeam <em>(working)</em></span><span>VMware <em>(working)</em></span><span>Storage replication <em>(working)</em></span>
+        </div></div>
+        <div class="skill-row"><h3>Cloud &amp; automation</h3><div class="chips">
+          <span class="core">Microsoft Azure security</span><span class="core">Custom AI agents</span><span class="core">Google Workspace apps</span><span class="core">Python <em>(access review analysis)</em></span><span class="core">PowerShell <em>(endpoint provisioning)</em></span><span>GCP Security Command Center</span><span>AWS <em>(working)</em></span>
+        </div></div>
+        <div class="skill-row"><h3>GRC &amp; business platforms</h3><div class="chips">
+          <span class="core">OnSpring</span><span class="core">Thoropass</span><span class="core">Scrut</span><span class="core">Jira</span><span class="core">SharePoint</span><span class="core">GitHub</span><span>Salesforce <em>(basic administration)</em></span>
+        </div></div>
+      </div>
+      <p class="legend"><span><i></i>Owned or hands-on in production</span><span><i class="plain"></i>Supporting, coordination, or working-level experience</span></p>
+    </div>
+  </section>
+
+  <section class="sec" id="education" aria-labelledby="edu-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Education &amp; credentials</span>
+        <h2 id="edu-h">Education and certifications</h2>
+      </div>
+      <div class="two">
+        <div class="panel">
+          <h3>Education</h3>
+          <div class="entry"><b>Master of Science in Cybersecurity</b><span>University of Maine at Augusta · May 2022 · 4.0 GPA</span></div>
+          <div class="entry"><b>Bachelor of Science in Computer Information Science</b><span>Concentration in Information Security · University of Maine at Augusta · May 2019 · 3.61 GPA, Dean's List (4 years)</span></div>
+        </div>
+        <div class="panel">
+          <h3>Certifications</h3>
+          <ul>
+            <li>Microsoft AZ-500, Azure Security Technologies</li>
+            <li>Microsoft SC-900, Security, Compliance &amp; Identity Fundamentals</li>
+            <li>Certified OnSpring Administrator</li>
+            <li>FEMA Professional Continuity Practitioner (Continuity Excellence Series, Level I)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="panel extra">
+        <h3>Additional capabilities beyond my current role</h3>
+        <ul>
+          <li><b>Physical security operations:</b> access control systems, CCTV and video surveillance, guard and vendor management</li>
+          <li><b>Large-scale BC/DR:</b> live production activation and multi-facility coordination at state-agency scale</li>
+          <li><b>Digital forensics and incident investigation:</b> root-cause and scope determination</li>
+          <li><b>Statistics and data analysis:</b> academic coursework foundation, applied occasionally throughout my career</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="close" aria-labelledby="close-h">
+    <div class="wrap">
+      <div>
+        <h2 id="close-h">Let's talk</h2>
+        <p>Open to remote security and GRC leadership roles. Send a note through the portfolio and I'll reply by email.</p>
+      </div>
+      <div class="ctas">
+        <a class="btn btn-cta" href="index.html#contact">Send a message</a>
+        <a class="btn btn-line" href="index.html#projects">See the AI work</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap"><span>© 2026 Lyn Hall</span><span>Designed and directed by Lyn Hall. Built with Claude. Employer details are anonymized.</span></div>
+</footer>
+<script>
+(function(){
+  var b=document.getElementById('print-btn');
+  var ds=[].slice.call(document.querySelectorAll('details')), was=[];
+  function openAll(){ was=ds.map(function(d){return d.open}); ds.forEach(function(d){d.open=true}); }
+  function restore(){ ds.forEach(function(d,i){d.open=was[i]}); }
+  window.addEventListener('beforeprint',openAll);
+  window.addEventListener('afterprint',restore);
+  if(b) b.addEventListener('click',function(){ window.print(); });
+  ds.forEach(function(d){
+    var s=d.querySelector('summary'), n=d.querySelectorAll('li').length;
+    d.addEventListener('toggle',function(){ s.textContent=d.open?'Show fewer':'Show '+n+' more'; });
+  });
+})();
+</script>
+</body>
+</html>
