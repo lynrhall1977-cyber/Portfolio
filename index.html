@@ -91,6 +91,7 @@ section.sec+section.sec{border-top:1px solid var(--rule)}
 
 /* project overview */
 .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.cards>.card:last-child:nth-child(odd){grid-column:1/-1}
 .card{background:var(--white);border:1px solid var(--rule);border-radius:var(--radius);padding:26px;display:flex;flex-direction:column;gap:12px;text-decoration:none;color:var(--ink);transition:border-color .15s,transform .15s,box-shadow .15s}
 .card:hover{color:var(--ink);border-color:var(--peri);transform:translateY(-2px);box-shadow:0 6px 18px rgba(18,27,50,.07)}
 .card-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -279,7 +280,7 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
     <div class="wrap">
       <div class="sec-head">
         <span class="eyebrow">Projects</span>
-        <h2 id="projects-h">Four tools, one standard</h2>
+        <h2 id="projects-h">Five tools, one standard</h2>
         <p>Choose a project to read how it works, what it produces, and the safeguards built into it.</p>
       </div>
       <div class="cards">
@@ -309,6 +310,13 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
           <h3>Career Operations System</h3>
           <p>Runs a senior job search as a managed program, with a standard intake, written fit decisions, and quality-checked documents.</p>
           <div class="tags"><span>Document automation</span><span>Claude Project</span></div>
+          <span class="more">View project</span>
+        </a>
+        <a class="card" href="#homeschool-gradebook">
+          <div class="card-top"><span class="pid">AI-05</span><span class="status">In use</span></div>
+          <h3>Homeschool Gradebook &amp; Records</h3>
+          <p>A sign-in web app that reads curriculum workbooks, schedules every lesson on the school calendar, and produces print-ready report cards, attendance records, and reading logs.</p>
+          <div class="tags"><span>Records management</span><span>Supabase</span><span>Web app</span></div>
           <span class="more">View project</span>
         </a>
       </div>
@@ -518,6 +526,54 @@ Full scorecard: INC-042 Subsequent Scorecard 2026-10-10 1529 EDT.pdf (Incident E
           <li>Banned filler verbs, and bullets of varied length so the writing reads as a person's</li>
         </ul></div>
         <div class="tags"><span>Claude Projects</span><span>Word (.docx) generation</span><span>ATS verification</span></div>
+        <a class="back" href="#projects">Back to all projects</a>
+      </article>
+
+      <article class="project" id="homeschool-gradebook" aria-labelledby="p5-h">
+        <div class="p-head">
+          <div class="card-top"><span class="pid">AI-05</span><span class="status">In use</span></div>
+          <h3 id="p5-h">Homeschool Gradebook &amp; Records</h3>
+          <p>A gradebook and records system for a family homeschool, built for two adults who share the school day. It turns a first day and a number of school days into a calendar with quarters, reads the year's curriculum workbooks to schedule every lesson and test, and keeps grades, attendance, and a reading log in one place. Report cards and records print on letter paper for the state-required portfolio. It runs as a sign-in web app with a private cloud database, so both adults see the same gradebook on any device.</p>
+        </div>
+        <dl class="facts">
+          <div><dt>Domain</dt><dd>Education records, portfolio documentation</dd></div>
+          <div><dt>Data protection</dt><dd>Email sign-in, members-only row-level security, conflict-checked saves</dd></div>
+          <div><dt>Delivered as</dt><dd>Web app on GitHub Pages with a Supabase database, letter-size PDF output, offline single-file edition</dd></div>
+        </dl>
+        <div class="callout"><b>What testing caught:</b> run against the real spelling workbook, the first importer found 45 tests and no practice pages, because practice pages mention the weekly test in their instructions. Detection now reads only the page header. All five workbooks were then re-run: 98 lessons and 10 unit tests each for science and social studies, and 144 practice pages and 36 tests for spelling.</div>
+        <div class="shots">
+          <figure><img src="assets/gradebook-app.webp" alt="Gradebook overview showing the current quarter, a quarter timeline, attendance, and letter grades by subject for each quarter" width="1300" height="1000" loading="lazy"><figcaption>Overview with quarter grades (sample student)</figcaption></figure>
+          <figure><img src="assets/gradebook-report-card.webp" alt="Printed quarter 1 report card with grades by subject, attendance, teacher comments, the grading scale, and signature lines" width="842" height="1107" loading="lazy"><figcaption>Quarter report card, ready for the portfolio</figcaption></figure>
+        </div>
+        <div class="two">
+          <div class="block"><h4>What it does</h4><ul>
+            <li>Builds the school calendar from a first day and a number of school days, skipping weekends and the holidays the family chooses, then splits the year into quarters</li>
+            <li>Reads curriculum workbooks (PDF, Word, Excel, or CSV) by their page labels, such as Cycle / Lesson / Day or Unit / Lesson / Week / Day, and places each lesson on its school day</li>
+            <li>Follows the family's rules: science and social studies on Monday, Wednesday, and Friday, and spelling tests alone on Friday, each moving to a nearby day when a holiday lands</li>
+            <li>Weighted grades by assignment type, with quarter and year averages and the family's own grading scale</li>
+            <li>Attendance, a reading log, and quarterly report cards, each printable or downloadable as a letter-size PDF</li>
+            <li>Starts a new school year with one button and keeps past years available to open, view, and print</li>
+          </ul></div>
+          <div class="block"><h4>Safeguards</h4><ul>
+            <li>Row-level security in the database: only signed-in emails on the gradebook's member list can read or save it, and signed-out visitors get nothing</li>
+            <li>Public sign-ups are off, and the database has no insert or delete rules for the web page, so members are added only by the owner in the database console</li>
+            <li>Only the public, publishable key is in the page; the service key that bypasses security is never used</li>
+            <li>Every save checks a revision number, so two people editing at once never silently overwrite each other's work</li>
+            <li>Signing out clears the copy kept in the browser, and past school years open read-only</li>
+            <li>No student names or grades are in the public code; the demo uses a fictional student</li>
+          </ul></div>
+        </div>
+        <div class="block"><h4>How it was verified</h4><ul>
+          <li>Each real workbook was run through the same PDF library the browser loads, and the lesson and test counts were checked against each book's scope and sequence</li>
+          <li>Lesson placement was checked week by week against the real calendar, including Thanksgiving, winter break, and a first week that starts on a Tuesday</li>
+          <li>Sign-in, two-device sync, simultaneous edits, past-year viewing, and sign-out were tested against a stand-in database that enforces the same access rules</li>
+          <li>Report cards, attendance records, and reading logs were printed to letter-size PDFs and page-counted, which caught a report card that spilled onto a second page</li>
+        </ul></div>
+        <div class="actions">
+          <a class="btn btn-cta" href="demo/homeschool-gradebook.html" target="_blank" rel="noopener">Try the live demo</a>
+          <span class="note">Sample data for a fictional student. Runs in your browser; nothing is sent anywhere. Opens in a new tab.</span>
+        </div>
+        <div class="tags"><span>HTML / JavaScript</span><span>Supabase</span><span>PostgreSQL row-level security</span><span>GitHub Pages</span><span>pdf.js</span><span>jsPDF</span><span>Claude</span><span>Playwright testing</span></div>
         <a class="back" href="#projects">Back to all projects</a>
       </article>
 
