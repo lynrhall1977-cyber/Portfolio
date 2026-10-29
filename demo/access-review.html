@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Offboarding Access Review Demo</title>
-<meta name="description" content="Interactive demo of a quarterly user access review: orphaned accounts after termination, privileged access recertification, remediation tracking with security exceptions, and a PDF executive report. Sample data only.">
+<meta name="description" content="Interactive demo of a quarterly user access review: orphaned accounts after termination, privileged access recertification with owner confirmations by Slack, Teams or Google Chat, a permanent findings register, and a PDF executive report. Sample data only.">
 <link rel="icon" href="../assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,6 +35,7 @@
   --scrim:rgba(0,0,0,.55); --shadow:0 18px 50px rgba(0,0,0,.5); color-scheme:dark;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{background:var(--bg);color:var(--fg);font:14px/1.5 var(--font-ui);-webkit-font-smoothing:antialiased}
 .wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 56px;display:flex;flex-direction:column;gap:18px}
 h1,h2,h3{margin:0;text-wrap:balance}
@@ -60,6 +61,8 @@ button,select,input,textarea{font:inherit;color:inherit}
 .btn-ghost{border-color:transparent;background:transparent}
 .btn-danger{color:var(--crit);border-color:color-mix(in srgb,var(--crit) 45%,transparent)}
 .btn-sm{min-height:28px;padding:3px 9px;font-size:12px}
+a.btn{text-decoration:none;color:var(--fg)} a.btn.btn-primary{color:var(--on-accent)}
+.attest-wrap td input.note{width:170px}
 .btn svg{width:16px;height:16px;flex:none}
 label.btn{position:relative}
 label.btn input[type=file]{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
@@ -208,6 +211,14 @@ tr.clickable{cursor:pointer} tr.clickable:hover td{background:var(--surface-2)}
 .rating{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:16px}
 .checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:6px 14px;margin-bottom:6px}
 .drawer h2{text-wrap:balance}
+.attest-wrap{max-width:940px}
+.decseg{display:inline-flex;border:1px solid var(--line-strong);border-radius:var(--r);overflow:hidden}
+.decseg button{border:0;background:var(--surface);padding:6px 10px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--muted)}
+.decseg button+button{border-left:1px solid var(--line)}
+.decseg button[aria-pressed="true"][data-v="keep"]{background:color-mix(in srgb,var(--ok) 14%,var(--surface));color:var(--ok)}
+.decseg button[aria-pressed="true"][data-v="reduce"]{background:color-mix(in srgb,var(--med) 16%,var(--surface));color:var(--med)}
+.decseg button[aria-pressed="true"][data-v="remove"]{background:color-mix(in srgb,var(--crit) 12%,var(--surface));color:var(--crit)}
+.reqline{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:12.5px;color:var(--muted);margin-top:4px}
 @media (max-width:560px){
   .brand h1{font-size:22px}
   .search{width:100%}
@@ -219,14 +230,13 @@ tr.clickable{cursor:pointer} tr.clickable:hover td{background:var(--surface-2)}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{margin:0}
 img{max-width:100%}
-[hidden]{display:none!important}
 .demo-strip{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;justify-content:space-between;font-size:12.5px;color:var(--muted);padding:8px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
 .demo-strip a{color:var(--accent);font-weight:600}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="demo-strip"><span><b style="color:var(--fg)">Portfolio demo.</b> Invented example.com users and sample exports. Try updating a finding or downloading the executive report PDF. Files you upload are read in your browser and never leave it.</span><a href="../index.html#access-review">Back to the portfolio</a></div>
+<div class="wrap" id="mainWrap">
+  <div class="demo-strip"><span><b style="color:var(--fg)">Portfolio demo.</b> Invented example.com users and sample exports. Try updating a finding, sending an owner confirmation from the Privileged access tab and answering it as the owner, or downloading the executive report PDF. Everything stays in your browser.</span><a href="../index.html#access-review">Back to the portfolio</a></div>
   <header class="top">
     <div class="brand">
       <div class="eyebrow">Orphaned account test · SOC 2 CC6.2 / CC6.3</div>
@@ -255,6 +265,8 @@ img{max-width:100%}
 </div>
 <div id="drawerRoot"></div>
 <div id="findingRoot"></div>
+<div id="attestRoot"></div>
+<div id="modalRoot"></div>
 <div id="toastRoot"></div>
 <div id="fallbackRoot"></div>
 
@@ -310,10 +322,10 @@ const IDP={
 /* ---------- state ---------- */
 const DEFAULT_SETTINGS={idp:'google',quarterMode:'auto',quarterKey:'',fyStart:1,population:'all',snapshotDate:'',slaDays:1,nameMatch:true,domainAliases:'',exclusions:'svc-, noreply, no-reply, api@, integration@',remember:true,
   privKeywords:'admin, owner, super, root, global, privileged, billing, security, maintainer, system administrator',dormantDays:90,idpOwner:'IT / Security',reviewDays:14,
-  orgName:'',slaCrit:2,slaHigh:7,slaMed:30,slaLow:30,excMaxDays:90,reportNames:true,approverName:'',approverTitle:''};
-function freshState(){return {v:1,settings:{...DEFAULT_SETTINGS},sources:{hris:null,idp:null,idpAdmins:null},apps:[],dispositions:{},privReviews:{},register:{},reviewer:'',sample:false};}
+  orgName:'',slaCrit:2,slaHigh:7,slaMed:30,slaLow:30,excMaxDays:90,reportNames:true,approverName:'',approverTitle:'',msgPlatform:'slack',responseUrl:''};
+function freshState(){return {v:1,settings:{...DEFAULT_SETTINGS},sources:{hris:null,idp:null,idpAdmins:null},apps:[],dispositions:{},privReviews:{},findings:{},attest:{},responses:{},owners:{},reviewer:'',sample:false};}
 let S;
-const ui={tab:'exceptions',sev:'all',sys:'all',disp:'all',q:'',privOwner:'all',privDec:'all',drawer:false,dtab:'review',openApps:new Set(),confirm:null,bulkLog:[],warnedQuota:false};
+const ui={scope:'review',att:null,req:null,tab:'exceptions',sev:'all',sys:'all',disp:'all',q:'',privOwner:'all',privDec:'all',drawer:false,dtab:'review',openApps:new Set(),confirm:null,bulkLog:[],warnedQuota:false};
 
 function save(){
   try{
@@ -323,9 +335,85 @@ function save(){
   }catch(e){
     if(!ui.warnedQuota){ui.warnedQuota=true;toast('This browser can’t store lists this large. They stay loaded until you close the page.');}
   }
+  persistDb();
 }
+function migrateRegister(o){
+  o.findings=o.findings||{};
+  if(o.register){for(const [q,m] of Object.entries(o.register))for(const [k,e] of Object.entries(m||{})){
+    let key=k,acctKey=e.acctKey;
+    if(e.kind==='privileged'&&!k.startsWith('priv|'+q+'|')){acctKey=k.replace(/^priv\|/,'');key='priv|'+q+'|'+acctKey;}
+    if(!o.findings[key])o.findings[key]={...e,key,acctKey,quarter:e.quarter||q,quarters:e.quarters||[q]};}
+    delete o.register;}
+}
+
+/* ---------- shared store (claude.ai) ---------- */
+const ARTIFACT_URL='';
+const store={mode:'local',db:null,user:null,uid:null,canEdit:false,ready:false,checked:false,respondOnly:false,written:{},attestWritten:{},cfgWritten:'',chain:Promise.resolve(),t:0,names:{},mcp:undefined,unsub:[]};
+const qLabel=k=>{const [y,qq]=String(k||'').split('-');return qq?`${qq} ${y}`:String(k||'');};
+const clone=o=>o==null?o:JSON.parse(JSON.stringify(o));
+const fdocId=k=>String(k).replace(/[^A-Za-z0-9_\-~:@+]/g,'_').slice(0,150)+'~'+idFor(String(k));
+function cfgDoc(){return {v:2,settings:S.settings,reviewer:S.reviewer,apps:S.apps.map(a=>({...a,data:null})),privReviews:S.privReviews,owners:S.owners,dispositions:S.dispositions};}
+function hydrateConfig(c){
+  if(!c)return;
+  S.settings={...DEFAULT_SETTINGS,...(c.settings||{})};S.reviewer=c.reviewer||'';S.privReviews=c.privReviews||{};S.owners=c.owners||{};S.dispositions=c.dispositions||{};
+  const local=new Map(S.apps.map(a=>[a.id,a.data]));
+  S.apps=(c.apps||[]).map(a=>({...a,data:S.sample?null:(local.get(a.id)||null)}));
+  store.cfgWritten=JSON.stringify(cfgDoc());
+}
+function queueWrite(fn){
+  store.chain=store.chain.then(fn).catch(err=>{const c=err&&err.code;
+    toast(c==='quota_exceeded'?'The review database is full, so this change wasn’t saved. Export a backup from Settings.':c==='invalid_argument'?'This change wasn’t saved: your access to this review doesn’t allow edits.':'A change couldn’t be saved just now. It stays in this browser and is retried with your next change.');});
+}
+function persistDb(){
+  if(store.mode!=='db'||!store.ready||S.sample)return;
+  clearTimeout(store.t);
+  store.t=setTimeout(()=>queueWrite(async()=>{
+    const cj=JSON.stringify(cfgDoc());
+    if(cj!==store.cfgWritten){await store.db.doc('config/main').set(JSON.parse(cj));store.cfgWritten=cj;}
+    for(const e of Object.values(S.findings)){const id=fdocId(e.key);const j=JSON.stringify(e);if(store.written[id]!==j){await store.db.doc('findings/'+id).set(JSON.parse(j));store.written[id]=j;}}
+    for(const r of Object.values(S.attest)){const j=JSON.stringify(r);if(store.attestWritten[r.id]!==j){await store.db.doc('attest/'+r.id).set(JSON.parse(j));store.attestWritten[r.id]=j;}}
+  }),450);
+}
+let renderTimer=0;
+function scheduleRender(){clearTimeout(renderTimer);renderTimer=setTimeout(()=>{renderAll();renderAttest();},60);}
+async function initStore(){
+  if(!(window.claude&&typeof window.claude.use==='function')){store.checked=true;return;}
+  let db=null,user=null;
+  try{[db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);}catch(e){}
+  store.user=user;
+  if(user){try{store.uid=await user.id();store.canEdit=!!((await user.canEdit())||(await user.isOwner()));}catch(e){}}
+  store.checked=true;
+  if(!db)return;
+  store.db=db;
+  if(!store.canEdit){store.mode='respond';store.respondOnly=true;return;}
+  store.mode='db';
+  try{
+    const [cfg,fs,at]=await Promise.all([db.doc('config/main').get(),db.collection('findings').get(),db.collection('attest').get()]);
+    const remote=cfg.exists||fs.size>0||at.size>0;
+    if(remote){
+      if(S.sample){S=freshState();}
+      hydrateConfig(cfg.exists?clone(cfg.data()):cfgDoc());
+      const F={...S.findings};fs.docs.forEach(d=>{const e=clone(d.data());if(e&&e.key){F[e.key]=e;store.written[d.id]=JSON.stringify(e);}});S.findings=F;
+      at.docs.forEach(d=>{const r=clone(d.data());if(r&&r.id){S.attest[r.id]=r;store.attestWritten[d.id]=JSON.stringify(r);}});
+    }
+    store.ready=true;save();
+  }catch(e){toast('Saved review data couldn’t be loaded. Reload the page to try again.');return;}
+  const on=(ref,fn)=>{try{store.unsub.push(ref.onSnapshot(fn,()=>{}));}catch(e){}};
+  on(db.collection('findings'),snap=>{let ch=false;snap.docChanges().forEach(c=>{if(c.type==='removed')return;const e=clone(c.doc.data());if(!e||!e.key)return;const j=JSON.stringify(e);if(store.written[c.doc.id]===j)return;store.written[c.doc.id]=j;S.findings[e.key]=e;ch=true;});if(ch&&!S.sample)scheduleRender();});
+  on(db.collection('attest'),snap=>{let ch=false;snap.docChanges().forEach(c=>{if(c.type==='removed')return;const r=clone(c.doc.data());if(!r||!r.id)return;const j=JSON.stringify(r);if(store.attestWritten[c.doc.id]===j)return;store.attestWritten[c.doc.id]=j;S.attest[r.id]=r;ch=true;});if(ch&&!S.sample)scheduleRender();});
+  on(db.collection('responses'),snap=>{if(S.sample)return;snap.docs.forEach(d=>{S.responses[d.id]=clone(d.data());});scheduleRender();});
+  on(db.doc('config/main'),snap=>{if(!snap.exists||S.sample)return;const c=clone(snap.data());const before=store.cfgWritten;const j=JSON.stringify({v:2,settings:c.settings,reviewer:c.reviewer,apps:c.apps,privReviews:c.privReviews,owners:c.owners,dispositions:c.dispositions});if(j===before)return;hydrateConfig(c);scheduleRender();});
+}
+async function resolveNames(){
+  if(!store.user)return;const ids=new Set();
+  Object.values(S.attest).forEach(r=>{if(r.responder&&r.responder!=='local')ids.add(r.responder);if(r.sentBy)ids.add(r.sentBy);});
+  const need=[...ids].filter(i=>!(i in store.names));if(!need.length)return;
+  need.forEach(i=>store.names[i]='');
+  try{const ps=await store.user.profiles(need);need.forEach(i=>{store.names[i]=(ps[i]&&ps[i].name)||'';});scheduleRender();}catch(e){}
+}
+const who=(id,fb)=>!id?(fb||'Owner'):id==='local'?'Owner (this browser)':(store.names[id]||fb||'Owner');
 function load(){
-  try{const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);o.settings={...DEFAULT_SETTINGS,...o.settings};o.sources={hris:null,idp:null,idpAdmins:null,...(o.sources||{})};o.apps=o.apps||[];o.dispositions=o.dispositions||{};o.privReviews=o.privReviews||{};o.register=o.register||{};return o;}}catch(e){}
+  try{const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);o.settings={...DEFAULT_SETTINGS,...o.settings};o.sources={hris:null,idp:null,idpAdmins:null,...(o.sources||{})};o.apps=o.apps||[];o.dispositions=o.dispositions||{};o.privReviews=o.privReviews||{};migrateRegister(o);o.attest=o.attest||{};o.responses=o.responses||{};o.owners=o.owners||{};return o;}}catch(e){}
   return null;
 }
 
@@ -588,13 +676,13 @@ const material=R=>R.findings.filter(f=>f.sev!=='low'&&f.disp.status!=='fp');
 /* ---------- remediation register ---------- */
 const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
 function slaFor(sev){const s=S.settings;const v={crit:s.slaCrit,high:s.slaHigh,med:s.slaMed,low:s.slaLow}[sev];return v===''||v==null||isNaN(+v)?30:+v;}
-function stLabel(e){return e.status==='remediated'&&e.kind==='privileged'?'Access change complete':(ST[e.status]||'Open');}
-function regOf(q){return (S.register[q]=S.register[q]||{});}
-function nextRef(reg,q){let n=Object.keys(reg).length+1,r;do{r=`UAR-${q.replace('-','')}-${String(n).padStart(3,'0')}`;n++;}while(Object.values(reg).some(e=>e.ref===r));return r;}
+function stLabel(e){if(e.kind==='privileged'&&e.status==='remediated')return 'Access change complete';if(e.kind==='privileged'&&e.status==='fp')return 'Withdrawn';return ST[e.status]||'Open';}
+function regOf(){return S.findings;}
+function nextRef(reg,q){const p=`UAR-${q.replace('-','')}-`;let n=Object.values(reg).filter(e=>String(e.ref).startsWith(p)).length+1,r;do{r=p+String(n).padStart(3,'0');n++;}while(Object.values(reg).some(e=>e.ref===r));return r;}
 function nextExcId(){const q=R.period.key;const reg=regOf(q);let n=1,id;do{id=`SE-${q.replace('-','')}-${String(n).padStart(3,'0')}`;n++;}while(Object.values(reg).some(e=>e.exc&&e.exc.id===id));return id;}
 function newEntry(reg,q,key,snap,owner,note){
   const now=new Date().toISOString();
-  const e={key,ref:nextRef(reg,q),firstSeen:now,status:'open',owner:owner||'',due:iso(addDays(new Date(),slaFor(snap.sev))),ticket:'',notes:'',rem:{},exc:{},fp:{},closedAt:'',retest:null,history:[{at:now,text:note}],...snap};
+  const e={key,ref:nextRef(reg,q),quarter:q,quarters:[q],firstSeen:now,status:'open',owner:owner||'',due:iso(addDays(new Date(),slaFor(snap.sev))),ticket:'',notes:'',rem:{},exc:{},fp:{},closedAt:'',retest:null,history:[{at:now,text:note}],...snap};
   reg[key]=e;return e;
 }
 function syncRegister(R){
@@ -609,16 +697,18 @@ function syncRegister(R){
       const d=old[f.key];if(d){n.status={open:'open',remediated:'remediated',exception:'accepted',fp:'fp'}[d.status]||'open';n.notes=d.note||'';}
       changed=true;continue;
     }
+    if(!(e.quarters||[]).includes(q)){e.quarters=[...(e.quarters||[e.quarter||q]),q];e.history.push({at:now,text:`Still present in the ${R.period.label} review (${ds.fileName})`});}
     if(e.sev!==f.sev)e.history.push({at:now,text:`Severity ${SEV[e.sev].label} → ${SEV[f.sev].label}`});
     if(!e.detected)e.history.push({at:now,text:`Detected again in ${ds.fileName}`});
     const before=JSON.stringify(e);Object.assign(e,snap);if(JSON.stringify(e)!==before)changed=true;
   }
   for(const x of R.priv){
     if(x.term||!['remove','reduce'].includes(x.dec.decision))continue;
-    const key='priv|'+x.key;cur.add(key);const ds=x.sys.ds;
-    const snap={kind:'privileged',sev:'med',title:x.dec.decision==='remove'?'Owner decision: remove privileged access':'Owner decision: reduce privileged access',user:x.a.name,email:x.a.email,empId:x.a.empId,termDate:'',sysId:x.sys.id,system:x.sys.name,account:x.a.email||x.a.name,acctStatus:x.a.statusRaw,role:x.role,priv:true,lastLogin:x.a.lastLogin?iso(x.a.lastLogin):'',how:'',detected:true,lastFile:ds.fileName,lastFileAt:ds.uploadedAt,decision:x.dec.decision,decisionNote:x.dec.note||''};
+    const key='priv|'+q+'|'+x.key;cur.add(key);const ds=x.sys.ds;
+    const snap={kind:'privileged',sev:'med',title:x.dec.decision==='remove'?'Owner decision: remove privileged access':'Owner decision: reduce privileged access',user:x.a.name,email:x.a.email,empId:x.a.empId,termDate:'',sysId:x.sys.id,system:x.sys.name,account:x.a.email||x.a.name,acctStatus:x.a.statusRaw,role:x.role,priv:true,lastLogin:x.a.lastLogin?iso(x.a.lastLogin):'',how:'',detected:true,lastFile:ds.fileName,lastFileAt:ds.uploadedAt,decision:x.dec.decision,decisionNote:x.dec.note||'',acctKey:x.key};
     const e=reg[key];
-    if(!e){newEntry(reg,q,key,snap,x.owner==='Unassigned'?'':x.owner,`Owner recertification: ${DEC[x.dec.decision]} ${x.role} in ${x.sys.name}`);changed=true;continue;}
+    if(!e){newEntry(reg,q,key,snap,x.owner==='Unassigned'?'':x.owner,`Owner recertification: ${DEC[x.dec.decision]} ${x.role} in ${x.sys.name}${x.dec.via==='owner'?' (confirmed by the owner)':''}`);changed=true;continue;}
+    if(e.status==='fp'&&e.fp&&/^Owner changed/.test(e.fp.reason||'')){e.status='open';e.closedAt='';e.history.push({at:now,text:`Reopened: owner decision is ${DEC[x.dec.decision]} again`});}
     const before=JSON.stringify(e);Object.assign(e,snap);if(JSON.stringify(e)!==before)changed=true;
   }
   for(const e of Object.values(reg)){
@@ -627,8 +717,8 @@ function syncRegister(R){
     if(!cov||!cov.loaded)continue;                       // list removed: leave the record as it was
     const ds=cov.sys.ds;let result;
     if(e.kind==='privileged'){
-      const still=R.priv.find(x=>'priv|'+x.key===e.key);
-      if(still){if(e.status==='open'&&e.history.length<=1){delete reg[e.key];changed=true;}continue;}
+      const ak=e.acctKey||e.key.split('|').slice(2).join('|');const still=R.priv.find(x=>x.key===ak);
+      if(still){if(e.quarter===q&&!CLOSED.includes(e.status)){e.status='fp';e.fp={reason:`Owner changed the decision to ${DEC[still.dec.decision]} on ${fmt(new Date())}`};e.closedAt=now;e.history.push({at:now,text:'Withdrawn: the owner changed the decision'});changed=true;}continue;}
       result='no longer privileged';
     }else{
       const t=R.tests.find(t=>t.key===e.key);if(!t)continue; // person not in this population: leave alone
@@ -667,13 +757,19 @@ function eState(e){
   return {closed,overdue,flags};
 }
 function linkRegister(R){
-  const reg=regOf(R.period.key);
+  const reg=S.findings;
   for(const f of R.findings){const e=reg[f.key];if(!e)continue;const st=eState(e);f.reg=e;
     f.disp={status:!st.closed?'open':e.status==='fp'?'fp':e.status==='accepted'?'exception':'remediated',note:e.notes||''};}
 }
-function regEntries(){return Object.values(S.register[R.period.key]||{}).map(e=>({e,st:eState(e)}));}
+function inReview(e,st){
+  const q=R.period.key;if((e.quarters||[e.quarter]).includes(q))return true;
+  if(!st.closed&&String(e.quarter||'')<=q)return true;
+  const c=e.closedAt?new Date(e.closedAt):null;return !!(c&&c>=R.period.start&&c<=R.period.endEOD);
+}
+function regEntries(scope){const all=Object.values(S.findings).map(e=>({e,st:eState(e)}));return (scope||ui.scope)==='all'?all:all.filter(x=>inReview(x.e,x.st));}
 function flagHTML(st){return st.flags.length?`<div class="flags">${st.flags.map(f=>`<span class="pill ${f.c}">${esc(f.t)}</span>`).join('')}</div>`:'';}
 function closedOn(e){if(e.status==='remediated')return e.rem.date;if(e.status==='accepted')return e.exc.approvedOn;return e.closedAt?e.closedAt.slice(0,10):'';}
+const fmtFull=s=>{const d=new Date(s);return isNaN(d)?'':d.toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'});};
 const fmtDT=s=>{const d=new Date(s);return isNaN(d)?'':d.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});};
 function setReg(e,f,v){
   const now=new Date().toISOString();
@@ -704,7 +800,8 @@ function wpExtra(e){
 let R;
 function renderAll(){
   const active=document.activeElement&&document.activeElement.id;
-  R=analyze();if(syncRegister(R))save();linkRegister(R);renderTop();renderBody();if(ui.drawer)renderDrawer();renderFinding();
+  if(store.mode!=='respond'&&applyResponses())save();
+  R=analyze();if(syncRegister(R))save();linkRegister(R);renderTop();renderBody();if(ui.drawer)renderDrawer();renderFinding();resolveNames();
   if(active){const el=document.getElementById(active);if(el&&el!==document.activeElement)try{el.focus({preventScroll:true});}catch(e){}}
 }
 function renderTop(){
@@ -773,7 +870,9 @@ function panelExceptions(){
   if(!L.length&&!S.sources.hris)return `<div class="empty"><b>No review yet</b>Upload the HRIS termination list and your IdP export to see findings here.<br><br><button class="btn btn-primary" data-act="openSettings" data-tab="bulk">Upload lists</button></div>`;
   if(!(ui.disp in RFILT))ui.disp='all';
   const sysList=[...new Map(L.map(x=>[x.e.sysId,x.e.system])).entries()];
-  return `<div class="track" role="group" aria-label="Filter by remediation status">${Object.entries(RFILT).map(([k,[l,fn]])=>{const n=L.filter(fn).length;const c=(k==='overdue'||k==='attention')&&n?'bad':(k==='remediated'||k==='accepted')&&n?'good':'';return `<button class="tchip ${c}" data-act="rfilt" data-v="${k}" aria-pressed="${ui.disp===k}"><b>${n}</b><span>${l}</span></button>`;}).join('')}</div>
+  const allN=Object.keys(S.findings).length;
+  return `<div class="bar"><div class="seg" role="group" aria-label="Which findings"><button data-act="scope" data-v="review" aria-pressed="${ui.scope==='review'}">${esc(R.period.label)} review</button><button data-act="scope" data-v="all" aria-pressed="${ui.scope==='all'}">All quarters · ${allN}</button></div><span class="muted" style="font-size:12.5px">Findings are never deleted. Open findings carry into each new quarter until they are closed.</span></div>
+  <div class="track" role="group" aria-label="Filter by remediation status">${Object.entries(RFILT).map(([k,[l,fn]])=>{const n=L.filter(fn).length;const c=(k==='overdue'||k==='attention')&&n?'bad':(k==='remediated'||k==='accepted')&&n?'good':'';return `<button class="tchip ${c}" data-act="rfilt" data-v="${k}" aria-pressed="${ui.disp===k}"><b>${n}</b><span>${l}</span></button>`;}).join('')}</div>
   <div class="bar"><div class="grp">
       <div class="seg" role="group" aria-label="Severity">${[['all','All'],['crit','Critical'],['high','High'],['med','Medium'],['low','Low']].map(([k,l])=>`<button data-act="sev" data-v="${k}" aria-pressed="${ui.sev===k}">${l}</button>`).join('')}</div>
       <select class="sel" id="fSys" aria-label="System"><option value="all">All systems</option>${sysList.map(([id,n])=>`<option value="${esc(id)}" ${ui.sys===id?'selected':''}>${esc(n)}</option>`).join('')}</select>
@@ -795,7 +894,7 @@ function renderFTable(){
   if(!rows.length){host.innerHTML=`<div class="empty"><b>Nothing matches these filters</b>Pick another status or clear the search.</div>`;return;}
   host.innerHTML=`<div class="tblwrap"><table><thead><tr><th>Finding</th><th>User</th><th>System · account</th><th>Status</th><th>Owner</th><th>Due</th><th></th></tr></thead><tbody>
   ${rows.map(({e,st})=>`<tr class="clickable ${st.closed?'resolved':''}" data-act="openFinding" data-key="${esc(e.key)}">
-    <td><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center"><span class="sev ${e.sev}">${SEV[e.sev].label}</span><span class="ref">${esc(e.ref)}</span></div><div style="font-size:12.5px;margin-top:4px;max-width:230px">${esc(e.title)}</div></td>
+    <td><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center"><span class="sev ${e.sev}">${SEV[e.sev].label}</span><span class="ref">${esc(e.ref)}</span>${e.quarter&&e.quarter!==R.period.key&&!st.closed?'<span class="pill warn">Carried over</span>':''}</div><div style="font-size:12.5px;margin-top:4px;max-width:230px">${esc(e.title)}</div></td>
     <td><div class="who">${esc(e.user||'—')}</div><div class="em">${esc(e.email||e.empId)}</div>${e.termDate?`<div class="muted" style="font-size:12px">Terminated ${fmt(parseDate(e.termDate))}</div>`:''}${e.how==='Name only'?'<span class="pill warn">Name match · verify</span>':''}</td>
     <td><b style="font-weight:600">${esc(e.system)}</b><div class="em">${esc(e.account)}</div>${e.priv?`<span class="pill bad">Privileged · ${esc(e.role)}</span>`:''}</td>
     <td><span class="st ${e.status}">${esc(stLabel(e))}</span>${e.status==='accepted'&&e.exc.id?`<div class="ref" style="margin-top:3px">${esc(e.exc.id)}${e.exc.expires?' · until '+fmt(parseDate(e.exc.expires)):''}</div>`:''}${e.ticket?`<div class="ref" style="margin-top:3px">${esc(e.ticket)}</div>`:''}${flagHTML(st)}</td>
@@ -806,7 +905,7 @@ function renderFTable(){
 }
 function renderFinding(){
   const root=$('#findingRoot');if(!root)return;
-  const e=ui.finding&&(S.register[R.period.key]||{})[ui.finding];
+  const e=ui.finding&&S.findings[ui.finding];
   if(!e){ui.finding=null;root.innerHTML='';return;}
   const prev=$('#fbody')?$('#fbody').scrollTop:0;
   const st=eState(e);const K=esc(e.key);const id=idFor(e.key);const isP=e.kind==='privileged';
@@ -853,7 +952,7 @@ function renderFinding(){
         ${fact('System',esc(e.system))}${fact('Account',`<span class="mono">${esc(e.account)}</span>`)}${fact('Account status',esc(e.acctStatus||'Listed'))}
         ${fact(e.priv?'Privileged role':'Role',esc(e.role))}${fact('Last sign-in',e.lastLogin?fmt(parseDate(e.lastLogin)):'')}${fact('Matched on',esc(e.how))}
         ${isP?fact('Owner decision',esc(DEC[e.decision]+(e.decisionNote?': '+e.decisionNote:''))):''}
-        ${fact('Identified',fmt(new Date(e.firstSeen)))}${fact(e.retest?'Re-tested':'Last seen in',esc(e.retest?`${e.retest.file}, ${fmt(new Date(e.retest.at))}: ${e.retest.result}`:`${e.lastFile}, ${fmt(new Date(e.lastFileAt))}`))}
+        ${fact('Identified',fmt(new Date(e.firstSeen))+(e.quarter?` (${esc(qLabel(e.quarter))})`:''))}${fact('Reviews',esc((e.quarters||[]).map(qLabel).join(', ')))}${fact(e.retest?'Re-tested':'Last seen in',esc(e.retest?`${e.retest.file}, ${fmt(new Date(e.retest.at))}: ${e.retest.result}`:`${e.lastFile}, ${fmt(new Date(e.lastFileAt))}`))}
       </dl>${flagHTML(st)}</div>
       <div class="card"><h3>Remediation</h3>
         <div class="stgrid" role="radiogroup" aria-label="Status">${statuses.map(([k,l,d])=>`<label class="radio"><input type="radio" name="st-${id}" id="st-${id}-${k}" data-reg="${K}" data-f="status" value="${k}" ${e.status===k?'checked':''}><span><b>${l}</b><span>${d}</span></span></label>`).join('')}</div>
@@ -882,30 +981,200 @@ function privFlagText(x){const f=[];if(x.term)f.push('TERMINATED '+fmt(x.term.te
 function owners(){return [...new Set(R.priv.map(x=>x.owner))];}
 function privRows(){return R.priv.filter(x=>(ui.privOwner==='all'||x.owner===ui.privOwner)&&(ui.privDec==='all'||(ui.privDec==='flagged'?(x.term||x.notIdp||x.dormant||x.a.mfa===false):x.dec.decision===ui.privDec)));}
 function panelPriv(){
-  if(!R.coverage.some(c=>c.loaded))return `<div class="empty"><b>No user lists yet</b>Privileged accounts are pulled from each system’s role column and your IdP admin-role export.</div>`;
+  if(!R.coverage.some(c=>c.loaded))return `<div class="empty"><b>No user lists loaded in this browser</b>Privileged accounts are pulled from each system’s role column and your IdP admin-role export. Saved decisions and confirmation requests are kept either way.</div>`+requestsLog();
   const os=owners();
   const head=`<div class="bar"><div class="grp">
       <select class="sel" id="pOwner" aria-label="Owner"><option value="all">All owners</option>${os.map(o=>`<option ${ui.privOwner===o?'selected':''}>${esc(o)}</option>`).join('')}</select>
       <select class="sel" id="pDec" aria-label="Decision"><option value="all">Any decision</option><option value="flagged" ${ui.privDec==='flagged'?'selected':''}>Flagged only</option>${Object.entries(DEC).map(([k,l])=>`<option value="${k}" ${ui.privDec===k?'selected':''}>${l}</option>`).join('')}</select>
     </div><div class="grp"><button class="btn btn-sm" data-act="copyCSV" data-what="priv">Copy CSV</button><button class="btn btn-sm" data-act="dlCSV" data-what="priv">Download CSV</button><button class="btn btn-sm" data-act="openSettings" data-tab="review">Privileged role rules</button></div></div>
     <p class="muted" style="margin:0;font-size:12.5px;max-width:80ch">Every active account whose role matches your privileged keywords, grouped by system owner. Send each owner their report, then record whether the access level is still required. Accounts held by terminated users are pre-set to Remove.</p>`;
-  if(!R.priv.length)return head+`<div class="empty"><b>No privileged accounts found</b>Check that each list has a role column mapped, or widen the privileged keywords in Settings.</div>`;
+  if(!R.priv.length)return head+`<div class="empty"><b>No privileged accounts found</b>Check that each list has a role column mapped, or widen the privileged keywords in Settings.</div>`+requestsLog();
   const rows=privRows();
   const groups=[...new Set(rows.map(x=>x.owner))];
   if(!rows.length)return head+`<div class="empty"><b>Nothing matches these filters</b></div>`;
   return head+groups.map(o=>{const g=rows.filter(x=>x.owner===o);const all=R.priv.filter(x=>x.owner===o);const pend=all.filter(x=>x.dec.decision==='pending').length;const oid=idFor('o|'+o);
     return `<div class="card" style="padding:0;gap:0">
       <div class="row" style="padding:12px 14px;border-bottom:1px solid var(--line)"><span><span class="eyebrow">Owner</span><br><b style="font-size:15px">${esc(o)}</b> <span class="muted" style="font-size:12.5px">· ${esc([...new Set(all.map(x=>x.sys.name))].join(', '))} · ${all.length} account${all.length===1?'':'s'} · ${pend?`<b style="color:var(--med)">${pend} pending</b>`:'<span style="color:var(--ok)">all decided</span>'}</span></span>
-        <span class="row" style="gap:6px"><button class="btn btn-sm btn-primary" data-act="copyOwner" data-owner="${esc(o)}" id="co-${oid}">Copy owner request</button><button class="btn btn-sm" data-act="copyOwnerCSV" data-owner="${esc(o)}">Copy CSV</button></span></div>
+        <span class="row" style="gap:6px"><button class="btn btn-sm btn-primary" data-act="openReq" data-owner="${esc(o)}" id="co-${oid}">Request confirmation</button><button class="btn btn-sm" data-act="copyOwnerCSV" data-owner="${esc(o)}">Copy CSV</button></span>
+        ${reqLine(o)}</div>
       <div style="overflow-x:auto"><table><thead><tr><th>Account</th><th>System</th><th>Privileged role</th><th>Last sign-in</th><th>Flags</th><th>Still required?</th><th>Justification</th></tr></thead><tbody>
       ${g.map(x=>{const id=idFor(x.key);return `<tr class="${x.dec.decision==='keep'?'resolved':''}">
         <td><div class="who">${esc(x.a.name||'—')}</div><div class="em">${esc(x.a.email||x.a.empId)}</div></td>
         <td>${esc(x.sys.name)}</td><td><span class="pill">${esc(x.role)}</span></td>
         <td style="white-space:nowrap">${x.a.lastLogin?fmt(x.a.lastLogin):'<span class="muted">—</span>'}</td>
         <td>${privFlags(x)}</td>
-        <td><select class="sel" id="pd-${id}" data-priv="${esc(x.key)}" aria-label="Decision">${Object.entries(DEC).map(([k,l])=>`<option value="${k}" ${x.dec.decision===k?'selected':''}>${l}</option>`).join('')}</select></td>
+        <td><select class="sel" id="pd-${id}" data-priv="${esc(x.key)}" aria-label="Decision">${Object.entries(DEC).map(([k,l])=>`<option value="${k}" ${x.dec.decision===k?'selected':''}>${l}</option>`).join('')}</select>${x.dec.via==='owner'?`<div style="margin-top:4px"><span class="pill good">Owner confirmed ${esc(fmt(new Date(x.dec.at)))}</span></div>`:''}</td>
         <td><input class="field-in note" id="pn-${id}" data-privnote="${esc(x.key)}" value="${esc(x.dec.note||'')}" placeholder="Why this level is needed"></td></tr>`;}).join('')}
-      </tbody></table></div></div>`;}).join('');
+      </tbody></table></div></div>`;}).join('')+requestsLog();
+}
+const PLAT={slack:'Slack',teams:'Microsoft Teams',gchat:'Google Chat'};
+function responseBase(){return (S.settings.responseUrl||'').trim()||((window.claude&&ARTIFACT_URL)||location.href.split('#')[0]);}
+function reqsFor(owner,q){return Object.values(S.attest).filter(r=>(!owner||r.owner===owner)&&(!q||r.quarter===q)).sort((a,b)=>String(b.sentAt).localeCompare(String(a.sentAt)));}
+function reqStatus(r){
+  if(r.status==='responded')return {t:`Responded ${fmtDT(r.respondedAt)} by ${r.responderName||who(r.responder)}${r.approvedAll?' · approved all':''}`,c:'good'};
+  const d=parseDate(r.due);const today=dayStart(new Date());
+  if(d&&dayDiff(today,d)>0)return {t:`No response, ${dayDiff(today,d)}d past due`,c:'bad'};
+  return {t:`Awaiting response · due ${fmt(d)}`,c:'warn'};
+}
+function reqLine(o){
+  const r=reqsFor(o,R.period.key)[0];
+  if(!r)return '<div class="reqline" style="width:100%">No confirmation requested yet this quarter.</div>';
+  const st=reqStatus(r);
+  return `<div class="reqline" style="width:100%"><span>Sent ${esc(fmtDT(r.sentAt))} via ${esc(PLAT[r.platform]||r.platform)} to ${esc(r.to)}${r.sentVia==='manual'?' (recorded manually)':''}</span><span class="pill ${st.c}">${esc(st.t)}</span><a href="#attest-${esc(r.id)}" style="color:var(--accent);font-weight:600">Owner view</a></div>`;
+}
+function requestsLog(){
+  const list=reqsFor(null,R.period.key);
+  if(!list.length)return '';
+  return `<div class="card" style="padding:0;gap:0"><div class="row" style="padding:12px 14px;border-bottom:1px solid var(--line)"><div><h3>Confirmation requests · ${esc(R.period.label)}</h3><p class="hint" style="margin-top:2px">When each owner was asked, how, and when they answered.</p></div><button class="btn btn-sm" data-act="copyCSV" data-what="requests">Copy CSV</button></div>
+  <div style="overflow-x:auto"><table><thead><tr><th>Request</th><th>Owner</th><th>Sent</th><th>Via</th><th>To</th><th>Sent by</th><th>Accounts</th><th>Response</th></tr></thead><tbody>
+  ${list.map(r=>{const st=reqStatus(r);return `<tr><td><a class="ref" href="#attest-${esc(r.id)}" style="color:var(--accent)">${esc(r.id.toUpperCase())}</a></td><td>${esc(r.owner)}</td><td style="white-space:nowrap">${esc(fmtDT(r.sentAt))}</td><td>${esc(PLAT[r.platform]||r.platform)}${r.sentVia==='connector'?'<div class="muted" style="font-size:11.5px">sent from this page</div>':'<div class="muted" style="font-size:11.5px">marked as sent</div>'}</td><td class="em">${esc(r.to)}</td><td>${esc(r.sentByName||who(r.sentBy,'—'))}</td><td class="num">${(r.accounts||[]).length}</td><td><span class="pill ${st.c}" style="white-space:normal">${esc(st.t)}</span></td></tr>`;}).join('')}
+  </tbody></table></div></div>`;
+}
+function reqAccounts(owner){return R.priv.filter(x=>x.owner===owner).map(x=>({key:x.key,system:x.sys.name,name:x.a.name,email:x.a.email,role:x.role,lastLogin:x.a.lastLogin?iso(x.a.lastLogin):'',term:x.term?(iso(x.term.termDate)||'yes'):'',flags:privFlagText(x)}));}
+function reqMessage(rq){
+  const list=reqAccounts(rq.owner);const base=responseBase();const org=(S.settings.orgName||'').trim();
+  const L=[`Privileged access review – ${R.period.label}`,'',`Hi ${rq.owner}, please confirm whether each account below still needs its current privileged access. Please respond by ${fmt(parseDate(rq.due))}.`,''];
+  list.forEach(a=>L.push(`• ${a.name||a.email}${a.email&&a.name?` (${a.email})`:''} – ${a.system} – ${a.role} – last sign-in ${a.lastLogin?fmt(parseDate(a.lastLogin)):'unknown'}${a.term?' – TERMINATED, removal in progress':''}`));
+  L.push('','Approve all current access:',`${base}#approve-${rq.id}`,'','Review each account or request a change:',`${base}#attest-${rq.id}`,'',`Request ${rq.id.toUpperCase()}${org?` · ${org}`:''} user access review`);
+  return L.join('\n');
+}
+function openReq(owner){
+  const o=S.owners[owner]||{};const due=new Date(R.snap>new Date()?R.snap:new Date());due.setDate(due.getDate()+(+S.settings.reviewDays||14));
+  ui.req={owner,id:'r'+Math.random().toString(36).slice(2,9),platform:o.platform||S.settings.msgPlatform||'slack',to:o.to||'',due:iso(due),error:'',busy:false};
+  renderRequest();setTimeout(()=>{const i=$('#rqTo');i&&i.focus();},0);
+}
+function renderRequest(){
+  const root=$('#modalRoot');const rq=ui.req;if(!rq){root.innerHTML='';return;}
+  const msg=reqMessage(rq);const n=reqAccounts(rq.owner).length;
+  const toLabel={slack:'Channel or member ID',teams:'Owner’s work email',gchat:'Space link or owner’s email'}[rq.platform];
+  const toPh={slack:'#it-security or U04ABC123',teams:'owner@company.com',gchat:'https://chat.google.com/room/… or owner@company.com'}[rq.platform];
+  const teamsLink=rq.platform==='teams'&&rq.to?`https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(rq.to)}&message=${encodeURIComponent(msg)}`:'';
+  const gLink=/^https:\/\//.test(rq.to)?rq.to:'https://chat.google.com/';
+  const sub={slack:'Sends from this page through the Slack connector',teams:'Opens a Teams chat with the message filled in',gchat:'Copy the message into Google Chat'};
+  root.innerHTML=`<div class="fallback" data-act="closeReq"><div class="card" data-stop role="dialog" aria-modal="true" aria-labelledby="rqH" style="width:min(740px,100%);max-height:calc(100% - 32px);overflow:auto">
+    <div class="row"><div><span class="eyebrow">Owner confirmation · ${esc(R.period.label)}</span><h3 id="rqH" style="margin-top:3px">Ask ${esc(rq.owner)} to confirm ${pl(n,'privileged account')}</h3></div><button class="btn btn-sm" data-act="closeReq">Cancel</button></div>
+    <div class="radios">${Object.entries(PLAT).map(([k,l])=>`<label class="radio"><input type="radio" name="rqp" id="rqp-${k}" data-rq="platform" value="${k}" ${rq.platform===k?'checked':''}><span><b>${l}</b><span>${sub[k]}</span></span></label>`).join('')}</div>
+    <div class="fgrid"><label class="f"><span>${toLabel}</span><input class="field-in" id="rqTo" data-rq="to" value="${esc(rq.to)}" placeholder="${esc(toPh)}"></label>
+      <label class="f"><span>Respond by</span><input class="field-in" type="date" id="rqDue" data-rq="due" value="${esc(rq.due)}"></label></div>
+    <label class="f"><span>Message</span><textarea class="field-in mono" id="rqMsg" rows="12" readonly>${esc(msg)}</textarea><small>The two links open this review page, where the owner approves or requests changes. Owners need access to this page in claude.ai as a Contributor to respond.</small></label>
+    ${rq.error?`<p class="reqmiss" role="alert">${esc(rq.error)}</p>`:''}
+    <div class="row" style="justify-content:flex-start;gap:8px">
+      ${rq.platform==='slack'?`<button class="btn btn-primary" data-act="sendSlack" data-needs-to ${rq.to&&!rq.busy?'':'disabled'}>${rq.busy?'Sending…':'Send in Slack'}</button>`:''}
+      ${rq.platform==='teams'?(teamsLink?`<a class="btn btn-primary" href="${esc(teamsLink)}" target="_blank" rel="noopener">Open in Teams</a>`:'<button class="btn btn-primary" disabled>Open in Teams</button>'):''}
+      ${rq.platform==='gchat'?`<a class="btn btn-primary" href="${esc(gLink)}" target="_blank" rel="noopener">Open Google Chat</a>`:''}
+      <button class="btn" data-act="copyReq">Copy message</button>
+      <button class="btn" data-act="markSent" data-needs-to ${rq.to&&!rq.busy?'':'disabled'}>Mark as sent</button>
+    </div>
+    <p class="hint" style="margin:0">${rq.platform==='slack'?'Send in Slack posts the message and records the time automatically. If you paste it yourself instead, click Mark as sent to record when it went out.':'After you send it, click Mark as sent. That records the time, channel and recipient for the audit trail.'}</p>
+  </div></div>`;
+}
+async function getMcp(){if(store.mcp!==undefined)return store.mcp;store.mcp=null;try{if(window.claude&&window.claude.use)store.mcp=await window.claude.use('mcp');}catch(e){}return store.mcp;}
+async function slackSend(to,text){
+  const mcp=await getMcp();if(!mcp)throw {code:'no_mcp'};
+  try{const perm=await window.claude.use('permissions');if(perm)await perm.request(['mcp:Slack']).catch(()=>null);}catch(e){}
+  let schema=null;try{schema=(await mcp.describeTool('Slack','slack_send_message')).inputSchema;}catch(e){}
+  const names=Object.keys((schema&&schema.properties)||{});
+  const pick=c=>c.find(k=>names.includes(k));
+  const tk=pick(['channel_id','channel','conversation_id','channel_name','recipient','to','user_id']);
+  const mk=pick(['message','text','content','markdown','body','message_text']);
+  if(!tk||!mk)throw {code:'schema_unknown'};
+  const r=await mcp.callTool('Slack','slack_send_message',{[tk]:to.trim(),[mk]:text});
+  const p=r&&r.payload;return typeof p==='string'?p:JSON.stringify(p||'');
+}
+function slackErr(e){const c=e&&e.code;return ({
+  no_mcp:'Sending from this page isn’t available in this view. Copy the message into Slack, then click Mark as sent.',
+  server_not_connected:'Slack isn’t connected to your claude.ai account. Add it in claude.ai Settings → Connectors, or copy the message and click Mark as sent.',
+  needs_reauth:'Your Slack connection needs to be renewed in claude.ai Settings → Connectors.',
+  not_in_manifest:'Slack isn’t allowed for this page. Allow it when asked, or copy the message and click Mark as sent.',
+  approval_required:'Sending needs your approval. Click Send in Slack again and allow it.',
+  blocked_by_policy:'Your organization blocks sending Slack messages from here. Copy the message instead.',
+  selection_required:'You have more than one Slack connection. Choose one when claude.ai asks, then try again.',
+  schema_unknown:'This page couldn’t read how the Slack connector takes a message. Copy the message into Slack, then click Mark as sent.',
+  tool_error:`Slack refused the message${e&&e.message?': '+e.message:''}. Check the channel or member ID.`,
+  server_unavailable:'Slack didn’t answer, so the message may or may not have gone out. Check Slack before trying again.',
+  upstream_error:'Slack didn’t answer, so the message may or may not have gone out. Check Slack before trying again.'}[c])||`The message couldn’t be sent (${c||'unknown error'}). Copy it instead.`;}
+function recordRequest(via,res){
+  const rq=ui.req;if(!rq||!rq.to)return;const now=new Date().toISOString();
+  S.owners[rq.owner]={platform:rq.platform,to:rq.to};
+  const rec={id:rq.id,quarter:R.period.key,owner:rq.owner,platform:rq.platform,to:rq.to,due:rq.due,accounts:reqAccounts(rq.owner),message:reqMessage(rq),sentAt:now,sentBy:store.uid||'',sentByName:S.reviewer||'',sentVia:via,status:'sent',result:res?String(res).slice(0,300):''};
+  S.attest[rec.id]=rec;ui.req=null;save();renderAll();renderRequest();
+  toast(`${via==='connector'?'Sent':'Recorded as sent'}: ${rec.owner} via ${PLAT[rec.platform]} at ${fmtDT(now)}`);
+}
+function applyResponses(){
+  let changed=false;
+  for(const [uid,doc] of Object.entries(S.responses||{})){
+    for(const [rid,resp] of Object.entries(doc||{})){
+      const req=S.attest[rid];if(!req||!resp||!resp.submittedAt)continue;
+      if(req.appliedAt&&req.appliedAt>=resp.submittedAt)continue;
+      const q=req.quarter;S.privReviews[q]=S.privReviews[q]||{};
+      for(const [k,d] of Object.entries(resp.decisions||{}))
+        S.privReviews[q][k]={decision:d.decision,note:d.note||(d.decision==='keep'?'Owner confirmed this access is still required':''),at:resp.submittedAt,via:'owner',requestId:rid,responder:uid};
+      Object.assign(req,{status:'responded',respondedAt:resp.submittedAt,responder:uid,appliedAt:resp.submittedAt,approvedAll:!!resp.approvedAll});
+      changed=true;
+    }
+  }
+  return changed;
+}
+
+/* ---------- owner response view ---------- */
+function attestRoute(){const m=(location.hash||'').match(/^#(attest|approve)-([a-z0-9]+)$/);return m?{mode:m[1],id:m[2]}:null;}
+async function renderAttest(){
+  const route=attestRoute();const root=$('#attestRoot');const main=$('#mainWrap');
+  if(!route){
+    if(store.respondOnly){main.hidden=true;root.innerHTML=`<div class="wrap attest-wrap"><header class="top"><div class="brand"><div class="eyebrow">User access review</div><h1>Privileged access confirmations</h1></div></header><p style="max-width:62ch">This page is the security team’s access review. If you were asked to confirm privileged access, open the link in the message you received.</p></div>`;}
+    else{root.innerHTML='';main.hidden=false;}
+    return;
+  }
+  main.hidden=true;
+  if(!ui.att||ui.att.id!==route.id){ui.att={id:route.id,mode:route.mode,req:null,dec:{},note:{},done:null,error:'',loading:true};}
+  ui.att.mode=route.mode;const a=ui.att;
+  if(!a.req){
+    let req=S.attest[route.id]||null;let prior=null;
+    if(store.db){
+      if(!req){try{const sn=await store.db.doc('attest/'+route.id).get();if(sn.exists)req=clone(sn.data());}catch(e){}}
+      if(store.uid){try{const mine=await store.db.doc('responses/'+store.uid).get();if(mine.exists)prior=(clone(mine.data())||{})[route.id]||null;}catch(e){}}
+    }else{prior=((S.responses||{}).local||{})[route.id]||null;}
+    if(!req&&!store.checked){root.innerHTML='<div class="wrap attest-wrap"><p class="muted">Loading the request…</p></div>';return;}
+    a.loading=false;a.req=req;
+    if(req){(req.accounts||[]).forEach(x=>{const p=prior&&prior.decisions&&prior.decisions[x.key];a.dec[x.key]=x.term?'remove':(p?p.decision:(route.mode==='approve'?'keep':''));a.note[x.key]=p?p.note||'':'';});a.done=prior;}
+  }
+  drawAttest();
+}
+function drawAttest(){
+  const a=ui.att;const root=$('#attestRoot');const req=a.req;const back=store.mode!=='respond'?'<button class="btn btn-sm" data-act="attBack">Back to the review</button>':'';
+  if(!req){root.innerHTML=`<div class="wrap attest-wrap"><header class="top"><div class="brand"><div class="eyebrow">Privileged access confirmation</div><h1>Request not found</h1></div>${back}</header><p style="max-width:62ch">This request doesn’t exist or isn’t shared with you. Ask the person who sent it to give you access to this page as a Contributor, then open the link again.</p></div>`;return;}
+  const accts=req.accounts||[];const allKeep=accts.every(x=>x.term||a.dec[x.key]==='keep');
+  const ql=qLabel(req.quarter);
+  root.innerHTML=`<div class="wrap attest-wrap">
+    <header class="top"><div class="brand"><div class="eyebrow">Privileged access confirmation · ${esc(ql)}</div><h1>Confirm privileged access</h1></div>${back}</header>
+    <div class="period"><span>Owner <b>${esc(req.owner)}</b></span><span>Requested <b>${esc(fmtDT(req.sentAt))}</b> via ${esc(PLAT[req.platform]||req.platform)}</span><span>Respond by <b>${esc(fmt(parseDate(req.due)))}</b></span><span class="ref">${esc(req.id.toUpperCase())}</span></div>
+    ${a.done?`<div class="verdict ok" role="status"><span><b>Response recorded ${esc(fmtDT(a.done.submittedAt))}.</b>Thank you. You can change your answers and submit again until the review closes.</span></div>`:a.mode==='approve'?`<div class="verdict na"><span><b>Approve all current access?</b>This confirms every account below still needs its current access level. To change any of them, choose Reduce or Remove and add a comment.</span></div>`:''}
+    <div class="board"><div class="tblwrap" style="border:0"><table><thead><tr><th>Account</th><th>System</th><th>Current role</th><th>Last sign-in</th><th>Still required?</th><th>Comment</th></tr></thead><tbody>
+    ${accts.map(x=>{const id=idFor(x.key);return `<tr><td><div class="who">${esc(x.name||'—')}</div><div class="em">${esc(x.email)}</div>${x.flags?`<div class="muted" style="font-size:12px">${esc(x.flags)}</div>`:''}</td><td>${esc(x.system)}</td><td><span class="pill">${esc(x.role)}</span></td><td style="white-space:nowrap">${x.lastLogin?esc(fmt(parseDate(x.lastLogin))):'<span class="muted">—</span>'}</td>
+      <td>${x.term?'<span class="pill bad">Terminated · being removed</span>':`<div class="decseg" role="group" aria-label="Decision for ${esc(x.name||x.email)}">${[['keep','Keep'],['reduce','Reduce'],['remove','Remove']].map(([k,l])=>`<button data-act="attDec" data-k="${esc(x.key)}" data-v="${k}" aria-pressed="${a.dec[x.key]===k}">${l}</button>`).join('')}</div>`}</td>
+      <td>${x.term?'':`<input class="field-in note" id="an-${id}" data-attnote="${esc(x.key)}" value="${esc(a.note[x.key]||'')}" placeholder="${a.dec[x.key]==='reduce'?'Reduce to which role?':'Optional'}" aria-label="Comment">`}</td></tr>`;}).join('')}
+    </tbody></table></div></div>
+    ${a.error?`<p class="reqmiss" role="alert">${esc(a.error)}</p>`:''}
+    <div class="row" style="justify-content:flex-start;gap:10px"><button class="btn btn-primary" data-act="attSubmit" ${a.busy?'disabled':''}>${a.busy?'Saving…':allKeep?'Approve all current access':'Submit response'}</button>${a.mode==='approve'?`<a class="btn" href="#attest-${esc(req.id)}">Review each account</a>`:''}</div>
+    <p class="muted" style="font-size:12px;margin:0">${store.db?'Your response is recorded with your claude.ai identity and the time you submit it.':'Demo: your response is saved in this browser only.'}</p>
+  </div>`;
+}
+async function attSubmit(){
+  const a=ui.att;const req=a&&a.req;if(!req||a.busy)return;
+  const accts=req.accounts||[];
+  const missing=accts.filter(x=>!x.term&&!a.dec[x.key]);
+  if(missing.length){a.error=`Choose Keep, Reduce or Remove for ${pl(missing.length,'account')}.`;drawAttest();return;}
+  if(accts.some(x=>a.dec[x.key]==='reduce'&&!(a.note[x.key]||'').trim())){a.error='For each Reduce, say which role the account should have in the comment.';drawAttest();return;}
+  const resp={requestId:req.id,decisions:Object.fromEntries(accts.map(x=>[x.key,{decision:x.term?'remove':a.dec[x.key],note:(a.note[x.key]||'').trim()}])),submittedAt:new Date().toISOString(),approvedAll:accts.every(x=>x.term||a.dec[x.key]==='keep')};
+  if(store.db){
+    if(!store.uid){a.error='Sign in to claude.ai to record your response.';drawAttest();return;}
+    a.busy=true;drawAttest();
+    try{const ref=store.db.doc('responses/'+store.uid);let cur={};const sn=await ref.get();if(sn.exists)cur=clone(sn.data())||{};cur[req.id]=resp;await ref.set(cur);S.responses[store.uid]=cur;}
+    catch(e){a.busy=false;a.error=e&&e.code==='invalid_argument'?'Your access to this page doesn’t allow responses. Ask the sender to make you a Contributor.':'Your response couldn’t be saved. Try again in a moment.';drawAttest();return;}
+    a.busy=false;
+  }else{S.responses.local=S.responses.local||{};S.responses.local[req.id]=resp;save();}
+  a.done=resp;a.error='';drawAttest();toast('Response recorded');
+  if(store.mode!=='respond')renderAll();
 }
 function ownerRequest(o){
   const list=R.priv.filter(x=>x.owner===o);const due=new Date(R.snap);due.setDate(due.getDate()+(+S.settings.reviewDays||14));
@@ -962,7 +1231,7 @@ function panelWorkpaper(){
       <label class="f"><span>Approver title</span><input class="field-in" id="apTitle" data-set="approverTitle" value="${esc(s.approverTitle)}" placeholder="e.g. CISO"></label>
     </div>
     <label class="check"><input type="checkbox" id="rn" data-set="reportNames" ${s.reportNames?'checked':''}><span><b>Show user names.</b> Turn off to print initials only for wider distribution.</span></label>
-    <div class="row" style="justify-content:flex-start;gap:12px"><button class="btn btn-primary" data-act="pdf" id="pdfBtn">Download PDF</button><span class="muted" style="font-size:12.5px;max-width:60ch">Letter size: control rating, key findings, remediation status, security exceptions, privileged access by owner, coverage, recommendations, and sign-off.</span></div>
+    <div class="row" style="justify-content:flex-start;gap:12px"><button class="btn btn-primary" data-act="pdf" id="pdfBtn">Download PDF</button><span class="muted" style="font-size:12.5px;max-width:60ch">Letter size: control rating, key findings, remediation status, security exceptions, privileged access by owner, owner confirmation requests with send date, time and recipient, coverage, recommendations, and sign-off.</span></div>
   </div>
   <div class="card"><div class="row"><div><h3>Remediation tracker</h3><p class="hint">Every finding with owner, due date, status, evidence, and security exception details, ready for a ticketing or GRC tool.</p></div><span class="row" style="gap:8px"><button class="btn btn-sm" data-act="copyCSV" data-what="tracker">Copy CSV</button><button class="btn btn-sm" data-act="dlCSV" data-what="tracker">Download CSV</button></span></div></div>
   <div class="card"><div class="row"><div><h3>Audit workpaper</h3><p class="hint">Plain-text narrative for the evidence file.</p></div><span class="row" style="gap:8px"><button class="btn btn-sm" data-act="copyWP">Copy</button><button class="btn btn-sm" data-act="dlWP">Download .txt</button></span></div><pre class="wp" id="wp">${esc(workpaper())}</pre></div>`;
@@ -970,7 +1239,7 @@ function panelWorkpaper(){
 const nm=e=>{if(S.settings.reportNames)return e.user||e.email||e.account;return (e.user||'').split(/\s+/).filter(Boolean).map(w=>w[0].toUpperCase()+'.').join('')||'masked user';};
 const pl=(n,one,many)=>`${n} ${n===1?one:(many||one+'s')}`;
 function reportModel(){
-  const L=regEntries();const real=L.filter(x=>x.e.kind==='offboarding'&&x.e.status!=='fp');
+  const L=regEntries('review');const real=L.filter(x=>x.e.kind==='offboarding'&&x.e.status!=='fp');
   const mat=real.filter(x=>x.e.sev!=='low'),crit=real.filter(x=>x.e.sev==='crit');
   const open=L.filter(x=>!x.st.closed),overdue=L.filter(x=>x.st.overdue),closed=L.filter(x=>x.st.closed);
   const cnt=k=>real.filter(x=>x.e.sev===k).length;
@@ -1007,6 +1276,10 @@ function reportModel(){
   const acc=L.filter(x=>x.e.status==='accepted');
   if(acc.length){const ex=acc.map(x=>parseDate(x.e.exc.expires)).filter(Boolean).sort((a,b)=>a-b)[0];kf.push(`${pl(acc.length,'finding')} ${acc.length===1?'is':'are'} covered by a documented security exception (risk accepted)${ex?`; the first expires ${fmt(ex)}`:''}.`);}
   if(R.notInIdp.length)kf.push(`${pl(R.notInIdp.length,'active application account')} ${R.notInIdp.length===1?'has':'have'} no ${idpName} identity (contractors, shared or local accounts) and need a named owner.`);
+  const carried=L.filter(x=>x.e.quarter&&x.e.quarter!==R.period.key&&!x.st.closed);
+  if(carried.length)kf.push(`${pl(carried.length,'open finding')} ${carried.length===1?'was':'were'} carried over from earlier quarterly reviews: ${carried.slice(0,4).map(x=>x.e.ref).join(', ')}${carried.length>4?' and more':''}.`);
+  const rq=reqsFor(null,R.period.key);const ownersAsked=new Set(rq.map(r=>r.owner));const answered=new Set(rq.filter(r=>r.status==='responded').map(r=>r.owner));
+  if(owners.length)kf.push(`Owner confirmation was requested from ${ownersAsked.size} of ${pl(owners.length,'system owner')}; ${answered.size} responded.`);
   if(missing.length)kf.push(`Coverage gap: no user list was provided for ${missing.join(', ')}.`);
   if(!kf.length)kf.push('No accounts remained active after termination in any system tested.');
   const rec=[];
@@ -1027,7 +1300,7 @@ function reportModel(){
   if(missing.length)rec.push(`Collect user lists for ${missing.join(', ')} before the next quarterly review.`);
   if(acc.length)rec.push('Re-review each security exception before it expires; an expired exception reopens its finding.');
   if(!rec.length)rec.push('Continue the quarterly review on the current schedule.');
-  return {L,real,mat,crit,open,overdue,closed,rating,ratingKey,why,kpis,summary,kf,rec,owners,priv,missing,idpName,acc};
+  return {L,real,mat,crit,open,overdue,closed,rating,ratingKey,why,kpis,summary,kf,rec,owners,priv,missing,idpName,acc,rq};
 }
 async function makePDF(){
   const J=window.jspdf&&window.jspdf.jsPDF;
@@ -1109,14 +1382,24 @@ function buildPDF(J){
   }else para('No findings were closed by risk acceptance this quarter.');
   h2('Privileged access recertification by owner');
   if(m.priv.length){
-    table(['Owner','Systems','Accounts','Keep','Reduce','Remove','Pending','Held by terminated users'],
-      m.owners.map(o=>{const g=m.priv.filter(x=>x.owner===o);const c=k=>g.filter(x=>x.dec.decision===k).length;
-        return [o,[...new Set(g.map(x=>x.sys.name))].join(', '),g.length,c('keep'),c('reduce'),c('remove'),c('pending'),g.filter(x=>x.term).length].map(String);}),
-      {columnStyles:{2:{halign:'center'},3:{halign:'center'},4:{halign:'center'},5:{halign:'center'},6:{halign:'center'},7:{halign:'center',cellWidth:70}},
-       cell:d=>{if(d.column.index===7&&+d.cell.raw>0){d.cell.styles.textColor=C.crit;d.cell.styles.fontStyle='bold';}if(d.column.index===6&&+d.cell.raw>0)d.cell.styles.textColor=C.med;}});
+    table(['Owner','Systems','Accounts','Keep','Reduce','Remove','Pending','Terminated','Owner confirmation'],
+      m.owners.map(o=>{const g=m.priv.filter(x=>x.owner===o);const c=k=>g.filter(x=>x.dec.decision===k).length;const r=reqsFor(o,p.key)[0];
+        const conf=r?`Sent ${fmtDT(r.sentAt)} via ${PLAT[r.platform]||r.platform} to ${r.to}\n${r.status==='responded'?`Responded ${fmtDT(r.respondedAt)}`:reqStatus(r).t}`:'Not requested';
+        return [o,[...new Set(g.map(x=>x.sys.name))].join(', '),g.length,c('keep'),c('reduce'),c('remove'),c('pending'),g.filter(x=>x.term).length,conf].map(String);}),
+      {styles:{fontSize:7.4},columnStyles:{2:{halign:'center'},3:{halign:'center'},4:{halign:'center'},5:{halign:'center'},6:{halign:'center'},7:{halign:'center'},8:{cellWidth:118}},
+       cell:d=>{if(d.column.index===7&&+d.cell.raw>0){d.cell.styles.textColor=C.crit;d.cell.styles.fontStyle='bold';}if(d.column.index===6&&+d.cell.raw>0)d.cell.styles.textColor=C.med;if(d.column.index===8&&/past due|Not requested/.test(d.cell.raw))d.cell.styles.textColor=C.crit;}});
     const fl=[m.priv.filter(x=>x.notIdp).length,m.priv.filter(x=>x.dormant).length,m.priv.filter(x=>x.a.mfa===false).length];
     para(`Flags across privileged accounts: ${fl[0]} not in ${m.idpName}, ${fl[1]} idle more than ${+set.dormantDays||90} days or never used, ${fl[2]} without MFA.`,8.5);
   }else para('No privileged accounts were identified in the user lists provided.');
+  h2('Owner confirmation requests');
+  if(m.rq.length){
+    para('Each request below records when the system owner was asked to confirm privileged access, how, and to whom it was sent.',8.5);
+    table(['Request','Owner','Sent (date and time)','Sent via','Recipient','Sent by','Accts','Owner response'],
+      m.rq.map(r=>{const st=reqStatus(r);return [r.id.toUpperCase(),r.owner,fmtFull(r.sentAt),`${PLAT[r.platform]||r.platform}\n${r.sentVia==='connector'?'Sent from the tool':'Recorded as sent'}`,r.to,r.sentByName||who(r.sentBy,'-'),String((r.accounts||[]).length),
+        r.status==='responded'?`Responded ${fmtFull(r.respondedAt)}\nby ${r.responderName||who(r.responder)}${r.approvedAll?' (approved all)':''}`:st.t];}),
+      {styles:{fontSize:7.3},columnStyles:{0:{cellWidth:52},2:{cellWidth:74},6:{halign:'center',cellWidth:44},7:{cellWidth:96}},
+       cell:d=>{const r=m.rq[d.row.index];if(r&&d.column.index===7){const c=reqStatus(r).c;d.cell.styles.textColor=c==='good'?C.ok:c==='bad'?C.crit:C.med;}}});
+  }else para('No owner confirmation requests were sent this quarter.');
   h2('Control coverage');
   table(['System','Criticality','SSO','MFA','Deprovisioning','User list','Findings'],
     R.coverage.map(c=>{const s=c.sys;const n=m.L.filter(x=>x.e.sysId===s.id).length;
@@ -1162,10 +1445,12 @@ function workpaper(){
   if(R.findings.length){L.push('');L.push('EXCEPTION DETAIL');
     R.findings.forEach(f=>L.push(`- ${f.reg?f.reg.ref+' ':''}[${SEV[f.sev].label}] ${f.p.name||f.p.email} <${f.p.email}> — ${f.sys.name} — ${f.acct.statusRaw||'listed'}${f.acct.lastLogin?`, last sign-in ${fmt(f.acct.lastLogin)}`:''} — terminated ${fmt(f.p.termDate)}${f.days!=null?` (${f.days} days)`:''} — ${f.reg?stLabel(f.reg)+wpExtra(f.reg):DISP[f.disp.status]}`));}
   const pt=R.findings.filter(f=>f.priv);
-  const accL=regEntries().filter(x=>x.e.status==='accepted');
+  const accL=regEntries('review').filter(x=>x.e.status==='accepted');
   if(accL.length){L.push('');L.push('SECURITY EXCEPTIONS (RISK ACCEPTED)');
     accL.forEach(({e,st})=>L.push(`- ${e.exc.id||'(no ID)'} for ${e.ref}: ${e.user||e.email} — ${e.system}. Justification: ${e.exc.justification||'not documented'}. Compensating controls: ${[...(e.exc.controls||[]).map(c=>CONTROLS[c]),e.exc.other].filter(Boolean).join('; ')||'none recorded'}. Approved by ${e.exc.approver||'—'}${e.exc.approverTitle?', '+e.exc.approverTitle:''} on ${e.exc.approvedOn||'—'}; expires ${e.exc.expires||'—'}.${st.closed?'':' INCOMPLETE OR EXPIRED.'}`));}
-  const privAct=regEntries().filter(x=>x.e.kind==='privileged');
+  const rqs=reqsFor(null,R.period.key);
+  if(rqs.length){L.push('');L.push('OWNER CONFIRMATION REQUESTS');rqs.forEach(r=>L.push(`- ${r.id.toUpperCase()} to ${r.owner} via ${PLAT[r.platform]||r.platform} (${r.to}) on ${fmtDT(r.sentAt)}${r.sentVia==='manual'?' (marked as sent)':' (sent from the tool)'}, ${(r.accounts||[]).length} accounts, due ${r.due}: ${reqStatus(r).t}.`));}
+  const privAct=regEntries('review').filter(x=>x.e.kind==='privileged');
   L.push('');L.push('PRIVILEGED ACCESS');
   if(privAct.length)L.push(`Owner-requested access changes: ${privAct.map(({e})=>`${e.ref} ${e.user||e.email} (${e.system}: ${DEC[e.decision]} ${e.role}) — ${stLabel(e)}${wpExtra(e)}`).join('; ')}`);
   L.push(`Terminated users still holding active privileged access (rated Critical): ${pt.length}`);
@@ -1188,8 +1473,10 @@ const csvEsc=v=>{const s=String(v??'');return /[",\n\r]/.test(s)?'"'+s.replace(/
 const toCSV=rows=>rows.map(r=>r.map(csvEsc).join(',')).join('\r\n');
 function exportCSV(what){
   const q=R.period.label;
-  if(what==='tracker')return toCSV([['Quarter','Ref','Type','Severity','Finding','User','Email','Termination date','System','Account','Role','Status','Closed','Flags','Owner','Due','Ticket','Completed on','Completed by','Verification','Verified by','Evidence','Re-test','Exception ID','Justification','Compensating controls','Residual risk','Approved by','Approver title','Approved on','Expires','False positive reason','Notes','Identified'],
-    ...regEntries().map(({e,st})=>[q,e.ref,e.kind==='privileged'?'Privileged access change':'Offboarding',SEV[e.sev].label,e.title,e.user,e.email,e.termDate,e.system,e.account,e.role,stLabel(e),st.closed?'Yes':'No',st.flags.map(f=>f.t).join('; '),e.owner,e.due,e.ticket,e.rem.date||'',e.rem.by||'',METHODS[e.rem.method]||'',e.rem.verifiedBy||'',e.rem.evidence||'',e.retest?`${e.retest.result} in ${e.retest.file} (${iso(new Date(e.retest.at))})`:'',e.exc.id||'',e.exc.justification||'',[...(e.exc.controls||[]).map(c=>CONTROLS[c]),e.exc.other].filter(Boolean).join('; '),RESID[e.exc.residual]||'',e.exc.approver||'',e.exc.approverTitle||'',e.exc.approvedOn||'',e.exc.expires||'',(e.fp||{}).reason||'',e.notes,iso(new Date(e.firstSeen))])]);
+  if(what==='requests')return toCSV([['Quarter','Request','Owner','Sent','Via','Sent from page','To','Sent by','Due','Accounts','Status','Responded','Approved all'],
+    ...reqsFor(null,R.period.key).map(r=>[q,r.id.toUpperCase(),r.owner,r.sentAt,PLAT[r.platform]||r.platform,r.sentVia==='connector'?'Yes':'No (marked as sent)',r.to,r.sentByName||who(r.sentBy,''),r.due,(r.accounts||[]).length,reqStatus(r).t,r.respondedAt||'',r.approvedAll?'Yes':''])]);
+  if(what==='tracker')return toCSV([['Quarter identified','Reviews','Ref','Type','Severity','Finding','User','Email','Termination date','System','Account','Role','Status','Closed','Flags','Owner','Due','Ticket','Completed on','Completed by','Verification','Verified by','Evidence','Re-test','Exception ID','Justification','Compensating controls','Residual risk','Approved by','Approver title','Approved on','Expires','False positive reason','Notes','Identified'],
+    ...regEntries().map(({e,st})=>[qLabel(e.quarter),(e.quarters||[]).map(qLabel).join('; '),e.ref,e.kind==='privileged'?'Privileged access change':'Offboarding',SEV[e.sev].label,e.title,e.user,e.email,e.termDate,e.system,e.account,e.role,stLabel(e),st.closed?'Yes':'No',st.flags.map(f=>f.t).join('; '),e.owner,e.due,e.ticket,e.rem.date||'',e.rem.by||'',METHODS[e.rem.method]||'',e.rem.verifiedBy||'',e.rem.evidence||'',e.retest?`${e.retest.result} in ${e.retest.file} (${iso(new Date(e.retest.at))})`:'',e.exc.id||'',e.exc.justification||'',[...(e.exc.controls||[]).map(c=>CONTROLS[c]),e.exc.other].filter(Boolean).join('; '),RESID[e.exc.residual]||'',e.exc.approver||'',e.exc.approverTitle||'',e.exc.approvedOn||'',e.exc.expires||'',(e.fp||{}).reason||'',e.notes,iso(new Date(e.firstSeen))])]);
   if(what==='exceptions')return toCSV([['Quarter','Severity','Finding','User','Email','Employee ID','Termination date','Days since termination','System','Account','Account status','Privileged role','Last sign-in','Match method','Disposition','Note'],
     ...R.findings.map(f=>[q,SEV[f.sev].label,f.label,f.p.name,f.p.email,f.p.empId,iso(f.p.termDate),f.days??'',f.sys.name,f.acct.email||f.acct.name,f.acct.statusRaw,f.priv||'',f.acct.lastLogin?iso(f.acct.lastLogin):f.acct.lastLoginRaw,f.how,DISP[f.disp.status],f.disp.note||''])]);
   if(what==='log')return toCSV([['Quarter','User','Email','Termination date','System','Result','Detail','Severity','Match method','Account status','Last sign-in'],
@@ -1266,6 +1553,11 @@ function drawerReview(){
     <label class="f"><span>Flag privileged accounts idle for more than (days)</span><input class="field-in" type="number" min="1" id="dd" data-set="dormantDays" value="${esc(s.dormantDays)}"></label>
     <label class="f"><span>Owner of ${esc(IDP[s.idp].name)} admin roles</span><input class="field-in" id="io" data-set="idpOwner" value="${esc(s.idpOwner)}"></label>
     <label class="f"><span>Days owners have to respond</span><input class="field-in" type="number" min="1" id="rd" data-set="reviewDays" value="${esc(s.reviewDays)}"><small>Sets the due date in owner requests.</small></label>
+  </div></div>
+  <div class="card"><h3>Owner confirmations</h3><p class="hint">Privileged access requests go to each system owner by Slack, Microsoft Teams or Google Chat. The message links back to this page, where the owner approves current access or requests a change. Share this page with owners as Contributors so they can respond.</p>
+  <div class="fgrid">
+    <label class="f"><span>Default messaging app</span><select class="sel" id="msgP" data-set="msgPlatform">${Object.entries(PLAT).map(([k,l])=>`<option value="${k}" ${s.msgPlatform===k?'selected':''}>${l}</option>`).join('')}</select></label>
+    <label class="f"><span>Link owners open</span><input class="field-in" id="rUrl" data-set="responseUrl" value="${esc(s.responseUrl)}" placeholder="${esc(responseBase())}"><small>Leave blank to use this page’s own link.</small></label>
   </div></div>
   <div class="card"><h3>Remediation due dates</h3><p class="hint">Days from the day a finding is first identified. Changes apply to new findings; existing due dates stay as set.</p>
   <div class="fgrid">
@@ -1349,12 +1641,12 @@ function drawerBackup(){
   return `<div class="card"><h3>Storage on this device</h3>
     <label class="check"><input type="checkbox" id="rem" data-set="remember" ${S.settings.remember?'checked':''}><span><b>Remember uploaded lists in this browser.</b> Turn off on shared machines; settings, systems and dispositions are still kept.</span></label>
     <div class="row" style="justify-content:flex-start;gap:8px"><button class="btn btn-sm" data-act="clearLists">Clear uploaded lists</button><button class="btn btn-sm" data-act="loadSample">Load sample data</button></div></div>
-  <div class="card"><h3>Back up configuration</h3><p class="hint">Saves review rules, systems with their control answers, and every quarter’s dispositions. User lists are not included. Use it to move to another computer or keep a copy with the quarter’s evidence.</p>
+  <div class="card"><h3>Back up configuration</h3><p class="hint">Saves review rules, systems with their control answers, the full findings register, and owner confirmation requests. User lists are not included. Restoring merges: it never removes findings already here. Use it to move to another computer or keep a copy with the quarter’s evidence.</p>
     <div class="row" style="justify-content:flex-start;gap:8px"><button class="btn btn-sm" data-act="copyCfg">Copy backup</button><button class="btn btn-sm" data-act="dlCfg">Download .json</button></div>
     <label class="f"><span>Restore from a backup</span><textarea class="field-in" id="cfgIn" rows="4" placeholder="Paste backup JSON here"></textarea></label>
     <div class="row" style="justify-content:flex-start;gap:8px"><button class="btn btn-sm btn-primary" data-act="importCfg">Restore</button><label class="btn btn-sm">Restore from file<input type="file" id="cfgFile" accept=".json,application/json" data-cfgfile></label></div></div>
-  <div class="card"><h3>Start over</h3><p class="hint">Removes everything this tool has stored in this browser.</p>
-    <div class="row" style="justify-content:flex-start;gap:8px">${ui.confirm==='reset'?`<span style="font-size:13px">Erase all settings, systems, lists and dispositions?</span><button class="btn btn-sm" data-act="cancelConfirm">Cancel</button><button class="btn btn-sm btn-danger" data-act="resetAll">Erase everything</button>`:`<button class="btn btn-sm btn-danger" data-act="askReset">Reset tool</button>`}</div></div>`;
+  <div class="card"><h3>Start over</h3><p class="hint">Clears settings, systems and uploaded lists. The findings register and owner confirmations are permanent and are never erased; findings are only ever closed.</p>
+    <div class="row" style="justify-content:flex-start;gap:8px">${ui.confirm==='reset'?`<span style="font-size:13px">Clear settings, systems and uploaded lists? Findings and owner confirmations are kept.</span><button class="btn btn-sm" data-act="cancelConfirm">Cancel</button><button class="btn btn-sm btn-danger" data-act="resetAll">Clear settings and systems</button>`:`<button class="btn btn-sm btn-danger" data-act="askReset">Reset tool</button>`}</div></div>`;
 }
 
 /* ---------- data slot helpers ---------- */
@@ -1536,6 +1828,10 @@ function seedSample(){
   setD('jordan.blake@example.com','Google Workspace','keep','Manages engineering groups.');
   setD('casey.nguyen@example.com','Google Workspace','reduce','Only needs password resets. Move to a custom Help Desk role without user deletion rights.');
   setD('avery.chen@example.com','Salesforce','keep','Salesforce administrator of record.');
+  ['avery.chen@example.com','jordan.blake@example.com','casey.nguyen@example.com'].forEach(em=>{const x=R.priv.find(x=>x.a.email===em&&x.sys.name==='Google Workspace');if(x)Object.assign(S.privReviews[q][x.key],{via:'owner',requestId:'rdemo01',responder:'local'});});
+  const mk=(id,owner,platform,to,sentAt,due,extra)=>{const rq={id,owner,due};S.attest[id]={id,quarter:q,owner,platform,to,due,accounts:reqAccounts(owner),message:reqMessage(rq),sentAt:at(sentAt),sentBy:'',sentByName:'Security & GRC',sentVia:'connector',status:'sent',result:'',...extra};};
+  mk('rdemo01','IT / Security','slack','#it-security','2026-10-28T13:40:00','2026-11-11',{status:'responded',respondedAt:at('2026-10-28T14:00:00'),responderName:'Avery Chen',appliedAt:at('2026-10-28T14:00:00')});
+  mk('rdemo02','Security','teams','security-lead@example.com','2026-10-29T08:30:00','2026-11-12',{sentVia:'manual'});
   R=analyze();syncRegister(R);
   const c=Object.values(reg).find(e=>e.kind==='privileged');
   if(c){c.firstSeen=at('2026-10-28T14:00:00');c.due=iso(addDays(new Date('2026-10-28T14:00:00'),slaFor(c.sev)));c.history=[{at:c.firstSeen,text:c.history[0].text},{at:at('2026-10-28T14:30:00'),text:'Status: Open → In progress'}];c.status='progress';c.ticket='IT-4835';}
@@ -1566,7 +1862,7 @@ const actions={
   delApp:b=>{S.apps=S.apps.filter(a=>a.id!==b.dataset.id);ui.confirm=null;save();renderAll();},
   cancelConfirm:()=>{ui.confirm=null;renderDrawer();},
   askReset:()=>{ui.confirm='reset';renderDrawer();},
-  resetAll:()=>{try{localStorage.removeItem(KEY);}catch(e){}S=freshState();ui.confirm=null;ui.bulkLog=[];save();renderAll();toast('Everything erased.');},
+  resetAll:()=>{const keep={findings:S.findings,attest:S.attest,responses:S.responses,privReviews:S.privReviews,owners:S.owners};const wasSample=S.sample;S=freshState();if(!wasSample)Object.assign(S,keep);ui.confirm=null;ui.bulkLog=[];save();renderAll();toast('Settings, systems and lists cleared. The findings register and confirmations were kept.');},
   toggleRole:b=>{const a=getApp(b.dataset.app);if(!a)return;const v=b.dataset.role.toLowerCase();let keys=privKeys(a);
     if(keys.some(k=>v.includes(k)))keys=keys.filter(k=>!v.includes(k));else keys.push(v);
     a.privRoles=keys.join(', ');if(!a.privRoles)a.privRoles='(none)';save();renderAll();},
@@ -1576,6 +1872,17 @@ const actions={
   goReport:()=>{ui.tab='workpaper';renderBody();const t=$('#tab-workpaper');t&&t.focus();},
   pdf:()=>makePDF(),
   copyOwner:b=>copyText(ownerRequest(b.dataset.owner),'Owner request'),
+  openReq:b=>openReq(b.dataset.owner),
+  closeReq:(b,e)=>{if(e&&e.target.closest('[data-stop]')&&!b.matches('button'))return;ui.req=null;renderRequest();},
+  copyReq:()=>copyText(reqMessage(ui.req),'Message'),
+  markSent:()=>recordRequest('manual'),
+  sendSlack:async()=>{const rq=ui.req;if(!rq||rq.busy)return;rq.busy=true;rq.error='';renderRequest();
+    try{const res=await slackSend(rq.to,reqMessage(rq));rq.busy=false;recordRequest('connector',res);}
+    catch(err){rq.busy=false;rq.error=slackErr(err);renderRequest();}},
+  scope:b=>{ui.scope=b.dataset.v;renderBody();},
+  attDec:b=>{const a=ui.att;if(!a)return;a.dec[b.dataset.k]=b.dataset.v;a.error='';drawAttest();const n=document.querySelector(`.decseg button[data-k="${CSS.escape(b.dataset.k)}"][data-v="${b.dataset.v}"]`);n&&n.focus();},
+  attSubmit:()=>attSubmit(),
+  attBack:()=>{location.hash='review';},
   copyOwnerCSV:b=>copyText(exportCSV('owner:'+b.dataset.owner),'Owner CSV'),
   clearLists:()=>{S.sources={hris:null,idp:null,idpAdmins:null};S.apps.forEach(a=>a.data=null);save();renderAll();toast('Uploaded lists cleared. Systems and answers kept.');},
   clearLog:()=>{ui.bulkLog=[];renderDrawer();},
@@ -1584,20 +1891,22 @@ const actions={
   importCfg:()=>importCfg($('#cfgIn').value),
   closeFallback:(b,e)=>{if(e.target.closest('[data-stop]')&&!b.matches('button'))return;$('#fallbackRoot').innerHTML='';}
 };
-function configJSON(){return JSON.stringify({tool:'offboarding-access-review',version:1,exportedAt:new Date().toISOString(),settings:S.settings,reviewer:S.reviewer,apps:S.apps.map(a=>({...a,data:null})),dispositions:S.dispositions,privReviews:S.privReviews,register:S.register},null,2);}
+function configJSON(){return JSON.stringify({tool:'offboarding-access-review',version:1,exportedAt:new Date().toISOString(),settings:S.settings,reviewer:S.reviewer,apps:S.apps.map(a=>({...a,data:null})),dispositions:S.dispositions,privReviews:S.privReviews,findings:S.findings,attest:S.attest,owners:S.owners},null,2);}
 function importCfg(text){
   try{const o=JSON.parse(text);if(o.tool!=='offboarding-access-review')throw 0;
     const keepData=new Map(S.apps.map(a=>[a.name.toLowerCase(),a.data]));
-    S.sample=false;S.settings={...DEFAULT_SETTINGS,...o.settings};S.reviewer=o.reviewer||'';S.dispositions=o.dispositions||{};S.privReviews=o.privReviews||{};S.register=o.register||{};
+    S.sample=false;S.settings={...DEFAULT_SETTINGS,...o.settings};S.reviewer=o.reviewer||'';S.dispositions=o.dispositions||{};S.privReviews={...S.privReviews,...(o.privReviews||{})};migrateRegister(o);for(const [k,e] of Object.entries(o.findings||{}))if(!S.findings[k])S.findings[k]=e;S.attest={...(o.attest||{}),...S.attest};S.owners={...S.owners,...(o.owners||{})};
     S.apps=(o.apps||[]).map(a=>({...a,data:keepData.get(String(a.name).toLowerCase())||null}));
     save();renderAll();toast('Backup restored.');
   }catch(e){toast('That isn’t a backup from this tool. Paste the full JSON from “Copy backup”.');}
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const fn=actions[b.dataset.act];if(fn){if(b.tagName==='BUTTON')e.preventDefault();fn(b,e);}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('#fallbackRoot').innerHTML){$('#fallbackRoot').innerHTML='';}else if(ui.finding)actions.closeFinding();else if(ui.drawer)actions.closeSettings();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(ui.req){ui.req=null;renderRequest();}else if($('#fallbackRoot').innerHTML){$('#fallbackRoot').innerHTML='';}else if(ui.finding)actions.closeFinding();else if(ui.drawer)actions.closeSettings();}
   if(e.key==='Enter'&&e.target.id==='newApp'){e.preventDefault();actions.addApp();}});
 document.addEventListener('toggle',e=>{const d=e.target;if(d.matches&&d.matches('[data-appdetails]')){const id=d.dataset.appdetails;if(d.open)ui.openApps.add(id);else ui.openApps.delete(id);}},true);
-document.addEventListener('input',e=>{if(e.target.id==='fQ'){ui.q=e.target.value;renderFTable();}});
+document.addEventListener('input',e=>{const t=e.target;if(t.id==='fQ'){ui.q=t.value;renderFTable();}
+  if(t.id==='rqTo'&&ui.req){ui.req.to=t.value;document.querySelectorAll('[data-needs-to]').forEach(b=>b.disabled=!t.value.trim()||ui.req.busy);}
+  if(t.matches&&t.matches('[data-attnote]')&&ui.att){ui.att.note[t.dataset.attnote]=t.value;}});
 document.addEventListener('change',async e=>{
   const t=e.target;
   if(t.id==='quarterSel'){if(t.value==='auto'){S.settings.quarterMode='auto';}else{S.settings.quarterMode='manual';S.settings.quarterKey=t.value;}save();renderAll();return;}
@@ -1605,12 +1914,14 @@ document.addEventListener('change',async e=>{
   if(t.id==='fDisp'){ui.disp=t.value;renderFTable();return;}
   if(t.matches('[data-reg]')){const e=regOf(R.period.key)[t.dataset.reg];if(!e)return;setReg(e,t.dataset.f,t.value);save();renderAll();return;}
   if(t.matches('[data-regctl]')){const e=regOf(R.period.key)[t.dataset.regctl];if(!e)return;e.exc=e.exc||{};const cs=new Set(e.exc.controls||[]);t.checked?cs.add(t.value):cs.delete(t.value);e.exc.controls=[...cs];save();renderAll();return;}
+  if(t.matches('[data-rq]')&&ui.req){ui.req[t.dataset.rq]=t.value;ui.req.error='';renderRequest();if(t.dataset.rq!=='platform'){const n=$('#'+t.id);n&&n.focus();}return;}
+  if(t.matches('[data-attnote]')){return;}
   if(t.id==='pOwner'){ui.privOwner=t.value;renderPanel();return;}
   if(t.id==='pDec'){ui.privDec=t.value;renderPanel();return;}
   if(t.matches('[data-priv]')||t.matches('[data-privnote]')){
     const key=t.dataset.priv||t.dataset.privnote;const q=R.period.key;S.privReviews[q]=S.privReviews[q]||{};
     const x=R.priv.find(p=>p.key===key);const cur=S.privReviews[q][key]||{decision:x?x.dec.decision:'pending',note:x?x.dec.note:''};
-    if(t.matches('[data-priv]'))cur.decision=t.value;else cur.note=t.value;cur.at=new Date().toISOString();
+    if(t.matches('[data-priv]'))cur.decision=t.value;else cur.note=t.value;cur.at=new Date().toISOString();cur.via='reviewer';delete cur.requestId;
     S.privReviews[q][key]=cur;save();renderAll();return;}
   if(t.id==='reviewer'){S.reviewer=t.value;save();const wp=$('#wp');if(wp)wp.textContent=workpaper();return;}
   if(t.id==='bulkInput'){await bulk(t.files);return;}
@@ -1633,7 +1944,9 @@ document.addEventListener('change',async e=>{
 
 /* ---------- boot ---------- */
 S=load();if(!S||S.sample)sampleState();
-renderAll();
+renderAll();renderAttest();
+window.addEventListener('hashchange',()=>{ui.att=null;renderAttest();if(!attestRoute())renderAll();});
+initStore().then(()=>{renderAll();renderAttest();});
 })();
 </script>
 </body>

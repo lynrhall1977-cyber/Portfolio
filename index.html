@@ -322,7 +322,7 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
         <a class="card" href="#access-review">
           <div class="card-top"><span class="pid">AI-06</span><span class="status ready">Ready to deploy</span></div>
           <h3>Offboarding &amp; Privileged Access Review</h3>
-          <p>A quarterly user access review that tests offboarding against the HR termination list, flags terminated users who still hold admin rights, tracks every finding to closure, and produces an executive report as a PDF.</p>
+          <p>A quarterly user access review that tests offboarding against the HR termination list, flags terminated users who still hold admin rights, asks system owners to confirm privileged access over Slack, Teams, or Google Chat, and keeps a permanent register of every finding to closure.</p>
           <div class="tags"><span>Access reviews</span><span>SOC 2 evidence</span><span>Offline web app</span></div>
           <span class="more">View project</span>
         </a>
@@ -588,7 +588,7 @@ Full scorecard: INC-042 Subsequent Scorecard 2026-10-10 1529 EDT.pdf (Incident E
         <div class="p-head">
           <div class="card-top"><span class="pid">AI-06</span><span class="status ready">Ready to deploy</span></div>
           <h3 id="p6-h">Offboarding &amp; Privileged Access Review</h3>
-          <p>A quarterly user access review that tests whether offboarding actually removed access. It compares the HR termination list with the identity provider (Google Workspace or Microsoft Entra ID) and the user list from each critical system, rates every account still active after termination, and pulls every privileged account into a report for its system owner to recertify. Every finding is then tracked to closure, either offboarding completed with evidence or risk accepted under a documented security exception, and the quarter ends with an executive report as a PDF. The output is the auditor's evidence: a remediation tracker, a full test log, a coverage table of each system's controls, and a written workpaper.</p>
+          <p>A quarterly user access review that tests whether offboarding actually removed access. It compares the HR termination list with the identity provider (Google Workspace or Microsoft Entra ID) and the user list from each critical system, rates every account still active after termination, and pulls every privileged account into a report for its system owner to recertify. Every finding is then tracked to closure, either offboarding completed with evidence or risk accepted under a documented security exception, in a register that builds up quarter after quarter and never deletes a finding. System owners confirm privileged access from a link in a Slack, Teams, or Google Chat message, and the quarter ends with an executive report as a PDF. The output is the auditor's evidence: a remediation tracker, a full test log, a coverage table of each system's controls, and a written workpaper.</p>
         </div>
         <dl class="facts">
           <div><dt>Domain</dt><dd>Identity and access management, SOC 2 CC6.2 / CC6.3 evidence</dd></div>
@@ -611,7 +611,9 @@ Full scorecard: INC-042 Subsequent Scorecard 2026-10-10 1529 EDT.pdf (Incident E
             <li>Lists active app accounts with no identity provider account at all, such as contractors and local admins that never came through HR</li>
             <li>Tracks each finding with an owner, a due date set by severity, and a ticket, through to offboarding completed with evidence or risk accepted under a numbered security exception with justification, compensating controls, approver, and expiry</li>
             <li>Re-tests open findings against each newer user list: access that is gone closes the finding as verified, and access that is still there reopens a finding marked complete</li>
-            <li>Builds a letter-size executive report as a PDF with a control rating, key findings, remediation status, security exceptions, privileged access by owner, coverage, recommendations, and sign-off lines</li>
+            <li>Keeps one permanent findings register across every quarterly review: findings are only ever closed, and open findings carry into the next quarter marked as carried over</li>
+            <li>Sends each system owner a privileged access confirmation by Slack, Microsoft Teams, or Google Chat, records the date, time, and recipient, and links the owner to a page where they approve current access or request a change, which updates the review automatically</li>
+            <li>Builds a letter-size executive report as a PDF with a control rating, key findings, remediation status, security exceptions, privileged access by owner, every owner confirmation request with its date, time, recipient, and response, coverage, recommendations, and sign-off lines</li>
           </ul></div>
           <div class="block"><h4>Safeguards</h4><ul>
             <li>Runs entirely in the browser; HR and user lists never leave the computer</li>
@@ -621,6 +623,7 @@ Full scorecard: INC-042 Subsequent Scorecard 2026-10-10 1529 EDT.pdf (Incident E
             <li>Missing user lists and unanswered control questions are called out in the conclusion, so incomplete coverage cannot pass as a clean review</li>
             <li>A finding counts as closed only when its evidence or exception record is complete, and an expired exception reopens its finding</li>
             <li>The executive report can print initials instead of names for wider distribution</li>
+            <li>In the live tool, access rules let system owners read only their own request and write only their own response, recorded with their identity and time; they never see findings, user lists, or other owners' answers</li>
             <li>The configuration backup holds settings and decisions only, never user data</li>
           </ul></div>
         </div>
@@ -629,10 +632,11 @@ Full scorecard: INC-042 Subsequent Scorecard 2026-10-10 1529 EDT.pdf (Incident E
           <li>Run end to end in a headless browser on a sample set designed to hit every rating, including a sign-in after termination, a still-active admin, a disabled admin, an identity-provider block, a future-dated termination, and a service account</li>
           <li>Each result was checked against the expected rating before the demo was published</li>
           <li>Remediation was tested by uploading a newer user list with accounts deactivated, which closed those findings as verified by re-test, and the PDF was rendered page by page to check layout and page breaks</li>
+          <li>Owner confirmations were tested end to end against a stand-in for the shared database: an owner without edit rights answered a request, the review applied the answer and marked the request responded, and a simulated next quarter carried open findings forward with nothing deleted</li>
         </ul></div>
         <div class="actions">
           <a class="btn btn-cta" href="demo/access-review.html" target="_blank" rel="noopener">Try the live demo</a>
-          <span class="note">Invented example.com users. Update a finding or download the executive report PDF. Runs in your browser; nothing is sent anywhere. Opens in a new tab.</span>
+          <span class="note">Invented example.com users. Update a finding, send and answer an owner confirmation, or download the executive report PDF. Runs in your browser; nothing is sent anywhere. Opens in a new tab.</span>
         </div>
         <div class="tags"><span>HTML / JavaScript</span><span>Google Workspace</span><span>Microsoft Entra ID</span><span>SOC 2</span><span>jsPDF</span><span>Claude</span><span>Playwright testing</span></div>
         <a class="back" href="#projects">Back to all projects</a>
