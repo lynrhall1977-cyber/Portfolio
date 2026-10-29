@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Offboarding Access Review Demo</title>
-<meta name="description" content="Interactive demo of a quarterly user access review: orphaned accounts after termination and privileged access recertification by system owner. Sample data only.">
+<meta name="description" content="Interactive demo of a quarterly user access review: orphaned accounts after termination, privileged access recertification, remediation tracking with security exceptions, and a PDF executive report. Sample data only.">
 <link rel="icon" href="../assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -129,7 +129,7 @@ td{padding:9px 10px;border-top:1px solid var(--line);vertical-align:top}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 tr.resolved td{opacity:.62}
 td .who{font-weight:600}
-td:has(> .who){min-width:210px}
+td:has(> .who){min-width:240px}
 td .em{font-family:var(--font-data);font-size:12px;color:var(--muted);overflow-wrap:anywhere}
 td select,td input{font-size:12.5px;min-height:30px}
 td input.note{width:180px}
@@ -185,6 +185,29 @@ details.app .inner{padding:4px 14px 16px;display:flex;flex-direction:column;gap:
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:var(--r);font-size:13px;font-weight:500;z-index:60;max-width:min(560px,calc(100% - 32px));box-shadow:var(--shadow)}
 .fallback{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;background:var(--scrim);padding:16px}
 .fallback .card{width:min(680px,100%)}
+.track{display:flex;flex-wrap:wrap;gap:8px}
+.tchip{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:8px 12px;min-width:112px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+.tchip b{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.tchip span{font-size:11.5px;color:var(--muted);font-weight:600}
+.tchip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.tchip.bad b{color:var(--crit)} .tchip.good b{color:var(--ok)}
+.tchip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ref{font-family:var(--font-data);font-size:11.5px;color:var(--muted)}
+tr.clickable{cursor:pointer} tr.clickable:hover td{background:var(--surface-2)}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.st::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--c,var(--line-strong))}
+.st.open{--c:var(--high)} .st.progress{--c:var(--med)} .st.remediated{--c:var(--ok)} .st.accepted{--c:var(--accent)} .st.fp{--c:var(--line-strong)}
+.flags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.facts2{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px 16px;margin:0}
+.facts2 div{min-width:0} .facts2 dt{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)} .facts2 dd{margin:2px 0 0;font-size:13px;overflow-wrap:anywhere}
+.stgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px}
+.reqmiss{margin:0;font-size:12.5px;color:var(--med);font-weight:600}
+.hist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:12.5px}
+.hist li{display:grid;grid-template-columns:118px 1fr;gap:10px}
+.hist time{color:var(--muted);font-variant-numeric:tabular-nums}
+.rating{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:16px}
+.checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:6px 14px;margin-bottom:6px}
+.drawer h2{text-wrap:balance}
 @media (max-width:560px){
   .brand h1{font-size:22px}
   .search{width:100%}
@@ -203,7 +226,7 @@ img{max-width:100%}
 </head>
 <body>
 <div class="wrap">
-  <div class="demo-strip"><span><b style="color:var(--fg)">Portfolio demo.</b> Invented example.com users and sample exports. Upload your own CSVs to try it; files are read in your browser and never leave it.</span><a href="../index.html#access-review">Back to the portfolio</a></div>
+  <div class="demo-strip"><span><b style="color:var(--fg)">Portfolio demo.</b> Invented example.com users and sample exports. Try updating a finding or downloading the executive report PDF. Files you upload are read in your browser and never leave it.</span><a href="../index.html#access-review">Back to the portfolio</a></div>
   <header class="top">
     <div class="brand">
       <div class="eyebrow">Orphaned account test · SOC 2 CC6.2 / CC6.3</div>
@@ -212,6 +235,7 @@ img{max-width:100%}
     <div class="top-ctl">
       <div class="qpick" id="qpick"></div>
       <span class="idp-pill" id="idpPill"></span>
+      <button class="btn" data-act="goReport">Executive report</button>
       <button class="btn btn-primary" data-act="openSettings" data-tab="review" id="settingsBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
         Settings
@@ -230,9 +254,12 @@ img{max-width:100%}
   <p class="muted" style="font-size:12px;margin:0">Files are read in this browser only. Nothing you upload is sent anywhere.</p>
 </div>
 <div id="drawerRoot"></div>
+<div id="findingRoot"></div>
 <div id="toastRoot"></div>
 <div id="fallbackRoot"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
 (function(){
 'use strict';
@@ -261,6 +288,11 @@ const SLOT_FIELDS={
   idpAdmins:['email','name','role']
 };
 const DEC={pending:'Pending owner',keep:'Keep',reduce:'Reduce',remove:'Remove'};
+const ST={open:'Open',progress:'In progress',remediated:'Offboarding complete',accepted:'Risk accepted',fp:'False positive'};
+const CLOSED=['remediated','accepted','fp'];
+const METHODS={retest:'Re-test with a new user list export',console:'Admin console screenshot',audit:'Audit log entry',scim:'SCIM / automated deprovisioning log',ticket:'Ticket closed with evidence attached'};
+const CONTROLS={idp:'Sign-in blocked at the IdP (SSO enforced)',mfa:'MFA enforced on the account',pwd:'Password rotated or credentials vaulted',tokens:'API tokens and sessions revoked',least:'Reduced to least privilege',monitor:'Activity monitored with alerts',owner:'Assigned to a named owner',expiry:'Set to expire automatically'};
+const RESID={low:'Low',moderate:'Moderate',high:'High'};
 const ORDER=['email','termDate','lastLogin','mfa','empId','first','last','name','status','role'];
 
 const SEV={crit:{label:'Critical',rank:0},high:{label:'High',rank:1},med:{label:'Medium',rank:2},low:{label:'Low',rank:3}};
@@ -277,8 +309,9 @@ const IDP={
 
 /* ---------- state ---------- */
 const DEFAULT_SETTINGS={idp:'google',quarterMode:'auto',quarterKey:'',fyStart:1,population:'all',snapshotDate:'',slaDays:1,nameMatch:true,domainAliases:'',exclusions:'svc-, noreply, no-reply, api@, integration@',remember:true,
-  privKeywords:'admin, owner, super, root, global, privileged, billing, security, maintainer, system administrator',dormantDays:90,idpOwner:'IT / Security',reviewDays:14};
-function freshState(){return {v:1,settings:{...DEFAULT_SETTINGS},sources:{hris:null,idp:null,idpAdmins:null},apps:[],dispositions:{},privReviews:{},reviewer:'',sample:false};}
+  privKeywords:'admin, owner, super, root, global, privileged, billing, security, maintainer, system administrator',dormantDays:90,idpOwner:'IT / Security',reviewDays:14,
+  orgName:'',slaCrit:2,slaHigh:7,slaMed:30,slaLow:30,excMaxDays:90,reportNames:true,approverName:'',approverTitle:''};
+function freshState(){return {v:1,settings:{...DEFAULT_SETTINGS},sources:{hris:null,idp:null,idpAdmins:null},apps:[],dispositions:{},privReviews:{},register:{},reviewer:'',sample:false};}
 let S;
 const ui={tab:'exceptions',sev:'all',sys:'all',disp:'all',q:'',privOwner:'all',privDec:'all',drawer:false,dtab:'review',openApps:new Set(),confirm:null,bulkLog:[],warnedQuota:false};
 
@@ -292,7 +325,7 @@ function save(){
   }
 }
 function load(){
-  try{const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);o.settings={...DEFAULT_SETTINGS,...o.settings};o.sources={hris:null,idp:null,idpAdmins:null,...(o.sources||{})};o.apps=o.apps||[];o.dispositions=o.dispositions||{};o.privReviews=o.privReviews||{};return o;}}catch(e){}
+  try{const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);o.settings={...DEFAULT_SETTINGS,...o.settings};o.sources={hris:null,idp:null,idpAdmins:null,...(o.sources||{})};o.apps=o.apps||[];o.dispositions=o.dispositions||{};o.privReviews=o.privReviews||{};o.register=o.register||{};return o;}}catch(e){}
   return null;
 }
 
@@ -552,11 +585,126 @@ function inPop(d,R){
 const isResolved=f=>['remediated','exception','fp'].includes(f.disp.status);
 const material=R=>R.findings.filter(f=>f.sev!=='low'&&f.disp.status!=='fp');
 
+/* ---------- remediation register ---------- */
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
+function slaFor(sev){const s=S.settings;const v={crit:s.slaCrit,high:s.slaHigh,med:s.slaMed,low:s.slaLow}[sev];return v===''||v==null||isNaN(+v)?30:+v;}
+function stLabel(e){return e.status==='remediated'&&e.kind==='privileged'?'Access change complete':(ST[e.status]||'Open');}
+function regOf(q){return (S.register[q]=S.register[q]||{});}
+function nextRef(reg,q){let n=Object.keys(reg).length+1,r;do{r=`UAR-${q.replace('-','')}-${String(n).padStart(3,'0')}`;n++;}while(Object.values(reg).some(e=>e.ref===r));return r;}
+function nextExcId(){const q=R.period.key;const reg=regOf(q);let n=1,id;do{id=`SE-${q.replace('-','')}-${String(n).padStart(3,'0')}`;n++;}while(Object.values(reg).some(e=>e.exc&&e.exc.id===id));return id;}
+function newEntry(reg,q,key,snap,owner,note){
+  const now=new Date().toISOString();
+  const e={key,ref:nextRef(reg,q),firstSeen:now,status:'open',owner:owner||'',due:iso(addDays(new Date(),slaFor(snap.sev))),ticket:'',notes:'',rem:{},exc:{},fp:{},closedAt:'',retest:null,history:[{at:now,text:note}],...snap};
+  reg[key]=e;return e;
+}
+function syncRegister(R){
+  const q=R.period.key;const reg=regOf(q);const now=new Date().toISOString();let changed=false;const cur=new Set();
+  const old=S.dispositions[q]||{};
+  for(const f of R.findings){
+    const ds=f.sys.ds;cur.add(f.key);
+    const snap={kind:'offboarding',sev:f.sev,title:f.label,user:f.p.name,email:f.p.email,empId:f.p.empId,termDate:iso(f.p.termDate),sysId:f.sys.id,system:f.sys.name,account:f.acct.email||f.acct.name,acctStatus:f.acct.statusRaw,role:f.priv||f.acct.role||'',priv:!!f.priv,lastLogin:f.acct.lastLogin?iso(f.acct.lastLogin):'',how:f.how,detected:true,lastFile:ds.fileName,lastFileAt:ds.uploadedAt};
+    const e=reg[f.key];
+    if(!e){
+      const n=newEntry(reg,q,f.key,snap,f.sys.owner,`Identified: ${f.label} (${f.sys.name})`);
+      const d=old[f.key];if(d){n.status={open:'open',remediated:'remediated',exception:'accepted',fp:'fp'}[d.status]||'open';n.notes=d.note||'';}
+      changed=true;continue;
+    }
+    if(e.sev!==f.sev)e.history.push({at:now,text:`Severity ${SEV[e.sev].label} → ${SEV[f.sev].label}`});
+    if(!e.detected)e.history.push({at:now,text:`Detected again in ${ds.fileName}`});
+    const before=JSON.stringify(e);Object.assign(e,snap);if(JSON.stringify(e)!==before)changed=true;
+  }
+  for(const x of R.priv){
+    if(x.term||!['remove','reduce'].includes(x.dec.decision))continue;
+    const key='priv|'+x.key;cur.add(key);const ds=x.sys.ds;
+    const snap={kind:'privileged',sev:'med',title:x.dec.decision==='remove'?'Owner decision: remove privileged access':'Owner decision: reduce privileged access',user:x.a.name,email:x.a.email,empId:x.a.empId,termDate:'',sysId:x.sys.id,system:x.sys.name,account:x.a.email||x.a.name,acctStatus:x.a.statusRaw,role:x.role,priv:true,lastLogin:x.a.lastLogin?iso(x.a.lastLogin):'',how:'',detected:true,lastFile:ds.fileName,lastFileAt:ds.uploadedAt,decision:x.dec.decision,decisionNote:x.dec.note||''};
+    const e=reg[key];
+    if(!e){newEntry(reg,q,key,snap,x.owner==='Unassigned'?'':x.owner,`Owner recertification: ${DEC[x.dec.decision]} ${x.role} in ${x.sys.name}`);changed=true;continue;}
+    const before=JSON.stringify(e);Object.assign(e,snap);if(JSON.stringify(e)!==before)changed=true;
+  }
+  for(const e of Object.values(reg)){
+    if(cur.has(e.key)||!e.detected)continue;
+    const cov=R.coverage.find(c=>c.sys.id===e.sysId);
+    if(!cov||!cov.loaded)continue;                       // list removed: leave the record as it was
+    const ds=cov.sys.ds;let result;
+    if(e.kind==='privileged'){
+      const still=R.priv.find(x=>'priv|'+x.key===e.key);
+      if(still){if(e.status==='open'&&e.history.length<=1){delete reg[e.key];changed=true;}continue;}
+      result='no longer privileged';
+    }else{
+      const t=R.tests.find(t=>t.key===e.key);if(!t)continue; // person not in this population: leave alone
+      result=t.acct?'disabled':'not present';
+    }
+    if(ds.fileName===e.lastFile&&ds.uploadedAt===e.lastFileAt){e.detected=false;e.history.push({at:now,text:'No longer flagged under the current review settings'});changed=true;continue;}
+    e.detected=false;e.retest={file:ds.fileName,at:ds.uploadedAt,result};
+    e.history.push({at:now,text:`Re-test: account ${result} in ${ds.fileName}`});
+    if(e.status==='open'||e.status==='progress'){
+      e.status='remediated';e.closedAt=now;
+      e.rem={...e.rem,date:iso(new Date(ds.uploadedAt)),method:'retest',by:e.rem.by||e.owner||'Owner',verifiedBy:e.rem.verifiedBy||'Automated re-test',evidence:`Account ${result} in ${ds.fileName}, exported ${fmt(new Date(ds.uploadedAt))}`,auto:true};
+      e.history.push({at:now,text:`Status → ${stLabel(e)} (verified by re-test)`});
+    }
+    changed=true;
+  }
+  return changed;
+}
+function remMissing(e){const r=e.rem||{};const m=[];if(!r.date)m.push('date completed');if(!r.by)m.push('completed by');if(!r.method)m.push('verification method');return m;}
+function excMissing(e){const x=e.exc||{};const m=[];if(!x.justification)m.push('business justification');if(!(x.controls||[]).length&&!x.other)m.push('compensating controls');if(!x.approver)m.push('approver');if(!x.approvedOn)m.push('approval date');if(!x.expires)m.push('expiration date');return m;}
+function eState(e){
+  const today=dayStart(new Date());const flags=[];let closed=CLOSED.includes(e.status);
+  if(e.status==='accepted'){
+    if(excMissing(e).length){closed=false;flags.push({t:'Exception incomplete',c:'warn'});}
+    else{const ex=parseDate(e.exc.expires);if(ex&&ex<today){closed=false;flags.push({t:'Exception expired',c:'bad'});}else if(ex&&dayDiff(ex,today)<=30)flags.push({t:`Expires in ${dayDiff(ex,today)}d`,c:'warn'});}
+  }
+  if(e.status==='remediated'){
+    if(remMissing(e).length){closed=false;flags.push({t:'Evidence incomplete',c:'warn'});}
+    if(e.detected){const rd=parseDate(e.rem.date);
+      if(rd&&e.lastFileAt&&new Date(e.lastFileAt)>eod(rd)){closed=false;flags.push({t:e.kind==='privileged'?'Still privileged in latest list':'Still active in latest list',c:'bad'});}
+      else flags.push({t:'Re-test pending',c:''});}
+    else if(e.retest)flags.push({t:'Verified by re-test',c:'good'});
+  }
+  if(e.status==='fp'&&!(e.fp&&e.fp.reason)){closed=false;flags.push({t:'Reason needed',c:'warn'});}
+  const due=parseDate(e.due);let overdue=false;
+  if(!closed&&due&&dayDiff(today,due)>0){overdue=true;flags.unshift({t:`Overdue ${dayDiff(today,due)}d`,c:'bad'});}
+  return {closed,overdue,flags};
+}
+function linkRegister(R){
+  const reg=regOf(R.period.key);
+  for(const f of R.findings){const e=reg[f.key];if(!e)continue;const st=eState(e);f.reg=e;
+    f.disp={status:!st.closed?'open':e.status==='fp'?'fp':e.status==='accepted'?'exception':'remediated',note:e.notes||''};}
+}
+function regEntries(){return Object.values(S.register[R.period.key]||{}).map(e=>({e,st:eState(e)}));}
+function flagHTML(st){return st.flags.length?`<div class="flags">${st.flags.map(f=>`<span class="pill ${f.c}">${esc(f.t)}</span>`).join('')}</div>`:'';}
+function closedOn(e){if(e.status==='remediated')return e.rem.date;if(e.status==='accepted')return e.exc.approvedOn;return e.closedAt?e.closedAt.slice(0,10):'';}
+const fmtDT=s=>{const d=new Date(s);return isNaN(d)?'':d.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});};
+function setReg(e,f,v){
+  const now=new Date().toISOString();
+  if(f==='status'){
+    if(e.status===v)return;const from=stLabel(e);e.status=v;
+    if(v==='remediated'){e.rem=e.rem||{};if(!e.rem.date)e.rem.date=iso(new Date());if(!e.rem.by)e.rem.by=e.owner||'';e.rem.auto=false;}
+    if(v==='accepted'){e.exc=e.exc||{};if(!e.exc.id)e.exc.id=nextExcId();if(!e.exc.expires)e.exc.expires=iso(addDays(new Date(),+S.settings.excMaxDays||90));if(!e.exc.controls)e.exc.controls=[];}
+    if(v==='fp')e.fp=e.fp||{};
+    e.closedAt=CLOSED.includes(v)?now:'';
+    e.history.push({at:now,text:`Status: ${from} → ${stLabel(e)}`});return;
+  }
+  const [a,b]=f.split('.');
+  if(b){e[a]=e[a]||{};if(e[a][b]===v)return;e[a][b]=v;if(a==='rem')e.rem.auto=false;
+    const lbl={approver:'Exception approved by',approvedOn:'Exception approval date',expires:'Exception expiry',date:'Completion date',method:'Verification method',verifiedBy:'Verified by'}[b];
+    if(lbl)e.history.push({at:now,text:`${lbl}: ${b==='method'?(METHODS[v]||v):(v||'cleared')}`});}
+  else{if(e[a]===v)return;e[a]=v;const lbl={owner:'Owner',due:'Due date',ticket:'Ticket'}[a];if(lbl)e.history.push({at:now,text:`${lbl}: ${v||'cleared'}`});}
+}
+function wpExtra(e){
+  const p=[];if(e.ticket)p.push(e.ticket);
+  if(e.status==='remediated'&&e.rem.date)p.push(`completed ${e.rem.date}${e.retest?', verified by re-test':''}`);
+  if(e.status==='accepted'&&e.exc.id)p.push(`${e.exc.id}, expires ${e.exc.expires||'—'}`);
+  if(e.status==='fp'&&e.fp&&e.fp.reason)p.push(e.fp.reason);
+  const bad=eState(e).flags.filter(f=>f.c==='bad').map(f=>f.t);
+  return (p.length?` (${p.join('; ')})`:'')+(bad.length?` [${bad.join(', ')}]`:'');
+}
+
 /* ---------- rendering: main ---------- */
 let R;
 function renderAll(){
   const active=document.activeElement&&document.activeElement.id;
-  R=analyze();renderTop();renderBody();if(ui.drawer)renderDrawer();
+  R=analyze();if(syncRegister(R))save();linkRegister(R);renderTop();renderBody();if(ui.drawer)renderDrawer();renderFinding();
   if(active){const el=document.getElementById(active);if(el&&el!==document.activeElement)try{el.focus({preventScroll:true});}catch(e){}}
 }
 function renderTop(){
@@ -606,7 +754,7 @@ function renderBody(){
     v=`<div class="verdict bad"><span><b>${mat.length} exception${mat.length===1?'':'s'} noted for ${esc(R.period.label)}.</b>${openM?`${openM} still open. `:'All dispositioned. '}${(()=>{const pt=R.findings.filter(f=>f.priv).length;const used=R.findings.filter(f=>f.label.includes('signed in')||f.label.startsWith('Signed in')).length;return (pt?`${pt} terminated user${pt===1?' still holds':'s still hold'} privileged access. `:'')+(used?`${used} account${used===1?' was':'s were'} used after termination; treat as a potential incident.`:'');})()}${missing.length?` No user list yet for ${esc(missing.join(', '))}.`:''}</span></div>`;}
   $('#verdict').innerHTML=v;
 
-  const tabs=[['exceptions','Exceptions',R.findings.length],['privileged','Privileged access',R.priv.length],['coverage','Coverage',null],['notinidp','Not in IdP',R.notInIdp.length],['workpaper','Workpaper',null]];
+  const tabs=[['exceptions','Findings & remediation',regEntries().length],['privileged','Privileged access',R.priv.length],['coverage','Coverage',null],['notinidp','Not in IdP',R.notInIdp.length],['workpaper','Reports',null]];
   $('#tabs').innerHTML=tabs.map(([k,l,c])=>`<button class="tab" role="tab" id="tab-${k}" aria-selected="${ui.tab===k}" data-act="tab" data-tab="${k}">${l}${c!=null?`<span class="c">${c}</span>`:''}</button>`).join('');
   renderPanel();
 }
@@ -619,38 +767,107 @@ function renderPanel(){
   else el.innerHTML=panelWorkpaper();
   if(ui.tab==='exceptions')renderFTable();
 }
+const RFILT={all:['All findings',()=>true],active:['Open',x=>!x.st.closed],overdue:['Overdue',x=>x.st.overdue],attention:['Needs attention',x=>x.st.flags.some(f=>f.c==='bad'||f.c==='warn')],progress:['In progress',x=>x.e.status==='progress'],remediated:['Offboarding complete',x=>x.e.status==='remediated'&&x.st.closed],accepted:['Risk accepted',x=>x.e.status==='accepted'&&x.st.closed],fp:['False positive',x=>x.e.status==='fp']};
 function panelExceptions(){
-  if(!S.sources.hris)return `<div class="empty"><b>No review yet</b>Upload the HRIS termination list and your IdP export to see exceptions here.<br><br><button class="btn btn-primary" data-act="openSettings" data-tab="bulk">Upload lists</button></div>`;
-  const sysOpts=R.coverage.filter(c=>c.loaded).map(c=>`<option value="${esc(c.sys.id)}" ${ui.sys===c.sys.id?'selected':''}>${esc(c.sys.name)}</option>`).join('');
-  return `<div class="bar"><div class="grp">
+  const L=regEntries();
+  if(!L.length&&!S.sources.hris)return `<div class="empty"><b>No review yet</b>Upload the HRIS termination list and your IdP export to see findings here.<br><br><button class="btn btn-primary" data-act="openSettings" data-tab="bulk">Upload lists</button></div>`;
+  if(!(ui.disp in RFILT))ui.disp='all';
+  const sysList=[...new Map(L.map(x=>[x.e.sysId,x.e.system])).entries()];
+  return `<div class="track" role="group" aria-label="Filter by remediation status">${Object.entries(RFILT).map(([k,[l,fn]])=>{const n=L.filter(fn).length;const c=(k==='overdue'||k==='attention')&&n?'bad':(k==='remediated'||k==='accepted')&&n?'good':'';return `<button class="tchip ${c}" data-act="rfilt" data-v="${k}" aria-pressed="${ui.disp===k}"><b>${n}</b><span>${l}</span></button>`;}).join('')}</div>
+  <div class="bar"><div class="grp">
       <div class="seg" role="group" aria-label="Severity">${[['all','All'],['crit','Critical'],['high','High'],['med','Medium'],['low','Low']].map(([k,l])=>`<button data-act="sev" data-v="${k}" aria-pressed="${ui.sev===k}">${l}</button>`).join('')}</div>
-      <select class="sel" id="fSys" aria-label="System"><option value="all">All systems</option>${sysOpts}</select>
-      <select class="sel" id="fDisp" aria-label="Disposition"><option value="all" ${ui.disp==='all'?'selected':''}>Any disposition</option><option value="open" ${ui.disp==='open'?'selected':''}>Open only</option><option value="resolved" ${ui.disp==='resolved'?'selected':''}>Resolved only</option></select>
-      <input class="field-in search" id="fQ" type="search" placeholder="Search name or email" value="${esc(ui.q)}" aria-label="Search">
+      <select class="sel" id="fSys" aria-label="System"><option value="all">All systems</option>${sysList.map(([id,n])=>`<option value="${esc(id)}" ${ui.sys===id?'selected':''}>${esc(n)}</option>`).join('')}</select>
+      <input class="field-in search" id="fQ" type="search" placeholder="Search name, email, ref or ticket" value="${esc(ui.q)}" aria-label="Search">
     </div><div class="grp">
-      <button class="btn btn-sm" data-act="copyCSV" data-what="exceptions">Copy CSV</button>
-      <button class="btn btn-sm" data-act="dlCSV" data-what="exceptions">Download CSV</button>
+      <button class="btn btn-sm" data-act="copyCSV" data-what="tracker">Copy tracker CSV</button>
+      <button class="btn btn-sm" data-act="dlCSV" data-what="tracker">Download CSV</button>
       <button class="btn btn-sm" data-act="copyCSV" data-what="log" title="Every terminated user × system check, including passes">Copy full test log</button>
     </div></div>
-    <div id="ftable"></div>`;
+  <div id="ftable"></div>`;
 }
 function renderFTable(){
   const host=$('#ftable');if(!host)return;
-  const q=ui.q.trim().toLowerCase();
-  const rows=R.findings.filter(f=>(ui.sev==='all'||f.sev===ui.sev)&&(ui.sys==='all'||f.sys.id===ui.sys)&&(ui.disp==='all'||(ui.disp==='open'?!isResolved(f):isResolved(f)))&&(!q||(f.p.name+' '+f.p.email).toLowerCase().includes(q)));
-  if(!R.findings.length){host.innerHTML=`<div class="empty"><b>No active accounts found for terminated users</b>Every terminated user in scope was disabled, suspended or absent in the ${R.coverage.filter(c=>c.loaded).length} systems with lists.</div>`;return;}
-  if(!rows.length){host.innerHTML=`<div class="empty"><b>Nothing matches these filters</b>Clear the search or pick another severity.</div>`;return;}
-  host.innerHTML=`<div class="tblwrap"><table><thead><tr><th>Severity</th><th>User</th><th>Terminated</th><th>System</th><th>Account</th><th>Last sign-in</th><th>Disposition</th><th>Note</th></tr></thead><tbody>
-  ${rows.map(f=>{const id=idFor(f.key);return `<tr class="${isResolved(f)?'resolved':''}">
-    <td><span class="sev ${f.sev}">${SEV[f.sev].label}</span><div class="muted" style="font-size:12px;margin-top:4px;max-width:180px">${esc(f.label)}</div></td>
-    <td><div class="who">${esc(f.p.name||'—')}</div><div class="em">${esc(f.p.email||f.p.empId)}</div>${f.how==='Name only'?'<span class="pill warn" title="Matched on name only; confirm it is the same person">Name match · verify</span>':''}</td>
-    <td style="white-space:nowrap">${fmt(f.p.termDate)}<div class="muted" style="font-size:12px">${f.days!=null?`${f.days} day${f.days===1?'':'s'} ago`:'date missing'}</div></td>
-    <td><b style="font-weight:600">${esc(f.sys.name)}</b>${f.sys.isIdp?'':`<div class="muted" style="font-size:12px">${esc(f.sys.crit||'')}</div>`}</td>
-    <td><div class="em">${esc(f.acct.email||f.acct.name)}</div><span class="pill bad">${esc(f.acct.statusRaw||'Listed (no status column)')}</span>${f.priv?` <span class="pill bad" title="Privileged role">Privileged · ${esc(f.priv)}</span>`:(f.acct.role?` <span class="pill">${esc(f.acct.role)}</span>`:'')}</td>
-    <td style="white-space:nowrap">${f.acct.lastLogin?fmt(f.acct.lastLogin):(f.acct.lastLoginRaw?esc(f.acct.lastLoginRaw):'<span class="muted">—</span>')}</td>
-    <td><select class="sel" id="d-${id}" data-disp="${esc(f.key)}" aria-label="Disposition">${Object.entries(DISP).map(([k,l])=>`<option value="${k}" ${f.disp.status===k?'selected':''}>${l}</option>`).join('')}</select></td>
-    <td><input class="field-in note" id="n-${id}" data-dispnote="${esc(f.key)}" value="${esc(f.disp.note||'')}" placeholder="Ticket, owner, date" aria-label="Note"></td></tr>`;}).join('')}
+  const q=ui.q.trim().toLowerCase();const L=regEntries();
+  if(!L.length){host.innerHTML=`<div class="empty"><b>No findings this quarter</b>Every terminated user in scope was disabled, suspended or absent in the ${R.coverage.filter(c=>c.loaded).length} systems with lists.</div>`;return;}
+  const fn=RFILT[ui.disp][1];
+  const rows=L.filter(x=>fn(x)&&(ui.sev==='all'||x.e.sev===ui.sev)&&(ui.sys==='all'||x.e.sysId===ui.sys)&&(!q||[x.e.user,x.e.email,x.e.ref,x.e.ticket,x.e.exc.id].join(' ').toLowerCase().includes(q)))
+    .sort((a,b)=>(a.st.closed-b.st.closed)||(b.st.overdue-a.st.overdue)||SEV[a.e.sev].rank-SEV[b.e.sev].rank||String(a.e.due).localeCompare(String(b.e.due)));
+  if(!rows.length){host.innerHTML=`<div class="empty"><b>Nothing matches these filters</b>Pick another status or clear the search.</div>`;return;}
+  host.innerHTML=`<div class="tblwrap"><table><thead><tr><th>Finding</th><th>User</th><th>System · account</th><th>Status</th><th>Owner</th><th>Due</th><th></th></tr></thead><tbody>
+  ${rows.map(({e,st})=>`<tr class="clickable ${st.closed?'resolved':''}" data-act="openFinding" data-key="${esc(e.key)}">
+    <td><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center"><span class="sev ${e.sev}">${SEV[e.sev].label}</span><span class="ref">${esc(e.ref)}</span></div><div style="font-size:12.5px;margin-top:4px;max-width:230px">${esc(e.title)}</div></td>
+    <td><div class="who">${esc(e.user||'—')}</div><div class="em">${esc(e.email||e.empId)}</div>${e.termDate?`<div class="muted" style="font-size:12px">Terminated ${fmt(parseDate(e.termDate))}</div>`:''}${e.how==='Name only'?'<span class="pill warn">Name match · verify</span>':''}</td>
+    <td><b style="font-weight:600">${esc(e.system)}</b><div class="em">${esc(e.account)}</div>${e.priv?`<span class="pill bad">Privileged · ${esc(e.role)}</span>`:''}</td>
+    <td><span class="st ${e.status}">${esc(stLabel(e))}</span>${e.status==='accepted'&&e.exc.id?`<div class="ref" style="margin-top:3px">${esc(e.exc.id)}${e.exc.expires?' · until '+fmt(parseDate(e.exc.expires)):''}</div>`:''}${e.ticket?`<div class="ref" style="margin-top:3px">${esc(e.ticket)}</div>`:''}${flagHTML(st)}</td>
+    <td>${e.owner?esc(e.owner):'<span class="muted">Unassigned</span>'}</td>
+    <td style="white-space:nowrap">${st.closed?`<span class="muted">Closed</span><br>${fmt(parseDate(closedOn(e)))}`:fmt(parseDate(e.due))}</td>
+    <td><button class="btn btn-sm" data-act="openFinding" data-key="${esc(e.key)}">Update</button></td></tr>`).join('')}
   </tbody></table></div>`;
+}
+function renderFinding(){
+  const root=$('#findingRoot');if(!root)return;
+  const e=ui.finding&&(S.register[R.period.key]||{})[ui.finding];
+  if(!e){ui.finding=null;root.innerHTML='';return;}
+  const prev=$('#fbody')?$('#fbody').scrollTop:0;
+  const st=eState(e);const K=esc(e.key);const id=idFor(e.key);const isP=e.kind==='privileged';
+  const fid=f=>`r-${id}-${f.replace('.','-')}`;
+  const inp=(f,val,attrs='')=>`<input class="field-in" id="${fid(f)}" data-reg="${K}" data-f="${f}" value="${esc(val||'')}" ${attrs}>`;
+  const ta=(f,val,ph)=>`<textarea class="field-in" rows="3" id="${fid(f)}" data-reg="${K}" data-f="${f}" placeholder="${esc(ph||'')}">${esc(val||'')}</textarea>`;
+  const sel2=(f,val,Lm,ph)=>`<select class="sel" id="${fid(f)}" data-reg="${K}" data-f="${f}"><option value="">${ph||'Choose…'}</option>${Object.entries(Lm).map(([k,l])=>`<option value="${k}" ${val===k?'selected':''}>${esc(l)}</option>`).join('')}</select>`;
+  const fact=(l,v)=>v?`<div><dt>${l}</dt><dd>${v}</dd></div>`:'';
+  const statuses=[['open','Open','Not started'],['progress','In progress','Owner is working on it'],['remediated',isP?'Access change complete':'Offboarding complete','Access removed, with evidence'],['accepted','Risk accepted','Documented security exception'],['fp','False positive','Wrong person or not an access issue']];
+  const max=+S.settings.excMaxDays||90;
+  let detail='';
+  if(e.status==='remediated'){const miss=remMissing(e);
+    detail=`<div class="card"><h3>${isP?'Access change':'Offboarding'} evidence</h3>
+      ${e.rem.auto?`<span class="pill good" style="white-space:normal;padding:6px 10px">Closed automatically: a newer user list for ${esc(e.system)} no longer shows this access.</span>`:''}
+      <div class="fgrid">
+        <label class="f"><span>Date completed *</span>${inp('rem.date',e.rem.date,'type="date"')}</label>
+        <label class="f"><span>Completed by *</span>${inp('rem.by',e.rem.by,'placeholder="Name or team"')}</label>
+        <label class="f"><span>How it was verified *</span>${sel2('rem.method',e.rem.method,METHODS)}</label>
+        <label class="f"><span>Verified by</span>${inp('rem.verifiedBy',e.rem.verifiedBy,'placeholder="Someone other than who did it"')}</label>
+      </div>
+      <label class="f"><span>Evidence</span>${ta('rem.evidence',e.rem.evidence,'Where the evidence is kept: ticket attachment, screenshot, re-exported list')}</label>
+      ${miss.length?`<p class="reqmiss">Still needed to close: ${miss.join(', ')}.</p>`:''}
+      <p class="hint">Uploading a newer user list for ${esc(e.system)} re-tests this finding. If the account is still ${isP?'privileged':'active'} after the completion date, it reopens.</p></div>`;}
+  if(e.status==='accepted'){const x=e.exc;const miss=excMissing(e);const ap=parseDate(x.approvedOn),ex=parseDate(x.expires);const long=ap&&ex&&dayDiff(ex,ap)>max;
+    detail=`<div class="card"><div class="row"><h3>Security exception</h3><span class="ref">${esc(x.id||'')}</span></div>
+      ${e.sev==='crit'?'<p class="reqmiss">Critical finding: risk acceptance should be approved by the CISO or an executive, not the system owner.</p>':''}
+      <label class="f"><span>Business justification *</span>${ta('exc.justification',x.justification,'Why the account must stay active, and the plan and date to remove it')}</label>
+      <div class="f"><span>Compensating controls *</span><div class="checks">${Object.entries(CONTROLS).map(([k,l])=>`<label class="check"><input type="checkbox" id="c-${id}-${k}" data-regctl="${K}" value="${k}" ${(x.controls||[]).includes(k)?'checked':''}><span>${esc(l)}</span></label>`).join('')}</div>${inp('exc.other',x.other,'placeholder="Other control" aria-label="Other control"')}</div>
+      <div class="fgrid">
+        <label class="f"><span>Residual risk</span>${sel2('exc.residual',x.residual,RESID)}</label>
+        <label class="f"><span>Approved by *</span>${inp('exc.approver',x.approver,'placeholder="Name"')}</label>
+        <label class="f"><span>Approver title</span>${inp('exc.approverTitle',x.approverTitle,'placeholder="e.g. CISO"')}</label>
+        <label class="f"><span>Approval date *</span>${inp('exc.approvedOn',x.approvedOn,'type="date"')}</label>
+        <label class="f"><span>Expires *</span>${inp('exc.expires',x.expires,'type="date"')}<small>Maximum ${max} days. The finding reopens when the exception expires.</small></label>
+      </div>
+      ${long?`<p class="reqmiss">This exception runs longer than the ${max}-day maximum.</p>`:''}
+      ${miss.length?`<p class="reqmiss">Still needed to close: ${miss.join(', ')}.</p>`:''}</div>`;}
+  if(e.status==='fp')detail=`<div class="card"><h3>False positive</h3><label class="f"><span>Reason *</span>${ta('fp.reason',(e.fp||{}).reason,'e.g. Different person with the same name; shared mailbox, not a user')}</label></div>`;
+  root.innerHTML=`<div class="scrim" data-act="closeFinding"></div><aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="fh-${id}">
+    <div class="dhead"><div style="min-width:0"><div style="display:flex;gap:8px;align-items:center"><span class="sev ${e.sev}">${SEV[e.sev].label}</span><span class="ref">${esc(e.ref)}</span></div><h2 id="fh-${id}" style="margin-top:6px;font-size:17px">${esc(e.title)}</h2></div><button class="btn btn-sm" data-act="closeFinding" id="closeFinding">Done</button></div>
+    <div class="dbody" id="fbody">
+      <div class="card"><dl class="facts2">
+        ${fact('User',esc(e.user||'—'))}${fact('Email',`<span class="mono">${esc(e.email)}</span>`)}${fact('Terminated',e.termDate?fmt(parseDate(e.termDate)):'')}
+        ${fact('System',esc(e.system))}${fact('Account',`<span class="mono">${esc(e.account)}</span>`)}${fact('Account status',esc(e.acctStatus||'Listed'))}
+        ${fact(e.priv?'Privileged role':'Role',esc(e.role))}${fact('Last sign-in',e.lastLogin?fmt(parseDate(e.lastLogin)):'')}${fact('Matched on',esc(e.how))}
+        ${isP?fact('Owner decision',esc(DEC[e.decision]+(e.decisionNote?': '+e.decisionNote:''))):''}
+        ${fact('Identified',fmt(new Date(e.firstSeen)))}${fact(e.retest?'Re-tested':'Last seen in',esc(e.retest?`${e.retest.file}, ${fmt(new Date(e.retest.at))}: ${e.retest.result}`:`${e.lastFile}, ${fmt(new Date(e.lastFileAt))}`))}
+      </dl>${flagHTML(st)}</div>
+      <div class="card"><h3>Remediation</h3>
+        <div class="stgrid" role="radiogroup" aria-label="Status">${statuses.map(([k,l,d])=>`<label class="radio"><input type="radio" name="st-${id}" id="st-${id}-${k}" data-reg="${K}" data-f="status" value="${k}" ${e.status===k?'checked':''}><span><b>${l}</b><span>${d}</span></span></label>`).join('')}</div>
+        <div class="fgrid">
+          <label class="f"><span>Owner</span>${inp('owner',e.owner,'placeholder="Who is fixing it"')}</label>
+          <label class="f"><span>Due date</span>${inp('due',e.due,'type="date"')}<small>${SEV[e.sev].label} SLA: ${slaFor(e.sev)} days from identification</small></label>
+          <label class="f"><span>Ticket</span>${inp('ticket',e.ticket,'placeholder="e.g. IT-1234"')}</label>
+        </div>
+        <label class="f"><span>Notes</span>${ta('notes',e.notes,'')}</label>
+      </div>
+      ${detail}
+      <div class="card"><h3>History</h3><ul class="hist">${e.history.slice().reverse().map(h=>`<li><time>${esc(fmtDT(h.at))}</time><span>${esc(h.text)}</span></li>`).join('')}</ul></div>
+    </div></aside>`;
+  const b=$('#fbody');if(b)b.scrollTop=prev;
 }
 function privFlags(x){
   const f=[];
@@ -732,9 +949,191 @@ function panelNotInIdp(){
   </tbody></table></div>${R.notInIdp.length>500?`<p class="muted">Showing 500 of ${R.notInIdp.length}. Copy the CSV for the full list.</p>`:''}`:`<div class="empty"><b>Every active app account maps to the IdP</b>Nothing to review here this quarter.</div>`}`;
 }
 function panelWorkpaper(){
-  return `<div class="bar"><div class="grp"><label class="f" style="flex-direction:row;align-items:center;gap:8px"><span style="font-size:13px">Reviewer</span><input class="field-in" id="reviewer" value="${esc(S.reviewer)}" placeholder="Name, title"></label></div>
-    <div class="grp"><button class="btn btn-sm btn-primary" data-act="copyWP">Copy workpaper</button><button class="btn btn-sm" data-act="dlWP">Download .txt</button></div></div>
-    <pre class="wp" id="wp">${esc(workpaper())}</pre>`;
+  const m=reportModel();const s=S.settings;
+  return `<div class="card">
+    <div class="row"><div><span class="eyebrow">Executive report · PDF</span><h3 style="margin-top:3px">${esc(R.period.label)} offboarding &amp; privileged access review</h3></div>
+      <span class="rating" style="color:var(--${m.ratingKey})">${esc(m.rating)}</span></div>
+    <p class="hint" style="max-width:none">${esc(m.why)}</p>
+    <div class="tiles" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">${m.kpis.map(k=>`<div class="tile"><span class="eyebrow">${esc(k.label)}</span><span class="n" style="font-size:24px${k.color?`;color:var(--${k.color})`:''}">${esc(k.value)}</span><span class="sub">${esc(k.sub)}</span></div>`).join('')}</div>
+    <div class="fgrid">
+      <label class="f"><span>Organization name</span><input class="field-in" id="orgName" data-set="orgName" value="${esc(s.orgName)}" placeholder="Shown on the cover and footer"></label>
+      <label class="f"><span>Prepared by</span><input class="field-in" id="reviewer" value="${esc(S.reviewer)}" placeholder="Name, title"></label>
+      <label class="f"><span>Approver name</span><input class="field-in" id="apName" data-set="approverName" value="${esc(s.approverName)}" placeholder="Signs off the review"></label>
+      <label class="f"><span>Approver title</span><input class="field-in" id="apTitle" data-set="approverTitle" value="${esc(s.approverTitle)}" placeholder="e.g. CISO"></label>
+    </div>
+    <label class="check"><input type="checkbox" id="rn" data-set="reportNames" ${s.reportNames?'checked':''}><span><b>Show user names.</b> Turn off to print initials only for wider distribution.</span></label>
+    <div class="row" style="justify-content:flex-start;gap:12px"><button class="btn btn-primary" data-act="pdf" id="pdfBtn">Download PDF</button><span class="muted" style="font-size:12.5px;max-width:60ch">Letter size: control rating, key findings, remediation status, security exceptions, privileged access by owner, coverage, recommendations, and sign-off.</span></div>
+  </div>
+  <div class="card"><div class="row"><div><h3>Remediation tracker</h3><p class="hint">Every finding with owner, due date, status, evidence, and security exception details, ready for a ticketing or GRC tool.</p></div><span class="row" style="gap:8px"><button class="btn btn-sm" data-act="copyCSV" data-what="tracker">Copy CSV</button><button class="btn btn-sm" data-act="dlCSV" data-what="tracker">Download CSV</button></span></div></div>
+  <div class="card"><div class="row"><div><h3>Audit workpaper</h3><p class="hint">Plain-text narrative for the evidence file.</p></div><span class="row" style="gap:8px"><button class="btn btn-sm" data-act="copyWP">Copy</button><button class="btn btn-sm" data-act="dlWP">Download .txt</button></span></div><pre class="wp" id="wp">${esc(workpaper())}</pre></div>`;
+}
+const nm=e=>{if(S.settings.reportNames)return e.user||e.email||e.account;return (e.user||'').split(/\s+/).filter(Boolean).map(w=>w[0].toUpperCase()+'.').join('')||'masked user';};
+const pl=(n,one,many)=>`${n} ${n===1?one:(many||one+'s')}`;
+function reportModel(){
+  const L=regEntries();const real=L.filter(x=>x.e.kind==='offboarding'&&x.e.status!=='fp');
+  const mat=real.filter(x=>x.e.sev!=='low'),crit=real.filter(x=>x.e.sev==='crit');
+  const open=L.filter(x=>!x.st.closed),overdue=L.filter(x=>x.st.overdue),closed=L.filter(x=>x.st.closed);
+  const cnt=k=>real.filter(x=>x.e.sev===k).length;
+  const missing=R.coverage.filter(c=>!c.loaded).map(c=>c.sys.name);
+  const sysLoaded=R.coverage.filter(c=>c.loaded).length,sysTotal=R.coverage.length;
+  const used=real.filter(x=>/signed in after/i.test(x.e.title)),privT=real.filter(x=>x.e.priv);
+  const idpName=IDP[S.settings.idp].name;const apps=R.coverage.filter(c=>c.loaded&&!c.sys.isIdp).length;
+  const priv=R.priv;const decided=priv.filter(x=>x.dec.decision!=='pending').length;const owners=[...new Set(priv.map(x=>x.owner))];
+  let rating,ratingKey,why;
+  if(!S.sources.hris){rating='Not yet tested';ratingKey='muted';why='The HRIS termination list has not been loaded, so offboarding could not be tested.';}
+  else if(crit.length){rating='Not effective';ratingKey='crit';why=`${pl(crit.length,'terminated user account')} kept privileged access or ${crit.length===1?'was':'were'} used after termination. Offboarding did not remove access in time for these users.`;}
+  else if(overdue.some(x=>x.e.sev==='high')){rating='Not effective';ratingKey='crit';why='High-severity findings are past their remediation due date.';}
+  else if(mat.length){rating='Effective with exceptions';ratingKey='med';why=`${pl(mat.length,'account')} ${mat.length===1?'was':'were'} still active after termination. None held privileged access or showed use after termination.`;}
+  else{rating='Effective';ratingKey='ok';why=`Access was removed for every terminated user in the ${sysLoaded} systems tested.`;}
+  if(missing.length&&S.sources.hris)why+=` Coverage is incomplete: no user list for ${missing.join(', ')}.`;
+  const kpis=[
+    {label:'Terminated users tested',value:String(R.pop.length),sub:`${sysLoaded} of ${sysTotal} systems tested`},
+    {label:'Findings',value:String(real.length),sub:`${cnt('crit')} critical, ${cnt('high')} high, ${cnt('med')} medium, ${cnt('low')} low`,color:cnt('crit')?'crit':null},
+    {label:'Closed: remediated or accepted',value:`${closed.length}/${L.length}`,sub:`${open.length} open, ${overdue.length} overdue`,color:overdue.length?'crit':null},
+    {label:'Privileged accounts recertified',value:`${decided}/${priv.length}`,sub:`${pl(owners.length,'owner')}, ${priv.length-decided} pending`}];
+  const pct=L.length?Math.round(100*closed.length/L.length):100;
+  const summary=`This review tested whether access was removed for ${pl(R.pop.length,'terminated user')} (${POP_L[S.settings.population].replace(/^./,c=>c.toLowerCase())}) across ${idpName} and ${pl(apps,'critical application')}, using user lists exported on ${fmt(R.snap)}. It found ${pl(real.length,'account')} still active after termination${crit.length?`, ${crit.length} of them critical`:''}. `+
+    (L.length?`${closed.length} of ${pl(L.length,'tracked finding')} ${closed.length===1?'is':'are'} closed (${pct}%)${open.length?`; ${open.length} remain open${overdue.length?`, ${overdue.length} past due`:''}`:''}. `:'')+
+    `${pl(priv.length,'active privileged account')} ${priv.length===1?'was':'were'} sent to ${pl(owners.length,'system owner')} for recertification, and ${pl(decided,'decision')} ${decided===1?'has':'have'} been recorded.`;
+  const listN=a=>a.slice(0,3).map(x=>`${nm(x.e)} (${x.e.system})`).join(', ')+(a.length>3?` and ${a.length-3} more`:'');
+  const kf=[];
+  if(privT.length)kf.push(`${pl(privT.length,'terminated user account')} still held privileged access: ${listN(privT)}.`);
+  if(used.length)kf.push(`${pl(used.length,'account')} ${used.length===1?'was':'were'} signed into after the user's termination date: ${listN(used)}. These are referred for incident review.`);
+  const other=real.filter(x=>!x.e.priv&&!/signed in after/i.test(x.e.title)&&x.e.sev!=='low');
+  if(other.length)kf.push(`${pl(other.length,'other account')} stayed active after termination, in ${[...new Set(other.map(x=>x.e.system))].join(', ')}.`);
+  const lowN=cnt('low');if(lowN)kf.push(`${pl(lowN,'account')} ${lowN===1?'was':'were'} still active but within the ${+S.settings.slaDays||0}-day deprovisioning window.`);
+  if(overdue.length)kf.push(`${pl(overdue.length,'finding')} ${overdue.length===1?'is':'are'} past due for remediation: ${overdue.slice(0,4).map(x=>x.e.ref).join(', ')}${overdue.length>4?' and more':''}.`);
+  const conflict=L.filter(x=>x.st.flags.some(f=>/^Still /.test(f.t)));if(conflict.length)kf.push(`${pl(conflict.length,'finding')} marked complete still ${conflict.length===1?'shows':'show'} access in the latest user list.`);
+  const acc=L.filter(x=>x.e.status==='accepted');
+  if(acc.length){const ex=acc.map(x=>parseDate(x.e.exc.expires)).filter(Boolean).sort((a,b)=>a-b)[0];kf.push(`${pl(acc.length,'finding')} ${acc.length===1?'is':'are'} covered by a documented security exception (risk accepted)${ex?`; the first expires ${fmt(ex)}`:''}.`);}
+  if(R.notInIdp.length)kf.push(`${pl(R.notInIdp.length,'active application account')} ${R.notInIdp.length===1?'has':'have'} no ${idpName} identity (contractors, shared or local accounts) and need a named owner.`);
+  if(missing.length)kf.push(`Coverage gap: no user list was provided for ${missing.join(', ')}.`);
+  if(!kf.length)kf.push('No accounts remained active after termination in any system tested.');
+  const rec=[];
+  if(used.length)rec.push('Complete the incident review for post-termination sign-ins and confirm no data left with those accounts.');
+  const manual=R.coverage.filter(c=>c.loaded&&!c.sys.isIdp&&c.sys.deprov==='manual'&&real.some(x=>x.e.sysId===c.sys.id));
+  if(manual.length)rec.push(`Automate deprovisioning (SCIM or an HRIS-triggered workflow) for ${manual.map(c=>c.sys.name).join(', ')}, where manual removal produced findings this quarter.`);
+  const sso=R.coverage.filter(c=>!c.sys.isIdp&&(c.sys.sso==='partial'||c.sys.sso==='no'));
+  if(sso.length)rec.push(`Enforce SSO-only sign-in for ${sso.map(c=>c.sys.name).join(', ')} so disabling the ${idpName} account removes access everywhere.`);
+  const scimFail=R.coverage.filter(c=>c.notes.some(n=>/Automated deprovisioning is configured/.test(n)));
+  if(scimFail.length)rec.push(`Check the deprovisioning connector for ${scimFail.map(c=>c.sys.name).join(', ')}: it is configured, but terminated users are still active.`);
+  if(overdue.length)rec.push(`Escalate the ${pl(overdue.length,'overdue finding')} to their owners and set closure dates.`);
+  const pend=owners.filter(o=>priv.some(x=>x.owner===o&&x.dec.decision==='pending'));
+  if(pend.length)rec.push(`Obtain privileged access recertification decisions from ${pend.join(', ')}.`);
+  const dorm=priv.filter(x=>x.dormant&&x.dec.decision!=='remove');
+  if(dorm.length)rec.push(`Remove or justify ${pl(dorm.length,'privileged account')} idle for more than ${+S.settings.dormantDays||90} days or never used.`);
+  const nomfa=R.coverage.filter(c=>!c.sys.isIdp&&c.sys.mfa==='no');
+  if(nomfa.length)rec.push(`Enforce MFA in ${nomfa.map(c=>c.sys.name).join(', ')}.`);
+  if(missing.length)rec.push(`Collect user lists for ${missing.join(', ')} before the next quarterly review.`);
+  if(acc.length)rec.push('Re-review each security exception before it expires; an expired exception reopens its finding.');
+  if(!rec.length)rec.push('Continue the quarterly review on the current schedule.');
+  return {L,real,mat,crit,open,overdue,closed,rating,ratingKey,why,kpis,summary,kf,rec,owners,priv,missing,idpName,acc};
+}
+async function makePDF(){
+  const J=window.jspdf&&window.jspdf.jsPDF;
+  if(!J){toast('The PDF library didn’t load. Check your internet connection and reload the page.');return;}
+  const btn=$('#pdfBtn');if(btn){btn.disabled=true;btn.textContent='Building PDF…';}
+  try{const blob=buildPDF(J);await saveFile(`UAR-Executive-Report_${R.period.key}_${iso(new Date())}.pdf`,blob);}
+  catch(err){console.error(err);toast('The report couldn’t be built: '+((err&&err.message)||err));}
+  finally{const b2=$('#pdfBtn');if(b2){b2.disabled=false;b2.textContent='Download PDF';}}
+}
+function buildPDF(J){
+  const m=reportModel();const set=S.settings;const p=R.period;const org=(set.orgName||'').trim();
+  const doc=new J({unit:'pt',format:'letter'});
+  if(typeof doc.autoTable!=='function')throw new Error('table plugin missing');
+  const W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight(),M=50,CW=W-2*M;
+  const C={ink:[20,33,42],muted:[86,103,113],accent:[27,89,117],line:[212,219,223],soft:[238,241,243],crit:[179,38,30],high:[189,82,10],med:[148,104,0],low:[76,106,130],ok:[43,118,73]};
+  const tint=(c,a)=>c.map(v=>Math.round(255-(255-v)*a));
+  const T=v=>String(v??'').replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—]/g,'-').replace(/…/g,'...').replace(/→/g,'->').replace(/ /g,' ').replace(/[^\x00-\xFF]/g,'');
+  let y=M;
+  const font=(sz,st='normal',c=C.ink)=>{doc.setFont('helvetica',st);doc.setFontSize(sz);doc.setTextColor(c[0],c[1],c[2]);};
+  const ensure=h=>{if(y+h>H-M-14){doc.addPage();y=M+6;}};
+  const h2=t=>{ensure(70);y+=8;font(12,'bold');doc.text(T(t),M,y);y+=7;doc.setDrawColor(...C.ink);doc.setLineWidth(.8);doc.line(M,y,M+CW,y);y+=17;};
+  const para=(t,sz=9.5)=>{font(sz);const ls=doc.splitTextToSize(T(t),CW);const lh=sz*1.4;ensure(ls.length*lh);ls.forEach((l,i)=>doc.text(l,M,y+i*lh));y+=ls.length*lh+6;};
+  const bullets=items=>{items.forEach(t=>{font(9.5);const ls=doc.splitTextToSize(T(t),CW-14);const lh=9.5*1.4;ensure(ls.length*lh+4);doc.setFillColor(...C.accent);doc.circle(M+3,y-3.2,1.7,'F');ls.forEach((l,i)=>doc.text(l,M+14,y+i*lh));y+=ls.length*lh+5;});y+=2;};
+  const table=(head,body,o={})=>{
+    doc.autoTable({startY:y,head:[head.map(h=>T(h).toUpperCase())],body:body.map(r=>r.map(T)),margin:{left:M,right:M,top:M+6,bottom:M+14},theme:'plain',
+      styles:{font:'helvetica',fontSize:7.8,cellPadding:{top:4.5,bottom:4.5,left:5,right:5},textColor:C.ink,overflow:'linebreak',valign:'top',...(o.styles||{})},
+      headStyles:{fillColor:C.soft,textColor:C.muted,fontStyle:'bold',fontSize:6.6},
+      bodyStyles:{lineWidth:{bottom:.5},lineColor:C.line},
+      columnStyles:o.columnStyles||{},
+      didParseCell:d=>{if(d.section==='body'&&o.cell)o.cell(d);}});
+    y=doc.lastAutoTable.finalY+16;};
+  const sevKey=e=>e.sev;
+
+  // ----- page 1: summary -----
+  doc.setFillColor(...C.accent);doc.rect(0,0,W,5,'F');
+  font(7.5,'bold',C.muted);doc.text('USER ACCESS REVIEW  |  EXECUTIVE REPORT',M,y);doc.text('CONFIDENTIAL - INTERNAL USE',W-M,y,{align:'right'});
+  y+=26;
+  if(org){font(11,'bold',C.accent);doc.text(T(org),M,y);y+=20;}
+  font(21,'bold');const tl=doc.splitTextToSize(T(`${p.label} Offboarding & Privileged Access Review`),CW);tl.forEach((l,i)=>doc.text(l,M,y+i*25));y+=(tl.length-1)*25+24;
+  const meta=[['Review period',`${fmt(p.start)} - ${fmt(p.end)}`],['Lists as of',fmt(R.snap)],['Prepared by',S.reviewer||'-'],['Report date',fmt(new Date())]];
+  const mw=CW/4;meta.forEach(([l,v],i)=>{font(6.8,'bold',C.muted);doc.text(T(l.toUpperCase()),M+i*mw,y);font(9.5);doc.text(doc.splitTextToSize(T(v),mw-8).slice(0,2),M+i*mw,y+13);});
+  y+=40;
+  const rc=C[m.ratingKey]||C.muted;font(9.5);const wl=doc.splitTextToSize(T(m.why),CW-36);const bh=wl.length*13.2+54;
+  doc.setFillColor(...tint(rc,.09));doc.rect(M,y,CW,bh,'F');doc.setFillColor(...rc);doc.rect(M,y,3.5,bh,'F');
+  font(6.8,'bold',C.muted);doc.text('CONTROL RATING',M+18,y+17);font(16,'bold',rc);doc.text(T(m.rating),M+18,y+36);font(9.5);wl.forEach((l,i)=>doc.text(l,M+18,y+53+i*13.2));
+  y+=bh+14;
+  const gap=8,kw=(CW-gap*3)/4,kh=80;
+  m.kpis.forEach((k,i)=>{const x=M+i*(kw+gap);doc.setDrawColor(...C.line);doc.setLineWidth(.8);doc.rect(x,y,kw,kh);
+    font(6.6,'bold',C.muted);doc.splitTextToSize(T(k.label.toUpperCase()),kw-20).slice(0,2).forEach((l,j)=>doc.text(l,x+10,y+15+j*8.5));
+    font(20,'bold',k.color?C[k.color]:C.ink);doc.text(T(k.value),x+10,y+49);
+    font(7.4,'normal',C.muted);doc.splitTextToSize(T(k.sub),kw-20).slice(0,2).forEach((l,j)=>doc.text(l,x+10,y+62+j*9.2));});
+  y+=kh+10;
+  h2('Summary');para(m.summary);
+  h2('Key findings');bullets(m.kf);
+  ensure(110);h2('Remediation status');
+  const sc=k=>m.L.filter(x=>x.e.status===k).length;
+  table(['Open','In progress','Offboarding complete','Risk accepted','False positive','Overdue'],[[sc('open'),sc('progress'),sc('remediated'),sc('accepted'),sc('fp'),m.overdue.length].map(String)],
+    {styles:{halign:'center',fontSize:12,fontStyle:'bold',cellPadding:{top:7,bottom:7,left:5,right:5}},cell:d=>{if(d.column.index===5&&m.overdue.length)d.cell.styles.textColor=C.crit;}});
+
+  // ----- detail -----
+  y+=6;
+  h2('Findings and remediation');
+  const rows=m.L.slice().sort((a,b)=>(a.st.closed-b.st.closed)||SEV[a.e.sev].rank-SEV[b.e.sev].rank||String(a.e.ref).localeCompare(b.e.ref));
+  if(rows.length){
+    table(['Ref','Severity','User','System','Finding','Status','Owner','Due / closed'],
+      rows.map(({e,st})=>[e.ref,SEV[e.sev].label,nm(e),e.system,e.title+(e.priv?` (${e.role})`:''),
+        stLabel(e)+(e.status==='accepted'&&e.exc.id?`\n${e.exc.id}`:'')+(e.ticket?`\n${e.ticket}`:'')+(st.flags.length?`\n${st.flags.map(f=>f.t).join('; ')}`:''),
+        e.owner||'Unassigned',st.closed?`Closed ${closedOn(e)?fmt(parseDate(closedOn(e))):''}`:`${fmt(parseDate(e.due))}${st.overdue?'\nOVERDUE':''}`]),
+      {columnStyles:{0:{cellWidth:74},1:{cellWidth:46},7:{cellWidth:60}},cell:d=>{const r=rows[d.row.index];if(!r)return;
+        if(d.column.index===1){d.cell.styles.textColor=C[sevKey(r.e)];d.cell.styles.fontStyle='bold';}
+        if(d.column.index===7&&r.st.overdue)d.cell.styles.textColor=C.crit;}});
+  }else para('No findings were identified this quarter.');
+  h2('Security exceptions (risk accepted)');
+  if(m.acc.length){
+    table(['Exception','Finding','Account','Justification','Compensating controls','Approved','Expires'],
+      m.acc.map(({e,st})=>[e.exc.id||'-',e.ref,`${nm(e)}\n${e.system}`,e.exc.justification||'Not documented',[...(e.exc.controls||[]).map(c=>CONTROLS[c]),e.exc.other].filter(Boolean).join('; ')||'None recorded',
+        `${e.exc.approver||'-'}${e.exc.approverTitle?', '+e.exc.approverTitle:''}\n${e.exc.approvedOn?fmt(parseDate(e.exc.approvedOn)):''}`,`${e.exc.expires?fmt(parseDate(e.exc.expires)):'-'}${st.closed?'':'\n'+st.flags.map(f=>f.t).join('; ')}`]),
+      {styles:{fontSize:7.4},columnStyles:{0:{cellWidth:72},1:{cellWidth:72},6:{cellWidth:56}}});
+  }else para('No findings were closed by risk acceptance this quarter.');
+  h2('Privileged access recertification by owner');
+  if(m.priv.length){
+    table(['Owner','Systems','Accounts','Keep','Reduce','Remove','Pending','Held by terminated users'],
+      m.owners.map(o=>{const g=m.priv.filter(x=>x.owner===o);const c=k=>g.filter(x=>x.dec.decision===k).length;
+        return [o,[...new Set(g.map(x=>x.sys.name))].join(', '),g.length,c('keep'),c('reduce'),c('remove'),c('pending'),g.filter(x=>x.term).length].map(String);}),
+      {columnStyles:{2:{halign:'center'},3:{halign:'center'},4:{halign:'center'},5:{halign:'center'},6:{halign:'center'},7:{halign:'center',cellWidth:70}},
+       cell:d=>{if(d.column.index===7&&+d.cell.raw>0){d.cell.styles.textColor=C.crit;d.cell.styles.fontStyle='bold';}if(d.column.index===6&&+d.cell.raw>0)d.cell.styles.textColor=C.med;}});
+    const fl=[m.priv.filter(x=>x.notIdp).length,m.priv.filter(x=>x.dormant).length,m.priv.filter(x=>x.a.mfa===false).length];
+    para(`Flags across privileged accounts: ${fl[0]} not in ${m.idpName}, ${fl[1]} idle more than ${+set.dormantDays||90} days or never used, ${fl[2]} without MFA.`,8.5);
+  }else para('No privileged accounts were identified in the user lists provided.');
+  h2('Control coverage');
+  table(['System','Criticality','SSO','MFA','Deprovisioning','User list','Findings'],
+    R.coverage.map(c=>{const s=c.sys;const n=m.L.filter(x=>x.e.sysId===s.id).length;
+      return [s.name,s.isIdp?'Identity provider':(s.crit||'-'),s.isIdp?'-':(SSO_L[s.sso]||'Not answered'),s.isIdp?(c.mfaPct!=null?c.mfaPct+'% enrolled':'-'):(MFA_L[s.mfa]||'Not answered'),s.isIdp?'-':(DEPROV_L[s.deprov]||'Not answered'),c.loaded?`${c.rows} accounts`:'Not provided',c.loaded?String(n):'-'];}),
+    {cell:d=>{if(d.column.index===5&&d.cell.raw==='Not provided')d.cell.styles.textColor=C.crit;}});
+  h2('Recommendations');bullets(m.rec);
+  ensure(150);h2('Sign-off');
+  const half=(CW-30)/2;
+  [['Prepared by',S.reviewer||''],['Reviewed and approved by',[set.approverName,set.approverTitle].filter(Boolean).join(', ')]].forEach(([l,v],i)=>{const x=M+i*(half+30);
+    font(6.8,'bold',C.muted);doc.text(T(l.toUpperCase()),x,y);font(10);doc.text(T(v||' '),x,y+15);
+    doc.setDrawColor(...C.ink);doc.setLineWidth(.6);doc.line(x,y+52,x+half*0.62,y+52);doc.line(x+half*0.7,y+52,x+half,y+52);
+    font(7.5,'normal',C.muted);doc.text('Signature',x,y+63);doc.text('Date',x+half*0.7,y+63);});
+  y+=80;
+  const n=doc.getNumberOfPages();
+  for(let i=1;i<=n;i++){doc.setPage(i);doc.setDrawColor(...C.line);doc.setLineWidth(.5);doc.line(M,H-36,W-M,H-36);font(7.5,'normal',C.muted);
+    doc.text(T(`${org?org+'  |  ':''}${p.label} User Access Review  |  Confidential`),M,H-24);doc.text(`Page ${i} of ${n}`,W-M,H-24,{align:'right'});}
+  return doc.output('blob');
 }
 function workpaper(){
   const p=R.period,set=S.settings;const idp=S.sources.idp,hr=S.sources.hris;
@@ -761,11 +1160,16 @@ function workpaper(){
   L.push(`Dispositions: Open ${d('open')}, Remediated ${d('remediated')}, Accepted exception ${d('exception')}, False positive ${d('fp')}`);
   L.push(`Active app accounts not found in the IdP: ${S.sources.idp?R.notInIdp.length:'not evaluated'}`);
   if(R.findings.length){L.push('');L.push('EXCEPTION DETAIL');
-    R.findings.forEach(f=>L.push(`- [${SEV[f.sev].label}] ${f.p.name||f.p.email} <${f.p.email}> — ${f.sys.name} — ${f.acct.statusRaw||'listed'}${f.acct.lastLogin?`, last sign-in ${fmt(f.acct.lastLogin)}`:''} — terminated ${fmt(f.p.termDate)}${f.days!=null?` (${f.days} days)`:''} — ${DISP[f.disp.status]}${f.disp.note?`: ${f.disp.note}`:''}`));}
+    R.findings.forEach(f=>L.push(`- ${f.reg?f.reg.ref+' ':''}[${SEV[f.sev].label}] ${f.p.name||f.p.email} <${f.p.email}> — ${f.sys.name} — ${f.acct.statusRaw||'listed'}${f.acct.lastLogin?`, last sign-in ${fmt(f.acct.lastLogin)}`:''} — terminated ${fmt(f.p.termDate)}${f.days!=null?` (${f.days} days)`:''} — ${f.reg?stLabel(f.reg)+wpExtra(f.reg):DISP[f.disp.status]}`));}
   const pt=R.findings.filter(f=>f.priv);
+  const accL=regEntries().filter(x=>x.e.status==='accepted');
+  if(accL.length){L.push('');L.push('SECURITY EXCEPTIONS (RISK ACCEPTED)');
+    accL.forEach(({e,st})=>L.push(`- ${e.exc.id||'(no ID)'} for ${e.ref}: ${e.user||e.email} — ${e.system}. Justification: ${e.exc.justification||'not documented'}. Compensating controls: ${[...(e.exc.controls||[]).map(c=>CONTROLS[c]),e.exc.other].filter(Boolean).join('; ')||'none recorded'}. Approved by ${e.exc.approver||'—'}${e.exc.approverTitle?', '+e.exc.approverTitle:''} on ${e.exc.approvedOn||'—'}; expires ${e.exc.expires||'—'}.${st.closed?'':' INCOMPLETE OR EXPIRED.'}`));}
+  const privAct=regEntries().filter(x=>x.e.kind==='privileged');
   L.push('');L.push('PRIVILEGED ACCESS');
+  if(privAct.length)L.push(`Owner-requested access changes: ${privAct.map(({e})=>`${e.ref} ${e.user||e.email} (${e.system}: ${DEC[e.decision]} ${e.role}) — ${stLabel(e)}${wpExtra(e)}`).join('; ')}`);
   L.push(`Terminated users still holding active privileged access (rated Critical): ${pt.length}`);
-  pt.forEach(f=>L.push(`- ${f.p.name||f.p.email} — ${f.sys.name} — ${f.priv} — ${DISP[f.disp.status]}${f.disp.note?`: ${f.disp.note}`:''}`));
+  pt.forEach(f=>L.push(`- ${f.p.name||f.p.email} — ${f.sys.name} — ${f.priv} — ${f.reg?stLabel(f.reg)+wpExtra(f.reg):DISP[f.disp.status]}`));
   if(R.residual.length)L.push(`Disabled terminated accounts that still carry a privileged role (clean-up): ${R.residual.map(t=>`${t.p.name||t.p.email} (${t.sys.name}: ${t.priv})`).join('; ')}`);
   const dc=k=>R.priv.filter(x=>x.dec.decision===k).length;
   L.push(`Active privileged accounts reviewed with system owners: ${R.priv.length} across ${owners().length} owner(s) — Keep ${dc('keep')}, Reduce ${dc('reduce')}, Remove ${dc('remove')}, Pending ${dc('pending')}`);
@@ -784,6 +1188,8 @@ const csvEsc=v=>{const s=String(v??'');return /[",\n\r]/.test(s)?'"'+s.replace(/
 const toCSV=rows=>rows.map(r=>r.map(csvEsc).join(',')).join('\r\n');
 function exportCSV(what){
   const q=R.period.label;
+  if(what==='tracker')return toCSV([['Quarter','Ref','Type','Severity','Finding','User','Email','Termination date','System','Account','Role','Status','Closed','Flags','Owner','Due','Ticket','Completed on','Completed by','Verification','Verified by','Evidence','Re-test','Exception ID','Justification','Compensating controls','Residual risk','Approved by','Approver title','Approved on','Expires','False positive reason','Notes','Identified'],
+    ...regEntries().map(({e,st})=>[q,e.ref,e.kind==='privileged'?'Privileged access change':'Offboarding',SEV[e.sev].label,e.title,e.user,e.email,e.termDate,e.system,e.account,e.role,stLabel(e),st.closed?'Yes':'No',st.flags.map(f=>f.t).join('; '),e.owner,e.due,e.ticket,e.rem.date||'',e.rem.by||'',METHODS[e.rem.method]||'',e.rem.verifiedBy||'',e.rem.evidence||'',e.retest?`${e.retest.result} in ${e.retest.file} (${iso(new Date(e.retest.at))})`:'',e.exc.id||'',e.exc.justification||'',[...(e.exc.controls||[]).map(c=>CONTROLS[c]),e.exc.other].filter(Boolean).join('; '),RESID[e.exc.residual]||'',e.exc.approver||'',e.exc.approverTitle||'',e.exc.approvedOn||'',e.exc.expires||'',(e.fp||{}).reason||'',e.notes,iso(new Date(e.firstSeen))])]);
   if(what==='exceptions')return toCSV([['Quarter','Severity','Finding','User','Email','Employee ID','Termination date','Days since termination','System','Account','Account status','Privileged role','Last sign-in','Match method','Disposition','Note'],
     ...R.findings.map(f=>[q,SEV[f.sev].label,f.label,f.p.name,f.p.email,f.p.empId,iso(f.p.termDate),f.days??'',f.sys.name,f.acct.email||f.acct.name,f.acct.statusRaw,f.priv||'',f.acct.lastLogin?iso(f.acct.lastLogin):f.acct.lastLoginRaw,f.how,DISP[f.disp.status],f.disp.note||''])]);
   if(what==='log')return toCSV([['Quarter','User','Email','Termination date','System','Result','Detail','Severity','Match method','Account status','Last sign-in'],
@@ -803,9 +1209,19 @@ function fallback(text){
   $('#fallbackRoot').innerHTML=`<div class="fallback" data-act="closeFallback"><div class="card" data-stop><div class="row"><h3>Copy this text</h3><button class="btn btn-sm" data-act="closeFallback">Close</button></div><p class="hint">Your browser blocked automatic copying. The text is selected; press Ctrl+C or ⌘C.</p><textarea class="field-in" id="fbText" rows="12" readonly></textarea></div></div>`;
   const t=$('#fbText');t.value=text;t.focus();t.select();
 }
-function download(name,text,type){
-  try{const b=new Blob([text],{type});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},800);}catch(e){}
-  toast('Download started. If nothing saved, use Copy — downloads only work when this page is opened as a local file.');
+function download(name,text,type){return saveFile(name,new Blob([text],{type}));}
+async function saveFile(name,blob){
+  let dl=null;
+  if(window.claude&&typeof window.claude.use==='function'){try{dl=await window.claude.use('downloads');}catch(e){dl=null;}}
+  if(dl){
+    try{await dl.save({filename:name,data:blob});toast(`Saved ${name}`);}
+    catch(err){const c=err&&err.code;if(c==='declined')return;
+      if(c==='rate_limited'){toast('A save prompt is already open. Finish it, then try again.');return;}
+      toast('This view can’t save files. Open the page in claude.ai, or use the standalone copy.');}
+    return;
+  }
+  try{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);toast(`Downloading ${name}`);}
+  catch(e){toast('This browser blocked the download.');}
 }
 const fileStamp=()=>R.period.key+'_'+iso(R.snap);
 
@@ -850,6 +1266,14 @@ function drawerReview(){
     <label class="f"><span>Flag privileged accounts idle for more than (days)</span><input class="field-in" type="number" min="1" id="dd" data-set="dormantDays" value="${esc(s.dormantDays)}"></label>
     <label class="f"><span>Owner of ${esc(IDP[s.idp].name)} admin roles</span><input class="field-in" id="io" data-set="idpOwner" value="${esc(s.idpOwner)}"></label>
     <label class="f"><span>Days owners have to respond</span><input class="field-in" type="number" min="1" id="rd" data-set="reviewDays" value="${esc(s.reviewDays)}"><small>Sets the due date in owner requests.</small></label>
+  </div></div>
+  <div class="card"><h3>Remediation due dates</h3><p class="hint">Days from the day a finding is first identified. Changes apply to new findings; existing due dates stay as set.</p>
+  <div class="fgrid">
+    <label class="f"><span>Critical</span><input class="field-in" type="number" min="0" id="slaC" data-set="slaCrit" value="${esc(s.slaCrit)}"></label>
+    <label class="f"><span>High</span><input class="field-in" type="number" min="0" id="slaH" data-set="slaHigh" value="${esc(s.slaHigh)}"></label>
+    <label class="f"><span>Medium</span><input class="field-in" type="number" min="0" id="slaM" data-set="slaMed" value="${esc(s.slaMed)}"></label>
+    <label class="f"><span>Low</span><input class="field-in" type="number" min="0" id="slaL" data-set="slaLow" value="${esc(s.slaLow)}"></label>
+    <label class="f"><span>Longest security exception (days)</span><input class="field-in" type="number" min="1" id="excMax" data-set="excMaxDays" value="${esc(s.excMaxDays)}"></label>
   </div></div>`;
 }
 function datasetBlock(slot,ds,title,hint){
@@ -1093,6 +1517,28 @@ function sampleState(){
   S.sources.idpAdmins={...makeDataset('google_admin_roles.csv',SAMPLE.idpAdmins,'idpAdmins'),uploadedAt:t};
   SAMPLE.apps.forEach(x=>{const a=newApp(x.name);Object.assign(a,{owner:x.owner,crit:x.crit,sso:x.sso,mfa:x.mfa,scim:x.scim,deprov:x.deprov,source:x.source});
     if(x.csv)a.data={...makeDataset(x.file,x.csv,'app:'+a.id),uploadedAt:t};});
+  seedSample();
+}
+function seedSample(){
+  R=analyze();syncRegister(R);const q=R.period.key;const reg=regOf(q);
+  const at=d=>new Date(d).toISOString();const T0='2026-10-27T10:00:00';
+  Object.values(reg).forEach(e=>{e.firstSeen=at(T0);e.due=iso(addDays(new Date(T0),slaFor(e.sev)));e.history=[{at:e.firstSeen,text:e.history[0].text}];});
+  const find=(email,sys)=>Object.values(reg).find(e=>e.email===email&&e.system===sys);
+  const upd=(e,o,h)=>{if(!e)return;Object.assign(e,o);(h||[]).forEach(([d,t])=>e.history.push({at:at(d),text:t}));};
+  upd(find('leo.marchetti@example.com','1Password'),{status:'progress',owner:'Security',ticket:'IT-4821',notes:'Admin role removed from vault policies; transferring shared vault ownership before suspending the account.'},[['2026-10-28T09:15:00','Status: Open → In progress'],['2026-10-28T09:16:00','Ticket: IT-4821']]);
+  upd(find('dana.whitcomb@example.com','Salesforce'),{status:'progress',owner:'RevOps',ticket:'SEC-212',notes:'Sign-in on Oct 9 after termination. Incident opened; reviewing report exports from that session.'},[['2026-10-27T15:40:00','Status: Open → In progress'],['2026-10-27T15:41:00','Ticket: SEC-212']]);
+  upd(find('marcus.ortega@example.com','Google Workspace'),{status:'remediated',owner:'IT / Security',ticket:'IT-4830',closedAt:at('2026-10-28T16:05:00'),rem:{date:'2026-10-28',by:'Jordan Blake',method:'console',verifiedBy:'Avery Chen',evidence:'Account suspended and User Management Admin role removed. Screenshot attached to IT-4830.'}},[['2026-10-28T16:05:00','Status: Open → Offboarding complete']]);
+  upd(find('theo.castellanos@example.com','GitHub'),{status:'accepted',owner:'Engineering',ticket:'IT-4790',closedAt:at('2026-10-28T11:00:00'),exc:{id:'SE-2026Q4-001',justification:'Account kept for 30 days to transfer ownership of four repositories and CI secrets to the platform team. Removal scheduled for Nov 19.',controls:['tokens','least','monitor'],other:'',residual:'low',approver:'Avery Chen',approverTitle:'Director of IT',approvedOn:'2026-10-28',expires:'2026-11-19'}},[['2026-10-28T11:00:00','Status: Open → Risk accepted'],['2026-10-28T11:02:00','Exception approved by: Avery Chen']]);
+  const ms=find('marcus.ortega@example.com','Slack');if(ms){ms.firstSeen=at('2026-10-20T10:00:00');ms.due='2026-10-27';ms.owner='IT';ms.history[0].at=ms.firstSeen;}
+  S.privReviews[q]={};
+  const setD=(email,sys,decision,note)=>{const x=R.priv.find(x=>x.a.email===email&&x.sys.name===sys);if(x)S.privReviews[q][x.key]={decision,note,at:at('2026-10-28T14:00:00')};};
+  setD('avery.chen@example.com','Google Workspace','keep','Primary super admin; break-glass account documented in the IR plan.');
+  setD('jordan.blake@example.com','Google Workspace','keep','Manages engineering groups.');
+  setD('casey.nguyen@example.com','Google Workspace','reduce','Only needs password resets. Move to a custom Help Desk role without user deletion rights.');
+  setD('avery.chen@example.com','Salesforce','keep','Salesforce administrator of record.');
+  R=analyze();syncRegister(R);
+  const c=Object.values(reg).find(e=>e.kind==='privileged');
+  if(c){c.firstSeen=at('2026-10-28T14:00:00');c.due=iso(addDays(new Date('2026-10-28T14:00:00'),slaFor(c.sev)));c.history=[{at:c.firstSeen,text:c.history[0].text},{at:at('2026-10-28T14:30:00'),text:'Status: Open → In progress'}];c.status='progress';c.ticket='IT-4835';}
 }
 function leaveSample(){const keep=S.settings.idp;S=freshState();S.settings.idp=keep;ui.bulkLog=[];ui.openApps=new Set();}
 
@@ -1124,6 +1570,11 @@ const actions={
   toggleRole:b=>{const a=getApp(b.dataset.app);if(!a)return;const v=b.dataset.role.toLowerCase();let keys=privKeys(a);
     if(keys.some(k=>v.includes(k)))keys=keys.filter(k=>!v.includes(k));else keys.push(v);
     a.privRoles=keys.join(', ');if(!a.privRoles)a.privRoles='(none)';save();renderAll();},
+  openFinding:b=>{ui.finding=b.dataset.key;renderFinding();setTimeout(()=>{const c=$('#closeFinding');c&&c.focus();},0);},
+  closeFinding:()=>{const k=ui.finding;ui.finding=null;renderFinding();const r=k&&document.querySelector(`button[data-act="openFinding"][data-key="${CSS.escape(k)}"]`);if(r)r.focus();},
+  rfilt:b=>{ui.disp=b.dataset.v;renderPanel();const c=document.querySelector(`.tchip[data-v="${b.dataset.v}"]`);c&&c.focus();},
+  goReport:()=>{ui.tab='workpaper';renderBody();const t=$('#tab-workpaper');t&&t.focus();},
+  pdf:()=>makePDF(),
   copyOwner:b=>copyText(ownerRequest(b.dataset.owner),'Owner request'),
   copyOwnerCSV:b=>copyText(exportCSV('owner:'+b.dataset.owner),'Owner CSV'),
   clearLists:()=>{S.sources={hris:null,idp:null,idpAdmins:null};S.apps.forEach(a=>a.data=null);save();renderAll();toast('Uploaded lists cleared. Systems and answers kept.');},
@@ -1133,17 +1584,17 @@ const actions={
   importCfg:()=>importCfg($('#cfgIn').value),
   closeFallback:(b,e)=>{if(e.target.closest('[data-stop]')&&!b.matches('button'))return;$('#fallbackRoot').innerHTML='';}
 };
-function configJSON(){return JSON.stringify({tool:'offboarding-access-review',version:1,exportedAt:new Date().toISOString(),settings:S.settings,reviewer:S.reviewer,apps:S.apps.map(a=>({...a,data:null})),dispositions:S.dispositions,privReviews:S.privReviews},null,2);}
+function configJSON(){return JSON.stringify({tool:'offboarding-access-review',version:1,exportedAt:new Date().toISOString(),settings:S.settings,reviewer:S.reviewer,apps:S.apps.map(a=>({...a,data:null})),dispositions:S.dispositions,privReviews:S.privReviews,register:S.register},null,2);}
 function importCfg(text){
   try{const o=JSON.parse(text);if(o.tool!=='offboarding-access-review')throw 0;
     const keepData=new Map(S.apps.map(a=>[a.name.toLowerCase(),a.data]));
-    S.sample=false;S.settings={...DEFAULT_SETTINGS,...o.settings};S.reviewer=o.reviewer||'';S.dispositions=o.dispositions||{};S.privReviews=o.privReviews||{};
+    S.sample=false;S.settings={...DEFAULT_SETTINGS,...o.settings};S.reviewer=o.reviewer||'';S.dispositions=o.dispositions||{};S.privReviews=o.privReviews||{};S.register=o.register||{};
     S.apps=(o.apps||[]).map(a=>({...a,data:keepData.get(String(a.name).toLowerCase())||null}));
     save();renderAll();toast('Backup restored.');
   }catch(e){toast('That isn’t a backup from this tool. Paste the full JSON from “Copy backup”.');}
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const fn=actions[b.dataset.act];if(fn){if(b.tagName==='BUTTON')e.preventDefault();fn(b,e);}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('#fallbackRoot').innerHTML){$('#fallbackRoot').innerHTML='';}else if(ui.drawer)actions.closeSettings();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('#fallbackRoot').innerHTML){$('#fallbackRoot').innerHTML='';}else if(ui.finding)actions.closeFinding();else if(ui.drawer)actions.closeSettings();}
   if(e.key==='Enter'&&e.target.id==='newApp'){e.preventDefault();actions.addApp();}});
 document.addEventListener('toggle',e=>{const d=e.target;if(d.matches&&d.matches('[data-appdetails]')){const id=d.dataset.appdetails;if(d.open)ui.openApps.add(id);else ui.openApps.delete(id);}},true);
 document.addEventListener('input',e=>{if(e.target.id==='fQ'){ui.q=e.target.value;renderFTable();}});
@@ -1152,6 +1603,8 @@ document.addEventListener('change',async e=>{
   if(t.id==='quarterSel'){if(t.value==='auto'){S.settings.quarterMode='auto';}else{S.settings.quarterMode='manual';S.settings.quarterKey=t.value;}save();renderAll();return;}
   if(t.id==='fSys'){ui.sys=t.value;renderFTable();return;}
   if(t.id==='fDisp'){ui.disp=t.value;renderFTable();return;}
+  if(t.matches('[data-reg]')){const e=regOf(R.period.key)[t.dataset.reg];if(!e)return;setReg(e,t.dataset.f,t.value);save();renderAll();return;}
+  if(t.matches('[data-regctl]')){const e=regOf(R.period.key)[t.dataset.regctl];if(!e)return;e.exc=e.exc||{};const cs=new Set(e.exc.controls||[]);t.checked?cs.add(t.value):cs.delete(t.value);e.exc.controls=[...cs];save();renderAll();return;}
   if(t.id==='pOwner'){ui.privOwner=t.value;renderPanel();return;}
   if(t.id==='pDec'){ui.privDec=t.value;renderPanel();return;}
   if(t.matches('[data-priv]')||t.matches('[data-privnote]')){
@@ -1164,7 +1617,7 @@ document.addEventListener('change',async e=>{
   if(t.matches('[data-cfgfile]')){const f=t.files[0];if(f)importCfg(await f.text());return;}
   if(t.matches('[data-upload]')){await handleUpload(t);return;}
   if(t.matches('[data-bulk]')){reassign(t);return;}
-  if(t.matches('[data-set]')){const k=t.dataset.set;let v=t.type==='checkbox'?t.checked:t.value;if(k==='slaDays'||k==='fyStart')v=+v||0;if(k==='fyStart'&&v<1)v=1;
+  if(t.matches('[data-set]')){const k=t.dataset.set;let v=t.type==='checkbox'?t.checked:t.value;if(['slaDays','fyStart','slaCrit','slaHigh','slaMed','slaLow','excMaxDays','dormantDays','reviewDays'].includes(k))v=+v||0;if(k==='fyStart'&&v<1)v=1;
     S.settings[k]=v;if(k==='quarterMode'&&v==='manual'&&!S.settings.quarterKey)S.settings.quarterKey=quarterOf(new Date()).key;
     if(k==='fyStart'){S.settings.quarterMode='auto';}
     save();renderAll();return;}
