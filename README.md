@@ -7,6 +7,7 @@ A static website. No build step, no server code. Upload this whole folder as-is.
 - `assets/` - screenshots used on the page
 - `demo/incident-scorecard.html` - live Incident Scoring System demo (works fully, including PDF download)
 - `demo/homeschool-gradebook.html` - live Homeschool Gradebook demo with a fictional sample student (saves only in the visitor's browser)
+- `demo/access-review.html` - live Offboarding & Privileged Access Review demo with invented example.com users (runs only in the visitor's browser)
 - `samples/cve-weekly-report-2026-10-10.html` - sample CVE pilot report (synthetic data)
 
 ## Publish free with Netlify Drop (about 2 minutes)

@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Offboarding Access Review Demo</title>
+<meta name="description" content="Interactive demo of a quarterly user access review: orphaned accounts after termination and privileged access recertification by system owner. Sample data only.">
+<link rel="icon" href="../assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: one working column (max 1180px): period bar → source readiness → summary → tabbed evidence. Settings live in a right-side drawer. */
+:root{
+  --bg:#f2f4f5; --surface:#ffffff; --surface-2:#e9edef; --line:#d4dbdf; --line-strong:#b5c0c6;
+  --fg:#14212a; --muted:#566771; --accent:#1b5975; --accent-soft:#dce9ef; --on-accent:#ffffff;
+  --crit:#b3261e; --high:#bd520a; --med:#946800; --low:#4c6a82; --ok:#2b7649;
+  --scrim:rgba(14,22,28,.42); --shadow:0 18px 50px rgba(14,22,28,.18);
+  --font-ui:"Public Sans","Segoe UI",system-ui,-apple-system,sans-serif;
+  --font-data:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1418; --surface:#151d22; --surface-2:#1c262c; --line:#2a363e; --line-strong:#3c4b55;
+    --fg:#e2e9ed; --muted:#93a3ad; --accent:#6db0cf; --accent-soft:#1a3442; --on-accent:#0b1a22;
+    --crit:#f1756a; --high:#f09450; --med:#ddb346; --low:#8fa9bf; --ok:#5fc089;
+    --scrim:rgba(0,0,0,.55); --shadow:0 18px 50px rgba(0,0,0,.5); color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1418; --surface:#151d22; --surface-2:#1c262c; --line:#2a363e; --line-strong:#3c4b55;
+  --fg:#e2e9ed; --muted:#93a3ad; --accent:#6db0cf; --accent-soft:#1a3442; --on-accent:#0b1a22;
+  --crit:#f1756a; --high:#f09450; --med:#ddb346; --low:#8fa9bf; --ok:#5fc089;
+  --scrim:rgba(0,0,0,.55); --shadow:0 18px 50px rgba(0,0,0,.5); color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:14px/1.5 var(--font-ui);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 56px;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{margin:0;text-wrap:balance}
+.mono{font-family:var(--font-data);font-size:12.5px}
+.muted{color:var(--muted)}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+button,select,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px;padding-bottom:14px;border-bottom:2px solid var(--fg)}
+.brand h1{font-size:26px;font-weight:800;letter-spacing:-.015em;line-height:1.15}
+.brand .eyebrow{margin-bottom:4px}
+.top-ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.qpick{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:4px 4px 4px 10px}
+.qpick select{border:0;background:transparent;font-weight:700;font-size:15px;padding:4px 2px;cursor:pointer}
+.tag{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:4px;background:var(--accent-soft);color:var(--accent)}
+.idp-pill{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);font-weight:600;font-size:13px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px;padding:6px 12px;border-radius:var(--r);border:1px solid var(--line-strong);background:var(--surface);font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn-primary:hover{color:var(--on-accent);filter:brightness(1.08)}
+.btn-ghost{border-color:transparent;background:transparent}
+.btn-danger{color:var(--crit);border-color:color-mix(in srgb,var(--crit) 45%,transparent)}
+.btn-sm{min-height:28px;padding:3px 9px;font-size:12px}
+.btn svg{width:16px;height:16px;flex:none}
+label.btn{position:relative}
+label.btn input[type=file]{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
+label.btn:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+
+.period{display:flex;flex-wrap:wrap;gap:6px 22px;font-size:13px;color:var(--muted)}
+.period b{color:var(--fg);font-weight:600}
+
+.banner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border:1px dashed var(--line-strong);border-radius:var(--r);background:var(--surface-2);font-size:13px}
+
+/* readiness */
+.ready{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.src{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);min-width:0}
+.src:hover{border-color:var(--accent)}
+.src:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.src .dot{width:10px;height:10px;border-radius:50%;margin-top:6px;flex:none;background:var(--line-strong)}
+.src.ok .dot{background:var(--ok)} .src.warn .dot{background:var(--med)} .src.miss .dot{background:transparent;border:2px solid var(--line-strong)}
+.src .t{font-weight:700;font-size:13.5px}
+.src .s{font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}
+
+/* tiles */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.tile{background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.tile .n{font-size:32px;font-weight:800;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums}
+.tile .n small{font-size:16px;font-weight:600;color:var(--muted)}
+.tile .sub{font-size:12.5px;color:var(--muted)}
+.n.crit{color:var(--crit)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+
+.verdict{display:flex;gap:12px;align-items:flex-start;padding:12px 16px;border-radius:var(--r);border:1px solid;font-size:13.5px}
+.verdict.ok{border-color:color-mix(in srgb,var(--ok) 40%,transparent);background:color-mix(in srgb,var(--ok) 8%,var(--surface))}
+.verdict.bad{border-color:color-mix(in srgb,var(--crit) 40%,transparent);background:color-mix(in srgb,var(--crit) 7%,var(--surface))}
+.verdict.na{border-color:var(--line);background:var(--surface)}
+.verdict b{display:block;font-size:14.5px}
+
+/* severity + status */
+.sev{--c:var(--low);display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:2px 9px 2px 7px;border-radius:999px;color:var(--c);background:color-mix(in srgb,var(--c) 13%,transparent);white-space:nowrap}
+.sev::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c)}
+.sev.crit{--c:var(--crit)} .sev.high{--c:var(--high)} .sev.med{--c:var(--med)} .sev.low{--c:var(--low)} .sev.ok{--c:var(--ok)}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 7px;border-radius:4px;background:var(--surface-2);color:var(--muted);white-space:nowrap}
+.pill.good{color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,transparent)}
+.pill.warn{color:var(--med);background:color-mix(in srgb,var(--med) 14%,transparent)}
+.pill.bad{color:var(--crit);background:color-mix(in srgb,var(--crit) 11%,transparent)}
+
+/* tabs + panels */
+.board{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);min-width:0}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);padding:0 8px;overflow-x:auto}
+.tab{all:unset;cursor:pointer;padding:12px 12px 10px;font-weight:600;font-size:13.5px;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.tab:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.tab .c{font-variant-numeric:tabular-nums;margin-left:4px;font-size:12px;color:var(--muted)}
+.panel{padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.bar .grp{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:var(--r);overflow:hidden}
+.seg button{border:0;background:var(--surface);padding:5px 10px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--muted)}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.field-in,.sel{border:1px solid var(--line-strong);background:var(--surface);border-radius:var(--r);padding:6px 9px;min-height:34px;font-size:13px;max-width:100%}
+textarea.field-in{width:100%;resize:vertical}
+.search{min-width:0;width:220px}
+
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--surface-2);padding:8px 10px;white-space:nowrap}
+td{padding:9px 10px;border-top:1px solid var(--line);vertical-align:top}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr.resolved td{opacity:.62}
+td .who{font-weight:600}
+td:has(> .who){min-width:210px}
+td .em{font-family:var(--font-data);font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+td select,td input{font-size:12.5px;min-height:30px}
+td input.note{width:180px}
+.empty{padding:28px 16px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--fg);font-size:15px;margin-bottom:4px}
+.note-list{margin:0;padding-left:18px;font-size:12.5px;color:var(--muted)}
+pre.wp{margin:0;white-space:pre-wrap;font-family:var(--font-data);font-size:12.5px;line-height:1.6;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);padding:14px;max-height:560px;overflow:auto}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:var(--scrim);z-index:40}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(780px,100%);background:var(--bg);z-index:41;display:flex;flex-direction:column;box-shadow:var(--shadow);padding-top:env(safe-area-inset-top,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.dhead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px;background:var(--surface);border-bottom:1px solid var(--line)}
+.dhead h2{font-size:18px;font-weight:800}
+.dtabs{display:flex;gap:2px;padding:0 10px;background:var(--surface);border-bottom:1px solid var(--line);overflow-x:auto}
+.dbody{flex:1;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card h3{font-size:15px;font-weight:700}
+.card .hint{font-size:12.5px;color:var(--muted);max-width:68ch}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.f{display:flex;flex-direction:column;gap:5px;min-width:0}
+.f > span{font-size:12.5px;font-weight:600}
+.f small{font-size:11.5px;color:var(--muted)}
+.f .field-in,.f .sel{width:100%}
+.radios{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.radio{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r);cursor:pointer}
+.radio:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.radio input{margin-top:3px;accent-color:var(--accent)}
+.radio b{display:block;font-size:13.5px}
+.radio span{font-size:12px;color:var(--muted)}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:13px}
+.check input{margin-top:3px;accent-color:var(--accent)}
+.filebox{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface-2)}
+.filebox .fn{font-family:var(--font-data);font-size:12.5px;overflow-wrap:anywhere}
+.mapgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px 12px}
+.mapgrid label{display:flex;flex-direction:column;gap:3px;font-size:12px;font-weight:600}
+.mapgrid select{width:100%}
+.mapgrid label.req span::after{content:" *";color:var(--crit)}
+details.app{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+details.app > summary{list-style:none;cursor:pointer;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:12px 14px}
+details.app > summary::-webkit-details-marker{display:none}
+details.app > summary::before{content:"";width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);transition:transform .15s}
+details.app[open] > summary::before{transform:rotate(45deg)}
+details.app > summary .nm{font-weight:700;font-size:14.5px}
+details.app .inner{padding:4px 14px 16px;display:flex;flex-direction:column;gap:14px;border-top:1px solid var(--line)}
+.drop{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:26px 16px;border:2px dashed var(--line-strong);border-radius:var(--r);background:var(--surface);cursor:pointer;position:relative}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.drop:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.prev{font-size:12px}
+.prev td,.prev th{padding:5px 8px}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:var(--r);font-size:13px;font-weight:500;z-index:60;max-width:min(560px,calc(100% - 32px));box-shadow:var(--shadow)}
+.fallback{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;background:var(--scrim);padding:16px}
+.fallback .card{width:min(680px,100%)}
+@media (max-width:560px){
+  .brand h1{font-size:22px}
+  .search{width:100%}
+  .tile .n{font-size:28px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+.demo-strip{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;justify-content:space-between;font-size:12.5px;color:var(--muted);padding:8px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+.demo-strip a{color:var(--accent);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="demo-strip"><span><b style="color:var(--fg)">Portfolio demo.</b> Invented example.com users and sample exports. Upload your own CSVs to try it; files are read in your browser and never leave it.</span><a href="../index.html#access-review">Back to the portfolio</a></div>
+  <header class="top">
+    <div class="brand">
+      <div class="eyebrow">Orphaned account test · SOC 2 CC6.2 / CC6.3</div>
+      <h1>Offboarding Access Review</h1>
+    </div>
+    <div class="top-ctl">
+      <div class="qpick" id="qpick"></div>
+      <span class="idp-pill" id="idpPill"></span>
+      <button class="btn btn-primary" data-act="openSettings" data-tab="review" id="settingsBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        Settings
+      </button>
+    </div>
+  </header>
+  <div class="period" id="period"></div>
+  <div id="sampleBanner"></div>
+  <section class="ready" id="ready" aria-label="Source lists"></section>
+  <section class="tiles" id="tiles" aria-label="Summary"></section>
+  <div id="verdict"></div>
+  <section class="board">
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <div id="panel" class="panel"></div>
+  </section>
+  <p class="muted" style="font-size:12px;margin:0">Files are read in this browser only. Nothing you upload is sent anywhere.</p>
+</div>
+<div id="drawerRoot"></div>
+<div id="toastRoot"></div>
+<div id="fallbackRoot"></div>
+
+<script>
+(function(){
+'use strict';
+const KEY='uar-offboarding-v1';
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+/* ---------- field dictionary for column auto-mapping ---------- */
+const FIELDS={
+  email:{label:'Email / login',syn:['email','email address','work email','primary email','user email','e-mail','emailaddress','mail','userprincipalname','upn','login email','username','user name','login','sign-in name','user principal name','account email','admin email','principal name','principalname','member email','assignee email']},
+  termDate:{label:'Termination date',syn:['termination date','term date','terminated date','termination effective date','effective termination date','end date','employment end date','last day','last day of work','last working day','separation date','offboard date','offboarding date','departure date','date terminated']},
+  lastLogin:{label:'Last sign-in',syn:['last login','last sign in','last signin','lastsignindatetime','last sign in date time','last login date','last login at','last authentication','last auth','last active','last activity','last seen','last accessed','last logon','lastlogon','last used','last interaction']},
+  mfa:{label:'MFA status',syn:['mfa','2fa','2sv','2sv enrolled','2sv enforced','has 2fa','2fa enabled','mfa enabled','mfa status','two factor','two factor enabled','two factor auth','multi factor','mfa registered','is mfa registered']},
+  empId:{label:'Employee ID',syn:['employee id','employeeid','employee number','emp id','worker id','employee no','personnel number','employee num']},
+  first:{label:'First name',syn:['first name','firstname','given name','givenname','legal first name','preferred first name']},
+  last:{label:'Last name',syn:['last name','lastname','surname','family name','legal last name']},
+  name:{label:'Full name',syn:['name','full name','fullname','display name','displayname','employee name','employee','legal name','preferred name','user full name']},
+  status:{label:'Account status',syn:['status','account status','user status','state','accountenabled','account enabled','enabled','active','is active','suspended','deactivated','disabled','user state']},
+  role:{label:'Role / access level',syn:['role','roles','user role','admin role','admin roles','role name','assigned role','assigned roles','roledefinitionname','role definition','directory role','access level','permission','permissions','profile','user type','account type','type','license','admin','is admin']}
+};
+const SLOT_FIELDS={
+  hris:['email','empId','first','last','name','termDate'],
+  idp:['email','empId','first','last','name','status','lastLogin','mfa'],
+  app:['email','empId','first','last','name','status','lastLogin','role','mfa'],
+  idpAdmins:['email','name','role']
+};
+const DEC={pending:'Pending owner',keep:'Keep',reduce:'Reduce',remove:'Remove'};
+const ORDER=['email','termDate','lastLogin','mfa','empId','first','last','name','status','role'];
+
+const SEV={crit:{label:'Critical',rank:0},high:{label:'High',rank:1},med:{label:'Medium',rank:2},low:{label:'Low',rank:3}};
+const DISP={open:'Open',remediated:'Remediated',exception:'Accepted exception',fp:'False positive'};
+const SSO_L={yes:'Yes',partial:'Partial — local logins allowed',no:'No'};
+const MFA_L={idp:'Enforced through IdP / SSO',inapp:'Enforced in the app',partial:'Optional or partial',no:'Not enforced'};
+const SCIM_L={yes:'Yes',no:'No'};
+const DEPROV_L={scim:'SCIM deprovisioning',auto:'Other automation',manual:'Manual (ticket / checklist)'};
+const CRIT_L=['Critical','High','Moderate','Low'];
+const IDP={
+  google:{name:'Google Workspace',hint:'Admin console → Directory → Users → Download users → All user info columns → CSV. Include suspended users; the tool needs their status.'},
+  entra:{name:'Microsoft Entra ID',hint:'Entra admin center → Users → All users → Download users (CSV). Keep the accountEnabled column. For last sign-in, add signInActivity from a Graph export if you have it.'}
+};
+
+/* ---------- state ---------- */
+const DEFAULT_SETTINGS={idp:'google',quarterMode:'auto',quarterKey:'',fyStart:1,population:'all',snapshotDate:'',slaDays:1,nameMatch:true,domainAliases:'',exclusions:'svc-, noreply, no-reply, api@, integration@',remember:true,
+  privKeywords:'admin, owner, super, root, global, privileged, billing, security, maintainer, system administrator',dormantDays:90,idpOwner:'IT / Security',reviewDays:14};
+function freshState(){return {v:1,settings:{...DEFAULT_SETTINGS},sources:{hris:null,idp:null,idpAdmins:null},apps:[],dispositions:{},privReviews:{},reviewer:'',sample:false};}
+let S;
+const ui={tab:'exceptions',sev:'all',sys:'all',disp:'all',q:'',privOwner:'all',privDec:'all',drawer:false,dtab:'review',openApps:new Set(),confirm:null,bulkLog:[],warnedQuota:false};
+
+function save(){
+  try{
+    const copy=JSON.parse(JSON.stringify(S));
+    if(!S.settings.remember){copy.sources={hris:null,idp:null,idpAdmins:null};copy.apps.forEach(a=>a.data=null);}
+    localStorage.setItem(KEY,JSON.stringify(copy));
+  }catch(e){
+    if(!ui.warnedQuota){ui.warnedQuota=true;toast('This browser can’t store lists this large. They stay loaded until you close the page.');}
+  }
+}
+function load(){
+  try{const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);o.settings={...DEFAULT_SETTINGS,...o.settings};o.sources={hris:null,idp:null,idpAdmins:null,...(o.sources||{})};o.apps=o.apps||[];o.dispositions=o.dispositions||{};o.privReviews=o.privReviews||{};return o;}}catch(e){}
+  return null;
+}
+
+/* ---------- parsing ---------- */
+function parseCSV(text){
+  text=String(text).replace(/^﻿/,'');
+  const firstLine=(text.split(/\r?\n/,1)[0])||'';
+  const delim=[',','\t',';','|'].map(d=>[d,firstLine.split(d).length-1]).sort((a,b)=>b[1]-a[1])[0][0];
+  const rows=[];let row=[],field='',q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){if(c==='"'){if(text[i+1]==='"'){field+='"';i++;}else q=false;}else field+=c;continue;}
+    if(c==='"'&&field===''){q=true;continue;}
+    if(c===delim){row.push(field);field='';continue;}
+    if(c==='\r')continue;
+    if(c==='\n'){row.push(field);rows.push(row);row=[];field='';continue;}
+    field+=c;
+  }
+  if(field!==''||row.length){row.push(field);rows.push(row);}
+  const clean=rows.filter(r=>r.some(v=>String(v).trim()!==''));
+  if(!clean.length)return {headers:[],rows:[]};
+  // skip title lines above the real header
+  const peek=clean.slice(0,6).map(r=>r.filter(v=>String(v).trim()).length);
+  const max=Math.max(...peek);let hi=peek.findIndex(n=>n>=Math.max(2,max*0.8));if(hi<0)hi=0;
+  const headers=clean[hi].map(h=>String(h).trim());
+  return {headers,rows:clean.slice(hi+1)};
+}
+function normH(h){return String(h||'').toLowerCase().replace(/\[[^\]]*\]/g,' ').replace(/[_\-.\/]+/g,' ').replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();}
+function cell(row,i){return (i!=null&&i>=0&&i<row.length)?String(row[i]).trim():'';}
+function valueRatio(rows,i,fn){let n=0,hit=0;for(const r of rows){const v=cell(r,i);if(!v)continue;n++;if(fn(v))hit++;if(n>=60)break;}return n?hit/n:0;}
+function autoMap(headers,rows,fields){
+  const H=headers.map(normH);const used=new Set();const map={};
+  for(const f of ORDER){
+    if(!fields.includes(f)){continue;}
+    const syns=FIELDS[f].syn.map(normH);let best=-1,bestScore=0;
+    H.forEach((h,i)=>{
+      if(used.has(i)||!h)return;let sc=0;const ix=syns.indexOf(h);
+      if(ix>=0)sc=3+(syns.length-ix)/100;
+      else if(syns.some(s=>s.length>=6&&(' '+h+' ').includes(' '+s+' ')))sc=2;
+      if(!sc)return;
+      if(f==='email'){const r=valueRatio(rows,i,v=>v.includes('@'));sc=r<0.5?0:sc+r;}
+      if(f==='termDate'||f==='lastLogin'){sc+=valueRatio(rows,i,v=>!!parseDate(v)||/never/i.test(v))*0.5;}
+      if(sc>bestScore){bestScore=sc;best=i;}
+    });
+    if(best>=0&&bestScore>=1){map[f]=best;used.add(best);}else map[f]=-1;
+  }
+  if(fields.includes('email')&&map.email<0){
+    const i=H.findIndex((h,i)=>!used.has(i)&&valueRatio(rows,i,v=>/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v))>0.7);
+    if(i>=0){map.email=i;used.add(i);}
+  }
+  return map;
+}
+function parseDate(v){
+  if(v==null)return null;if(v instanceof Date)return isNaN(v)?null:v;
+  const s=String(v).trim();if(!s||/^(never|n\/?a|none|null|-+)$/i.test(s)||/^never/i.test(s))return null;
+  let m;
+  if((m=s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?/)))
+    return valid(new Date(+m[1],+m[2]-1,+m[3],+(m[4]||0),+(m[5]||0),+(m[6]||0)));
+  if((m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})(?:,?\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([ap]\.?m\.?)?)?/i))){
+    let a=+m[1],b=+m[2],y=+m[3];if(y<100)y+=2000;let mo=a,d=b;if(a>12){mo=b;d=a;}
+    let h=+(m[4]||0);if(m[7]){const pm=/p/i.test(m[7]);if(pm&&h<12)h+=12;if(!pm&&h===12)h=0;}
+    return valid(new Date(y,mo-1,d,h,+(m[5]||0),+(m[6]||0)));
+  }
+  if(/^\d{5}(\.\d+)?$/.test(s)){const n=+s;if(n>25000&&n<80000){const d=new Date(Date.UTC(1899,11,30)+Math.round(n*86400000));return new Date(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate());}}
+  const t=Date.parse(s);return isNaN(t)?null:new Date(t);
+}
+function valid(d){return isNaN(d)?null:d;}
+const dayStart=d=>new Date(d.getFullYear(),d.getMonth(),d.getDate());
+const eod=d=>new Date(d.getFullYear(),d.getMonth(),d.getDate(),23,59,59,999);
+const dayDiff=(a,b)=>Math.round((dayStart(a)-dayStart(b))/86400000);
+const fmt=d=>d?d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+const iso=d=>d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`:'';
+
+const TRUEISH=/^(true|yes|y|1|on|enabled|enrolled|enforced|registered|active)$/i;
+const FALSEISH=/^(false|no|n|0|off|disabled|not enrolled|unenrolled|none)$/i;
+function interpretStatus(v,header){
+  const s=String(v||'').trim().toLowerCase();const hn=normH(header);
+  if(/suspend|disabl|deactiv|locked|blocked|archiv|deleted/.test(hn)){if(TRUEISH.test(s))return false;return true;}
+  if(!s)return true;
+  if(/^(suspend|disabl|deactiv|inactive|not active|deprovision|archiv|lock|terminat|block|delet|remov|revok|expir|clos|frozen|false$|no$|n$|0$|off$)/.test(s))return false;
+  return true;
+}
+
+/* ---------- records + matching ---------- */
+let aliasSet=new Set(),exclusions=[];
+function emailKey(e){
+  if(!e)return '';e=e.toLowerCase().trim().replace(/^mailto:/,'');
+  if(!e.includes('@'))return 'h:'+e;
+  let [l,d]=e.split('@');l=l.replace(/\+.*/,'');if(aliasSet.has(d))d='~';return l+'@'+d;
+}
+function nameKey(n){
+  if(!n)return '';let s=String(n);if(s.includes(',')){const [a,b]=s.split(',');s=(b||'')+' '+a;}
+  const t=s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/['’\-.]/g,'').replace(/[^a-z\s]/g,' ').trim().split(/\s+/).filter(Boolean);
+  return t.length<2?'':t[0]+' '+t[t.length-1];
+}
+function recordFrom(row,ds){
+  const m=ds.map;const email=cell(row,m.email).toLowerCase().replace(/^mailto:/,'');
+  let name=cell(row,m.name);const fi=cell(row,m.first),la=cell(row,m.last);
+  if(!name&&(fi||la))name=(fi+' '+la).trim();
+  const statusRaw=cell(row,m.status);
+  const mfaRaw=cell(row,m.mfa);
+  const llRaw=cell(row,m.lastLogin);
+  return {email,ekey:emailKey(email),name,nkey:nameKey(name),empId:cell(row,m.empId).toLowerCase(),
+    statusRaw,active:m.status>=0?interpretStatus(statusRaw,ds.headers[m.status]):true,
+    lastLogin:m.lastLogin>=0?parseDate(llRaw):null,lastLoginRaw:llRaw,role:cell(row,m.role),
+    mfa:m.mfa>=0?(TRUEISH.test(mfaRaw)?true:(FALSEISH.test(mfaRaw)||!mfaRaw?false:true)):null};
+}
+function push(map,k,v){if(!map.has(k))map.set(k,[]);map.get(k).push(v);}
+function buildIndex(ds){
+  const recs=ds.rows.map(r=>recordFrom(r,ds));const byE=new Map(),byN=new Map(),byId=new Map();
+  recs.forEach(a=>{if(a.ekey)push(byE,a.ekey,a);if(a.nkey)push(byN,a.nkey,a);if(a.empId)push(byId,a.empId,a);});
+  return {recs,byE,byN,byId};
+}
+function pick(list){return list.slice().sort((a,b)=>(b.active-a.active)||((b.lastLogin||0)-(a.lastLogin||0)))[0];}
+function findMatch(ix,p){
+  if(p.ekey&&ix.byE.has(p.ekey))return {acct:pick(ix.byE.get(p.ekey)),how:'Email'};
+  if(p.empId&&ix.byId.has(p.empId))return {acct:pick(ix.byId.get(p.empId)),how:'Employee ID'};
+  if(S.settings.nameMatch&&p.nkey&&ix.byN.has(p.nkey))return {acct:pick(ix.byN.get(p.nkey)),how:'Name only'};
+  return {acct:null,how:''};
+}
+function privKeys(s){return String((s.privRoles||'').trim()||S.settings.privKeywords||'').toLowerCase().split(',').map(x=>x.trim()).filter(Boolean);}
+function privMatch(a,s){
+  const keys=privKeys(s);const vals=[a.role,a.statusRaw].filter(Boolean);
+  for(const v of vals){const lv=v.toLowerCase();if(keys.some(k=>lv.includes(k)))return v;}
+  return '';
+}
+
+/* ---------- quarters ---------- */
+function quarterOf(d){
+  const fs=(S.settings.fyStart||1)-1;const m=d.getMonth(),y=d.getFullYear();
+  const off=(m-fs+12)%12;const q=Math.floor(off/3)+1;const fyStartYear=m>=fs?y:y-1;
+  const start=new Date(fyStartYear,fs+(q-1)*3,1);const end=new Date(fyStartYear,fs+(q-1)*3+3,0);
+  const fy=fs===0?fyStartYear:fyStartYear+1;
+  return {key:`${fy}-Q${q}`,label:fs===0?`Q${q} ${fy}`:`FY${fy} Q${q}`,start,end,endEOD:eod(end)};
+}
+function quarterList(){
+  const cur=quarterOf(new Date());const out=[];let d=new Date(cur.start.getFullYear(),cur.start.getMonth()+3,1);
+  for(let i=0;i<12;i++){out.push(quarterOf(d));d=new Date(d.getFullYear(),d.getMonth()-3,1);}
+  return out;
+}
+function period(){
+  const cur=quarterOf(new Date());let p=cur;
+  if(S.settings.quarterMode==='manual'){const f=quarterList().find(q=>q.key===S.settings.quarterKey);if(f)p=f;}
+  const prev=quarterOf(new Date(p.start.getFullYear(),p.start.getMonth()-3,1));
+  return {...p,prevStart:prev.start,isCurrent:p.key===cur.key,auto:S.settings.quarterMode!=='manual'};
+}
+function snapDate(){return parseDate(S.settings.snapshotDate)||dayStart(new Date());}
+const POP_L={all:'All terminations in the HRIS file',quarter:'Terminated during the review quarter',two:'Terminated during this or the prior quarter',rolling:'Terminated in the last 12 months'};
+
+/* ---------- analysis ---------- */
+function systems(){
+  return [{id:'idp',name:IDP[S.settings.idp].name,isIdp:true,ds:S.sources.idp,crit:'Critical',sso:'',mfa:'',scim:'',deprov:'',owner:S.settings.idpOwner||'IT / Security',privRoles:''},
+    ...S.apps.map(a=>({...a,ds:a.data}))];
+}
+function analyze(){
+  const set=S.settings;
+  aliasSet=new Set(String(set.domainAliases||'').toLowerCase().split(/[,\s]+/).map(s=>s.replace(/^@/,'').trim()).filter(Boolean));
+  exclusions=String(set.exclusions||'').toLowerCase().split(',').map(s=>s.trim()).filter(Boolean);
+  const R={period:period(),snap:snapDate(),pop:[],excl:{future:0,period:0,noKey:0,dup:0,noDate:0},tests:[],findings:[],notInIdp:[],coverage:[],priv:[],residual:[]};
+  const disp=(S.dispositions[R.period.key]=S.dispositions[R.period.key]||{});
+  const pdec=(S.privReviews[R.period.key]=S.privReviews[R.period.key]||{});
+  const sys=systems();const idx={};sys.forEach(s=>{if(s.ds&&s.ds.rows)idx[s.id]=buildIndex(s.ds);});
+  // IdP admin-role assignments (Google admin roles / Entra role assignments) enrich IdP accounts
+  if(idx.idp&&S.sources.idpAdmins){
+    const ad=S.sources.idpAdmins;const roles=new Map();
+    ad.rows.forEach(r=>{const a=recordFrom(r,ad);const role=cell(r,ad.map.role)||'Admin role';const k=a.ekey||a.nkey;if(!k)return;if(!roles.has(k))roles.set(k,new Set());roles.get(k).add(role);});
+    idx.idp.recs.forEach(a=>{const set=roles.get(a.ekey)||roles.get(a.nkey);if(set)a.role=[...set].join('; ');});
+  }
+  if(S.sources.hris){
+    const ds=S.sources.hris;const seen=new Set();
+    for(const row of ds.rows){
+      const p=recordFrom(row,ds);p.termRaw=cell(row,ds.map.termDate);p.termDate=parseDate(p.termRaw);
+      if(!p.ekey&&!p.nkey&&!p.empId){R.excl.noKey++;continue;}
+      if(p.termDate&&dayDiff(R.snap,p.termDate)<0){R.excl.future++;continue;}
+      if(!inPop(p.termDate,R)){if(!p.termDate)R.excl.noDate++;else R.excl.period++;continue;}
+      const k=p.ekey||p.empId||p.nkey;if(seen.has(k)){R.excl.dup++;continue;}seen.add(k);
+      p.key=k;p.inQ=!!(p.termDate&&p.termDate>=R.period.start&&p.termDate<=R.period.endEOD);
+      R.pop.push(p);
+    }
+  }
+  const termE=new Set(R.pop.map(p=>p.ekey).filter(Boolean)),termN=new Set(R.pop.map(p=>p.nkey).filter(Boolean));
+  const idpState={};
+  for(const s of sys){
+    const ix=idx[s.id];
+    const cov={sys:s,loaded:!!ix,rows:ix?ix.recs.length:0,active:ix?ix.recs.filter(a=>a.active).length:0,matched:0,pass:0,exc:0,mfaPct:null,notes:[]};
+    if(ix){const wm=ix.recs.filter(a=>a.active&&a.mfa!==null);if(wm.length)cov.mfaPct=Math.round(100*wm.filter(a=>a.mfa).length/wm.length);}
+    if(ix)for(const p of R.pop){
+      const {acct,how}=findMatch(ix,p);
+      const t={key:`${s.id}|${p.key}`,sys:s,p,acct,how,result:'pass',label:'',sev:null,days:p.termDate?dayDiff(R.snap,p.termDate):null};
+      if(!acct){t.label=s.isIdp?'No IdP account':'No account';if(s.isIdp)idpState[p.key]='none';}
+      else{
+        cov.matched++;if(s.isIdp)idpState[p.key]=acct.active?'active':'disabled';
+        t.priv=privMatch(acct,s);
+        if(!acct.active){t.label=t.priv?'Disabled; privileged role still assigned':'Disabled / suspended';if(t.priv)R.residual.push(t);}
+        else{
+          t.result='exception';
+          if(acct.lastLogin&&p.termDate&&acct.lastLogin>eod(p.termDate)){t.sev='crit';t.label=t.priv?'Privileged account signed in after termination':'Signed in after termination';}
+          else if(t.priv){t.sev='crit';t.label='Privileged access still active after termination';}
+          else if(t.days!==null&&t.days<=(+set.slaDays||0)){t.sev='low';t.label='Active, within deprovisioning window';}
+          else if(!s.isIdp&&s.sso==='yes'&&idpState[p.key]!=='active'){t.sev='med';t.label='Active in app; IdP sign-in blocked';}
+          else{t.sev='high';t.label='Active account after termination';}
+        }
+      }
+      if(t.result==='pass')cov.pass++;else{cov.exc++;t.disp=disp[t.key]||{status:'open',note:''};R.findings.push(t);}
+      R.tests.push(t);
+    }
+    // design notes
+    if(!ix)cov.notes.push('Awaiting user list');
+    if(ix&&s.ds.map.status<0)cov.notes.push('No status column — every row treated as active');
+    if(ix&&s.ds.map.lastLogin<0)cov.notes.push('No last sign-in column — post-termination use can’t be detected');
+    if(!s.isIdp){
+      if(s.sso==='no')cov.notes.push('No SSO — removal depends on manual offboarding');
+      if(s.sso==='partial')cov.notes.push('Local logins bypass the IdP; disabling the IdP account does not block access');
+      if(s.deprov==='manual')cov.notes.push('Manual deprovisioning');
+      if((s.deprov==='scim'||s.deprov==='auto')&&R.findings.some(f=>f.sys.id===s.id&&(f.sev==='high'||f.sev==='crit'||f.sev==='med')))cov.notes.push('Automated deprovisioning is configured but terminated users are still active — check the connector');
+      if(s.mfa==='no')cov.notes.push('MFA not enforced');
+      if(!s.sso||!s.mfa||!s.scim||!s.deprov)cov.notes.push('Control questions not fully answered');
+    }
+    // privileged inventory: every active account holding a privileged role
+    cov.priv=0;
+    if(s.isIdp&&ix&&!S.sources.idpAdmins&&s.ds.map.role<0)cov.notes.push('Admin role list not uploaded — IdP admins not reviewed');
+    if(!s.isIdp&&ix&&s.ds.map.role<0)cov.notes.push('No role column — privileged access read from status values only');
+    if(ix)for(const a of ix.recs){
+      if(!a.active)continue;const role=privMatch(a,s);if(!role)continue;cov.priv++;
+      const key=`${s.id}|${a.ekey||a.nkey||a.empId}`;
+      const term=R.pop.find(p=>(p.ekey&&p.ekey===a.ekey)||(S.settings.nameMatch&&p.nkey&&p.nkey===a.nkey));
+      const notIdp=!s.isIdp&&idx.idp&&!(a.ekey&&idx.idp.byE.has(a.ekey))&&!(set.nameMatch&&a.nkey&&idx.idp.byN.has(a.nkey));
+      const idle=a.lastLogin?dayDiff(R.snap,a.lastLogin):null;
+      const never=!a.lastLogin&&s.ds.map.lastLogin>=0;
+      R.priv.push({key,sys:s,a,role,owner:(s.owner||'').trim()||'Unassigned',term,notIdp,idle,dormant:(idle!=null&&idle>(+set.dormantDays||90))||never,never,
+        dec:pdec[key]||{decision:term?'remove':'pending',note:term?'Terminated user — remove':'',auto:!!term}});
+    }
+    R.coverage.push(cov);
+    if(!s.isIdp&&ix&&idx.idp){
+      for(const a of ix.recs){
+        if(!a.active||(!a.ekey&&!a.nkey))continue;
+        const hay=(a.email+' '+a.name.toLowerCase());if(exclusions.some(x=>hay.includes(x)))continue;
+        if(a.ekey&&idx.idp.byE.has(a.ekey))continue;
+        if(a.empId&&idx.idp.byId.has(a.empId))continue;
+        if(set.nameMatch&&a.nkey&&idx.idp.byN.has(a.nkey))continue;
+        if((a.ekey&&termE.has(a.ekey))||(a.nkey&&termN.has(a.nkey)))continue;
+        R.notInIdp.push({sys:s,a});
+      }
+    }
+  }
+  R.findings.sort((a,b)=>SEV[a.sev].rank-SEV[b.sev].rank||(b.days??0)-(a.days??0));
+  const flagRank=x=>(x.term?0:x.notIdp?1:x.dormant?2:3);
+  R.priv.sort((a,b)=>a.owner.localeCompare(b.owner)||flagRank(a)-flagRank(b)||a.sys.name.localeCompare(b.sys.name)||(a.a.name||a.a.email).localeCompare(b.a.name||b.a.email));
+  return R;
+}
+function inPop(d,R){
+  const pop=S.settings.population;if(pop==='all')return true;if(!d)return false;
+  if(pop==='quarter')return d>=R.period.start&&d<=R.period.endEOD;
+  if(pop==='two')return d>=R.period.prevStart&&d<=R.period.endEOD;
+  if(pop==='rolling')return dayDiff(R.snap,d)<=365;return true;
+}
+const isResolved=f=>['remediated','exception','fp'].includes(f.disp.status);
+const material=R=>R.findings.filter(f=>f.sev!=='low'&&f.disp.status!=='fp');
+
+/* ---------- rendering: main ---------- */
+let R;
+function renderAll(){
+  const active=document.activeElement&&document.activeElement.id;
+  R=analyze();renderTop();renderBody();if(ui.drawer)renderDrawer();
+  if(active){const el=document.getElementById(active);if(el&&el!==document.activeElement)try{el.focus({preventScroll:true});}catch(e){}}
+}
+function renderTop(){
+  const p=R.period;const list=quarterList();
+  $('#qpick').innerHTML=`<label for="quarterSel" class="eyebrow" style="margin:0">Quarter</label>
+    <select id="quarterSel" aria-label="Review quarter">${p.auto?`<option value="auto" selected>${esc(p.label)}</option>`:`<option value="auto">Auto (current)</option>`}
+    ${list.map(q=>`<option value="${q.key}" ${!p.auto&&q.key===p.key?'selected':''}>${esc(q.label)}</option>`).join('')}</select>
+    ${p.auto?'<span class="tag" title="Picked from today’s date">Auto</span>':'<span class="tag" style="background:var(--surface-2);color:var(--muted)">Manual</span>'}`;
+  $('#idpPill').innerHTML=`<span class="muted" style="font-weight:500">IdP</span> ${esc(IDP[S.settings.idp].name)}`;
+  $('#period').innerHTML=`<span>Review period <b>${fmt(p.start)} – ${fmt(p.end)}</b></span>
+    <span>Lists as of <b>${fmt(R.snap)}</b></span>
+    <span>Scope <b>${esc(POP_L[S.settings.population])}</b></span>
+    <span>Deprovisioning window <b>${+S.settings.slaDays||0} day${(+S.settings.slaDays)===1?'':'s'}</b></span>`;
+  $('#sampleBanner').innerHTML=S.sample?`<div class="banner"><span><b>Sample data.</b> These are invented example.com users so you can see how the review works. Clear it before loading your own lists.</span>
+    <span class="row" style="gap:8px"><button class="btn btn-sm" data-act="clearSample">Clear sample data</button><button class="btn btn-sm btn-primary" data-act="openSettings" data-tab="sources">Load my lists</button></span></div>`:'';
+}
+function renderBody(){
+  const hr=S.sources.hris,idp=S.sources.idp;const apps=S.apps;const loadedApps=apps.filter(a=>a.data).length;
+  const hrState=!hr?'miss':(hr.map.termDate<0||(hr.map.email<0&&hr.map.name<0&&hr.map.first<0))?'warn':'ok';
+  const idpStateC=!idp?'miss':(idp.map.status<0||idp.map.email<0)?'warn':'ok';
+  const appState=!apps.length?'miss':loadedApps<apps.length?'warn':'ok';
+  $('#ready').innerHTML=`
+    <button class="src ${hrState}" data-act="openSettings" data-tab="sources"><span class="dot"></span><span style="min-width:0"><span class="t">HRIS termination list</span><br>
+      <span class="s">${hr?`${esc(hr.fileName)} · ${hr.rows.length} rows${hr.map.termDate<0?' · <b>termination date column not mapped</b>':''}`:'Not uploaded'}</span></span></button>
+    <button class="src ${idpStateC}" data-act="openSettings" data-tab="sources"><span class="dot"></span><span style="min-width:0"><span class="t">${esc(IDP[S.settings.idp].name)} users</span><br>
+      <span class="s">${idp?`${esc(idp.fileName)} · ${idp.rows.length} accounts${idp.map.status<0?' · <b>status column not mapped</b>':''}`:'Not uploaded'}</span></span></button>
+    <button class="src ${appState}" data-act="openSettings" data-tab="systems"><span class="dot"></span><span style="min-width:0"><span class="t">Critical systems</span><br>
+      <span class="s">${apps.length?`${loadedApps} of ${apps.length} user lists loaded${loadedApps<apps.length?' · waiting on '+esc(apps.filter(a=>!a.data).map(a=>a.name).join(', ')):''}`:'No systems added yet'}</span></span></button>`;
+
+  const open=R.findings.filter(f=>!isResolved(f));const by=k=>open.filter(f=>f.sev===k).length;
+  const crit=R.findings.filter(f=>/signed in after/i.test(f.label)).length;
+  const inQ=R.pop.filter(p=>p.inQ).length;
+  const sysTotal=1+apps.length,sysLoaded=(idp?1:0)+loadedApps;
+  $('#tiles').innerHTML=`
+    <div class="tile"><span class="eyebrow">Terminated users tested</span><span class="n">${hr?R.pop.length:'—'}</span><span class="sub">${hr?`${inQ} terminated in ${esc(R.period.label)}${R.excl.future?` · ${R.excl.future} future-dated skipped`:''}`:'Upload the HRIS list'}</span></div>
+    <div class="tile"><span class="eyebrow">Open exceptions</span><span class="n">${hr?open.length:'—'}</span>
+      <span class="chips">${['crit','high','med','low'].map(k=>by(k)?`<span class="sev ${k}">${by(k)} ${SEV[k].label}</span>`:'').join('')||'<span class="sub">None open</span>'}</span></div>
+    <div class="tile"><span class="eyebrow">Signed in after termination</span><span class="n ${crit?'crit':''}">${hr?crit:'—'}</span><span class="sub">Sessions recorded after the termination date</span></div>
+    <div class="tile"><span class="eyebrow">Privileged accounts</span><span class="n">${R.priv.length}</span><span class="sub">${R.priv.filter(x=>x.dec.decision==='pending').length} awaiting owner decision${R.priv.filter(x=>x.term).length?` · <b style="color:var(--crit)">${R.priv.filter(x=>x.term).length} held by terminated users</b>`:''}</span></div>
+    <div class="tile"><span class="eyebrow">Systems tested</span><span class="n">${sysLoaded}<small> / ${sysTotal}</small></span><span class="sub">${R.tests.length} account checks across IdP and apps</span></div>`;
+
+  const mat=material(R);const missing=R.coverage.filter(c=>!c.loaded).map(c=>c.sys.name);
+  let v;
+  if(!hr)v=`<div class="verdict na"><span><b>Start with the HRIS termination list.</b>Open Settings → Source lists, or drop every export at once under Bulk upload.</span></div>`;
+  else if(!mat.length)v=`<div class="verdict ok"><span><b>No exceptions noted for ${esc(R.period.label)}.</b>All ${R.pop.length} terminated users were disabled or absent in every system tested.${missing.length?` Coverage is incomplete: no user list yet for ${esc(missing.join(', '))}.`:''}</span></div>`;
+  else{const openM=mat.filter(f=>!isResolved(f)).length;
+    v=`<div class="verdict bad"><span><b>${mat.length} exception${mat.length===1?'':'s'} noted for ${esc(R.period.label)}.</b>${openM?`${openM} still open. `:'All dispositioned. '}${(()=>{const pt=R.findings.filter(f=>f.priv).length;const used=R.findings.filter(f=>f.label.includes('signed in')||f.label.startsWith('Signed in')).length;return (pt?`${pt} terminated user${pt===1?' still holds':'s still hold'} privileged access. `:'')+(used?`${used} account${used===1?' was':'s were'} used after termination; treat as a potential incident.`:'');})()}${missing.length?` No user list yet for ${esc(missing.join(', '))}.`:''}</span></div>`;}
+  $('#verdict').innerHTML=v;
+
+  const tabs=[['exceptions','Exceptions',R.findings.length],['privileged','Privileged access',R.priv.length],['coverage','Coverage',null],['notinidp','Not in IdP',R.notInIdp.length],['workpaper','Workpaper',null]];
+  $('#tabs').innerHTML=tabs.map(([k,l,c])=>`<button class="tab" role="tab" id="tab-${k}" aria-selected="${ui.tab===k}" data-act="tab" data-tab="${k}">${l}${c!=null?`<span class="c">${c}</span>`:''}</button>`).join('');
+  renderPanel();
+}
+function renderPanel(){
+  const el=$('#panel');
+  if(ui.tab==='exceptions')el.innerHTML=panelExceptions();
+  else if(ui.tab==='privileged')el.innerHTML=panelPriv();
+  else if(ui.tab==='coverage')el.innerHTML=panelCoverage();
+  else if(ui.tab==='notinidp')el.innerHTML=panelNotInIdp();
+  else el.innerHTML=panelWorkpaper();
+  if(ui.tab==='exceptions')renderFTable();
+}
+function panelExceptions(){
+  if(!S.sources.hris)return `<div class="empty"><b>No review yet</b>Upload the HRIS termination list and your IdP export to see exceptions here.<br><br><button class="btn btn-primary" data-act="openSettings" data-tab="bulk">Upload lists</button></div>`;
+  const sysOpts=R.coverage.filter(c=>c.loaded).map(c=>`<option value="${esc(c.sys.id)}" ${ui.sys===c.sys.id?'selected':''}>${esc(c.sys.name)}</option>`).join('');
+  return `<div class="bar"><div class="grp">
+      <div class="seg" role="group" aria-label="Severity">${[['all','All'],['crit','Critical'],['high','High'],['med','Medium'],['low','Low']].map(([k,l])=>`<button data-act="sev" data-v="${k}" aria-pressed="${ui.sev===k}">${l}</button>`).join('')}</div>
+      <select class="sel" id="fSys" aria-label="System"><option value="all">All systems</option>${sysOpts}</select>
+      <select class="sel" id="fDisp" aria-label="Disposition"><option value="all" ${ui.disp==='all'?'selected':''}>Any disposition</option><option value="open" ${ui.disp==='open'?'selected':''}>Open only</option><option value="resolved" ${ui.disp==='resolved'?'selected':''}>Resolved only</option></select>
+      <input class="field-in search" id="fQ" type="search" placeholder="Search name or email" value="${esc(ui.q)}" aria-label="Search">
+    </div><div class="grp">
+      <button class="btn btn-sm" data-act="copyCSV" data-what="exceptions">Copy CSV</button>
+      <button class="btn btn-sm" data-act="dlCSV" data-what="exceptions">Download CSV</button>
+      <button class="btn btn-sm" data-act="copyCSV" data-what="log" title="Every terminated user × system check, including passes">Copy full test log</button>
+    </div></div>
+    <div id="ftable"></div>`;
+}
+function renderFTable(){
+  const host=$('#ftable');if(!host)return;
+  const q=ui.q.trim().toLowerCase();
+  const rows=R.findings.filter(f=>(ui.sev==='all'||f.sev===ui.sev)&&(ui.sys==='all'||f.sys.id===ui.sys)&&(ui.disp==='all'||(ui.disp==='open'?!isResolved(f):isResolved(f)))&&(!q||(f.p.name+' '+f.p.email).toLowerCase().includes(q)));
+  if(!R.findings.length){host.innerHTML=`<div class="empty"><b>No active accounts found for terminated users</b>Every terminated user in scope was disabled, suspended or absent in the ${R.coverage.filter(c=>c.loaded).length} systems with lists.</div>`;return;}
+  if(!rows.length){host.innerHTML=`<div class="empty"><b>Nothing matches these filters</b>Clear the search or pick another severity.</div>`;return;}
+  host.innerHTML=`<div class="tblwrap"><table><thead><tr><th>Severity</th><th>User</th><th>Terminated</th><th>System</th><th>Account</th><th>Last sign-in</th><th>Disposition</th><th>Note</th></tr></thead><tbody>
+  ${rows.map(f=>{const id=idFor(f.key);return `<tr class="${isResolved(f)?'resolved':''}">
+    <td><span class="sev ${f.sev}">${SEV[f.sev].label}</span><div class="muted" style="font-size:12px;margin-top:4px;max-width:180px">${esc(f.label)}</div></td>
+    <td><div class="who">${esc(f.p.name||'—')}</div><div class="em">${esc(f.p.email||f.p.empId)}</div>${f.how==='Name only'?'<span class="pill warn" title="Matched on name only; confirm it is the same person">Name match · verify</span>':''}</td>
+    <td style="white-space:nowrap">${fmt(f.p.termDate)}<div class="muted" style="font-size:12px">${f.days!=null?`${f.days} day${f.days===1?'':'s'} ago`:'date missing'}</div></td>
+    <td><b style="font-weight:600">${esc(f.sys.name)}</b>${f.sys.isIdp?'':`<div class="muted" style="font-size:12px">${esc(f.sys.crit||'')}</div>`}</td>
+    <td><div class="em">${esc(f.acct.email||f.acct.name)}</div><span class="pill bad">${esc(f.acct.statusRaw||'Listed (no status column)')}</span>${f.priv?` <span class="pill bad" title="Privileged role">Privileged · ${esc(f.priv)}</span>`:(f.acct.role?` <span class="pill">${esc(f.acct.role)}</span>`:'')}</td>
+    <td style="white-space:nowrap">${f.acct.lastLogin?fmt(f.acct.lastLogin):(f.acct.lastLoginRaw?esc(f.acct.lastLoginRaw):'<span class="muted">—</span>')}</td>
+    <td><select class="sel" id="d-${id}" data-disp="${esc(f.key)}" aria-label="Disposition">${Object.entries(DISP).map(([k,l])=>`<option value="${k}" ${f.disp.status===k?'selected':''}>${l}</option>`).join('')}</select></td>
+    <td><input class="field-in note" id="n-${id}" data-dispnote="${esc(f.key)}" value="${esc(f.disp.note||'')}" placeholder="Ticket, owner, date" aria-label="Note"></td></tr>`;}).join('')}
+  </tbody></table></div>`;
+}
+function privFlags(x){
+  const f=[];
+  if(x.term)f.push(`<span class="pill bad">Terminated ${fmt(x.term.termDate)}</span>`);
+  if(x.notIdp)f.push('<span class="pill warn">Not in IdP</span>');
+  if(x.never)f.push('<span class="pill warn">Never signed in</span>');
+  else if(x.dormant)f.push(`<span class="pill warn">Idle ${x.idle} days</span>`);
+  if(x.a.mfa===false)f.push('<span class="pill warn">No MFA</span>');
+  return f.join(' ')||'<span class="muted">—</span>';
+}
+function privFlagText(x){const f=[];if(x.term)f.push('TERMINATED '+fmt(x.term.termDate));if(x.notIdp)f.push('not in IdP');if(x.never)f.push('never signed in');else if(x.dormant)f.push(`idle ${x.idle} days`);if(x.a.mfa===false)f.push('no MFA');return f.join(', ');}
+function owners(){return [...new Set(R.priv.map(x=>x.owner))];}
+function privRows(){return R.priv.filter(x=>(ui.privOwner==='all'||x.owner===ui.privOwner)&&(ui.privDec==='all'||(ui.privDec==='flagged'?(x.term||x.notIdp||x.dormant||x.a.mfa===false):x.dec.decision===ui.privDec)));}
+function panelPriv(){
+  if(!R.coverage.some(c=>c.loaded))return `<div class="empty"><b>No user lists yet</b>Privileged accounts are pulled from each system’s role column and your IdP admin-role export.</div>`;
+  const os=owners();
+  const head=`<div class="bar"><div class="grp">
+      <select class="sel" id="pOwner" aria-label="Owner"><option value="all">All owners</option>${os.map(o=>`<option ${ui.privOwner===o?'selected':''}>${esc(o)}</option>`).join('')}</select>
+      <select class="sel" id="pDec" aria-label="Decision"><option value="all">Any decision</option><option value="flagged" ${ui.privDec==='flagged'?'selected':''}>Flagged only</option>${Object.entries(DEC).map(([k,l])=>`<option value="${k}" ${ui.privDec===k?'selected':''}>${l}</option>`).join('')}</select>
+    </div><div class="grp"><button class="btn btn-sm" data-act="copyCSV" data-what="priv">Copy CSV</button><button class="btn btn-sm" data-act="dlCSV" data-what="priv">Download CSV</button><button class="btn btn-sm" data-act="openSettings" data-tab="review">Privileged role rules</button></div></div>
+    <p class="muted" style="margin:0;font-size:12.5px;max-width:80ch">Every active account whose role matches your privileged keywords, grouped by system owner. Send each owner their report, then record whether the access level is still required. Accounts held by terminated users are pre-set to Remove.</p>`;
+  if(!R.priv.length)return head+`<div class="empty"><b>No privileged accounts found</b>Check that each list has a role column mapped, or widen the privileged keywords in Settings.</div>`;
+  const rows=privRows();
+  const groups=[...new Set(rows.map(x=>x.owner))];
+  if(!rows.length)return head+`<div class="empty"><b>Nothing matches these filters</b></div>`;
+  return head+groups.map(o=>{const g=rows.filter(x=>x.owner===o);const all=R.priv.filter(x=>x.owner===o);const pend=all.filter(x=>x.dec.decision==='pending').length;const oid=idFor('o|'+o);
+    return `<div class="card" style="padding:0;gap:0">
+      <div class="row" style="padding:12px 14px;border-bottom:1px solid var(--line)"><span><span class="eyebrow">Owner</span><br><b style="font-size:15px">${esc(o)}</b> <span class="muted" style="font-size:12.5px">· ${esc([...new Set(all.map(x=>x.sys.name))].join(', '))} · ${all.length} account${all.length===1?'':'s'} · ${pend?`<b style="color:var(--med)">${pend} pending</b>`:'<span style="color:var(--ok)">all decided</span>'}</span></span>
+        <span class="row" style="gap:6px"><button class="btn btn-sm btn-primary" data-act="copyOwner" data-owner="${esc(o)}" id="co-${oid}">Copy owner request</button><button class="btn btn-sm" data-act="copyOwnerCSV" data-owner="${esc(o)}">Copy CSV</button></span></div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Account</th><th>System</th><th>Privileged role</th><th>Last sign-in</th><th>Flags</th><th>Still required?</th><th>Justification</th></tr></thead><tbody>
+      ${g.map(x=>{const id=idFor(x.key);return `<tr class="${x.dec.decision==='keep'?'resolved':''}">
+        <td><div class="who">${esc(x.a.name||'—')}</div><div class="em">${esc(x.a.email||x.a.empId)}</div></td>
+        <td>${esc(x.sys.name)}</td><td><span class="pill">${esc(x.role)}</span></td>
+        <td style="white-space:nowrap">${x.a.lastLogin?fmt(x.a.lastLogin):'<span class="muted">—</span>'}</td>
+        <td>${privFlags(x)}</td>
+        <td><select class="sel" id="pd-${id}" data-priv="${esc(x.key)}" aria-label="Decision">${Object.entries(DEC).map(([k,l])=>`<option value="${k}" ${x.dec.decision===k?'selected':''}>${l}</option>`).join('')}</select></td>
+        <td><input class="field-in note" id="pn-${id}" data-privnote="${esc(x.key)}" value="${esc(x.dec.note||'')}" placeholder="Why this level is needed"></td></tr>`;}).join('')}
+      </tbody></table></div></div>`;}).join('');
+}
+function ownerRequest(o){
+  const list=R.priv.filter(x=>x.owner===o);const due=new Date(R.snap);due.setDate(due.getDate()+(+S.settings.reviewDays||14));
+  const L=[];
+  L.push(`Subject: Privileged access review — ${R.period.label} — action needed by ${fmt(due)}`);L.push('');
+  L.push(`Hi ${o},`);L.push('');
+  L.push(`As part of the ${R.period.label} user access review, please confirm whether each account below still needs its current privileged access in the systems you own (${[...new Set(list.map(x=>x.sys.name))].join(', ')}).`);
+  L.push('For each line, reply with one of: KEEP (with a one-line business reason), REDUCE (to which role), or REMOVE.');
+  L.push(`Please respond by ${fmt(due)}. Accounts without a response will be escalated.`);L.push('');
+  list.forEach((x,i)=>{const fl=privFlagText(x);L.push(`${i+1}. ${x.a.name||x.a.email} <${x.a.email||'no email'}> — ${x.sys.name} — role: ${x.role} — last sign-in: ${x.a.lastLogin?fmt(x.a.lastLogin):'unknown'}${fl?` — ⚠ ${fl}`:''}`);});
+  if(list.some(x=>x.term)){L.push('');L.push('Accounts marked TERMINATED belong to people who have left. Security is removing them; no action is needed beyond confirming.');}
+  L.push('');L.push('Thank you,');L.push(S.reviewer||'');
+  return L.join('\n');
+}
+function idFor(k){let h=0;for(const c of k)h=(h*31+c.charCodeAt(0))|0;return (h>>>0).toString(36);}
+function ans(v,L){return v?esc(L[v]):'<span class="pill warn">Not answered</span>';}
+function panelCoverage(){
+  return `<div class="bar"><span class="muted" style="font-size:13px">Design of each control, the list used as evidence, and what the test found.</span>
+    <div class="grp"><button class="btn btn-sm" data-act="copyCSV" data-what="coverage">Copy CSV</button><button class="btn btn-sm" data-act="openSettings" data-tab="systems">Edit systems</button></div></div>
+  <div class="tblwrap"><table><thead><tr><th>System</th><th>SSO</th><th>MFA</th><th>SCIM provisioning</th><th>Deprovisioning</th><th>User list</th><th class="num">Matched</th><th class="num">Removed</th><th class="num">Exceptions</th><th class="num">Privileged</th><th>Notes</th></tr></thead><tbody>
+  ${R.coverage.map(c=>{const s=c.sys;const ds=s.ds;return `<tr>
+    <td><b>${esc(s.name)}</b><div class="muted" style="font-size:12px">${s.isIdp?'Identity provider':esc((s.crit||'—')+(s.owner?' · '+s.owner:''))}</div></td>
+    <td>${s.isIdp?'—':ans(s.sso,SSO_L)}</td>
+    <td>${s.isIdp?(c.mfaPct!=null?`${c.mfaPct}% enrolled`:'—'):ans(s.mfa,MFA_L)}${!s.isIdp&&c.mfaPct!=null?`<div class="muted" style="font-size:12px">${c.mfaPct}% of active users enrolled</div>`:''}</td>
+    <td>${s.isIdp?'—':ans(s.scim,SCIM_L)}</td>
+    <td>${s.isIdp?'—':ans(s.deprov,DEPROV_L)}</td>
+    <td>${ds?`<div class="em" style="font-family:var(--font-data);font-size:12px">${esc(ds.fileName)}</div><span class="muted" style="font-size:12px">${c.rows} rows · ${c.active} active · ${fmt(new Date(ds.uploadedAt))}</span>`:'<span class="pill warn">Awaiting list</span>'}</td>
+    <td class="num">${c.loaded?c.matched:'—'}</td><td class="num">${c.loaded?c.pass-(R.pop.length-c.matched):'—'}</td>
+    <td class="num">${c.loaded?(c.exc?`<span class="pill bad">${c.exc}</span>`:'<span class="pill good">0</span>'):'—'}</td>
+    <td class="num">${c.loaded?c.priv:'—'}</td>
+    <td>${c.notes.length?`<ul class="note-list">${c.notes.filter(n=>n!=='Awaiting user list').map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}</td></tr>`;}).join('')}
+  </tbody></table></div>`;
+}
+function panelNotInIdp(){
+  if(!S.sources.idp)return `<div class="empty"><b>Needs the IdP export</b>Active app accounts are compared against every ${esc(IDP[S.settings.idp].name)} account, active or suspended.</div>`;
+  const list=R.notInIdp.slice(0,500);
+  return `<div class="bar"><span class="muted" style="font-size:13px;max-width:70ch">Active app accounts with no matching ${esc(IDP[S.settings.idp].name)} account. These can be contractors, local admin or shared accounts, or orphans that never came through HR. Service accounts matching your exclusion patterns are hidden.</span>
+    <div class="grp"><button class="btn btn-sm" data-act="copyCSV" data-what="notinidp">Copy CSV</button></div></div>
+  ${list.length?`<div class="tblwrap"><table><thead><tr><th>System</th><th>Account</th><th>Name</th><th>Status</th><th>Role</th><th>Last sign-in</th></tr></thead><tbody>
+  ${list.map(({sys,a})=>`<tr><td><b style="font-weight:600">${esc(sys.name)}</b></td><td><span class="em">${esc(a.email||'—')}</span></td><td>${esc(a.name||'—')}</td><td><span class="pill">${esc(a.statusRaw||'Listed')}</span></td><td>${esc(a.role||'—')}</td><td>${a.lastLogin?fmt(a.lastLogin):'—'}</td></tr>`).join('')}
+  </tbody></table></div>${R.notInIdp.length>500?`<p class="muted">Showing 500 of ${R.notInIdp.length}. Copy the CSV for the full list.</p>`:''}`:`<div class="empty"><b>Every active app account maps to the IdP</b>Nothing to review here this quarter.</div>`}`;
+}
+function panelWorkpaper(){
+  return `<div class="bar"><div class="grp"><label class="f" style="flex-direction:row;align-items:center;gap:8px"><span style="font-size:13px">Reviewer</span><input class="field-in" id="reviewer" value="${esc(S.reviewer)}" placeholder="Name, title"></label></div>
+    <div class="grp"><button class="btn btn-sm btn-primary" data-act="copyWP">Copy workpaper</button><button class="btn btn-sm" data-act="dlWP">Download .txt</button></div></div>
+    <pre class="wp" id="wp">${esc(workpaper())}</pre>`;
+}
+function workpaper(){
+  const p=R.period,set=S.settings;const idp=S.sources.idp,hr=S.sources.hris;
+  const mat=material(R);const c=k=>R.findings.filter(f=>f.sev===k).length;const d=k=>R.findings.filter(f=>f.disp.status===k).length;
+  const missing=R.coverage.filter(x=>!x.loaded).map(x=>x.sys.name);
+  const L=[];
+  L.push('USER ACCESS REVIEW — ORPHANED ACCOUNTS (OFFBOARDING CONTROL TEST)');
+  L.push(`Period: ${p.label} (${fmt(p.start)} – ${fmt(p.end)})`);
+  L.push('Criteria: SOC 2 CC6.2 / CC6.3 — system access is removed when a user is terminated.');
+  L.push(`Lists as of: ${fmt(R.snap)}`);L.push('');
+  L.push('EVIDENCE');
+  L.push(`HRIS termination list: ${hr?`${hr.fileName} (${hr.rows.length} rows)`:'not provided'}`);
+  L.push(`Identity provider: ${IDP[set.idp].name} — ${idp?`${idp.fileName} (${idp.rows.length} accounts)`:'not provided'}`);
+  S.apps.forEach(a=>L.push(`${a.name} [${a.crit||'criticality not set'}; SSO: ${SSO_L[a.sso]||'n/a'}; MFA: ${MFA_L[a.mfa]||'n/a'}; SCIM: ${SCIM_L[a.scim]||'n/a'}; Deprovisioning: ${DEPROV_L[a.deprov]||'n/a'}] — ${a.data?`${a.data.fileName} (${a.data.rows.length} accounts)`:'NO LIST PROVIDED'}`));
+  L.push('');L.push('POPULATION');
+  L.push(`Scope: ${POP_L[set.population]}. ${R.pop.length} terminated users tested.`);
+  const ex=R.excl;const exParts=[];if(ex.future)exParts.push(`${ex.future} future-dated`);if(ex.period)exParts.push(`${ex.period} outside scope`);if(ex.noDate)exParts.push(`${ex.noDate} missing a termination date`);if(ex.dup)exParts.push(`${ex.dup} duplicates`);if(ex.noKey)exParts.push(`${ex.noKey} without email, ID or name`);
+  if(exParts.length)L.push(`Excluded: ${exParts.join(', ')}.`);
+  L.push('');L.push('PROCEDURE');
+  L.push(`Each terminated user was matched by email, then employee ID${set.nameMatch?', then full name (flagged for manual verification)':''} against the IdP export and each in-scope system's user list. An exception is an account still active on the list date. Accounts within the ${+set.slaDays||0}-day deprovisioning window are reported as Low. Accounts with a sign-in after the termination date are Critical.`);
+  L.push('');L.push('RESULTS');
+  L.push(`Checks performed: ${R.tests.length} (terminated users × systems with lists)`);
+  L.push(`Exceptions: ${R.findings.length} — Critical ${c('crit')}, High ${c('high')}, Medium ${c('med')}, Low ${c('low')}`);
+  L.push(`Dispositions: Open ${d('open')}, Remediated ${d('remediated')}, Accepted exception ${d('exception')}, False positive ${d('fp')}`);
+  L.push(`Active app accounts not found in the IdP: ${S.sources.idp?R.notInIdp.length:'not evaluated'}`);
+  if(R.findings.length){L.push('');L.push('EXCEPTION DETAIL');
+    R.findings.forEach(f=>L.push(`- [${SEV[f.sev].label}] ${f.p.name||f.p.email} <${f.p.email}> — ${f.sys.name} — ${f.acct.statusRaw||'listed'}${f.acct.lastLogin?`, last sign-in ${fmt(f.acct.lastLogin)}`:''} — terminated ${fmt(f.p.termDate)}${f.days!=null?` (${f.days} days)`:''} — ${DISP[f.disp.status]}${f.disp.note?`: ${f.disp.note}`:''}`));}
+  const pt=R.findings.filter(f=>f.priv);
+  L.push('');L.push('PRIVILEGED ACCESS');
+  L.push(`Terminated users still holding active privileged access (rated Critical): ${pt.length}`);
+  pt.forEach(f=>L.push(`- ${f.p.name||f.p.email} — ${f.sys.name} — ${f.priv} — ${DISP[f.disp.status]}${f.disp.note?`: ${f.disp.note}`:''}`));
+  if(R.residual.length)L.push(`Disabled terminated accounts that still carry a privileged role (clean-up): ${R.residual.map(t=>`${t.p.name||t.p.email} (${t.sys.name}: ${t.priv})`).join('; ')}`);
+  const dc=k=>R.priv.filter(x=>x.dec.decision===k).length;
+  L.push(`Active privileged accounts reviewed with system owners: ${R.priv.length} across ${owners().length} owner(s) — Keep ${dc('keep')}, Reduce ${dc('reduce')}, Remove ${dc('remove')}, Pending ${dc('pending')}`);
+  L.push(`Flags: ${R.priv.filter(x=>x.notIdp).length} not in IdP, ${R.priv.filter(x=>x.dormant).length} idle over ${+S.settings.dormantDays||90} days or never signed in, ${R.priv.filter(x=>x.a.mfa===false).length} without MFA.`);
+  owners().forEach(o=>{const g=R.priv.filter(x=>x.owner===o);L.push(`  ${o}: ${g.length} account(s), ${g.filter(x=>x.dec.decision==='pending').length} pending`);});
+  L.push('');L.push('CONCLUSION');
+  if(!hr)L.push('Not yet performed.');
+  else if(!mat.length)L.push(`No exceptions noted. Terminated users' access was removed from all systems tested.${missing.length?` Coverage incomplete: no user list for ${missing.join(', ')}.`:''}`);
+  else L.push(`${mat.length} exception(s) noted; ${mat.filter(f=>!isResolved(f)).length} open at the time of this review. ${c('crit')?`${c('crit')} account(s) show activity after termination and were referred for incident review. `:''}${missing.length?`Coverage incomplete: no user list for ${missing.join(', ')}.`:''}`.trim());
+  L.push('');L.push(`Reviewed by: ${S.reviewer||'________________'}    Date: ${fmt(new Date())}`);
+  return L.join('\n');
+}
+
+/* ---------- CSV export ---------- */
+const csvEsc=v=>{const s=String(v??'');return /[",\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;};
+const toCSV=rows=>rows.map(r=>r.map(csvEsc).join(',')).join('\r\n');
+function exportCSV(what){
+  const q=R.period.label;
+  if(what==='exceptions')return toCSV([['Quarter','Severity','Finding','User','Email','Employee ID','Termination date','Days since termination','System','Account','Account status','Privileged role','Last sign-in','Match method','Disposition','Note'],
+    ...R.findings.map(f=>[q,SEV[f.sev].label,f.label,f.p.name,f.p.email,f.p.empId,iso(f.p.termDate),f.days??'',f.sys.name,f.acct.email||f.acct.name,f.acct.statusRaw,f.priv||'',f.acct.lastLogin?iso(f.acct.lastLogin):f.acct.lastLoginRaw,f.how,DISP[f.disp.status],f.disp.note||''])]);
+  if(what==='log')return toCSV([['Quarter','User','Email','Termination date','System','Result','Detail','Severity','Match method','Account status','Last sign-in'],
+    ...R.tests.map(t=>[q,t.p.name,t.p.email,iso(t.p.termDate),t.sys.name,t.result==='pass'?'Pass':'Exception',t.label,t.sev?SEV[t.sev].label:'',t.how,t.acct?t.acct.statusRaw:'',t.acct&&t.acct.lastLogin?iso(t.acct.lastLogin):''])]);
+  if(what==='coverage')return toCSV([['System','Criticality','Owner','SSO','MFA','SCIM provisioning','Deprovisioning','User list','Rows','Active','Matched terminated users','Exceptions','Privileged accounts','Notes'],
+    ...R.coverage.map(c=>{const s=c.sys;return [s.name,s.crit||'',s.owner||'',SSO_L[s.sso]||'',s.isIdp?(c.mfaPct!=null?c.mfaPct+'% enrolled':''):MFA_L[s.mfa]||'',SCIM_L[s.scim]||'',DEPROV_L[s.deprov]||'',s.ds?s.ds.fileName:'',c.rows,c.active,c.matched,c.exc,c.priv,c.notes.join('; ')];})]);
+  if(what==='priv'||what.startsWith('owner:')){const o=what.startsWith('owner:')?what.slice(6):null;
+    return toCSV([['Quarter','Owner','System','Name','Email','Privileged role','Last sign-in','Days idle','Terminated','Not in IdP','MFA','Decision','Justification','Decided at'],
+    ...R.priv.filter(x=>!o||x.owner===o).map(x=>[q,x.owner,x.sys.name,x.a.name,x.a.email,x.role,x.a.lastLogin?iso(x.a.lastLogin):'',x.idle??'',x.term?iso(x.term.termDate)||'Yes':'',x.notIdp?'Yes':'',x.a.mfa===null?'':(x.a.mfa?'Yes':'No'),DEC[x.dec.decision],x.dec.note||'',x.dec.at||''])]);}
+  if(what==='notinidp')return toCSV([['System','Account','Name','Status','Role','Last sign-in'],...R.notInIdp.map(({sys,a})=>[sys.name,a.email,a.name,a.statusRaw,a.role,a.lastLogin?iso(a.lastLogin):''])]);
+  return '';
+}
+function copyText(text,label){
+  try{navigator.clipboard.writeText(text).then(()=>toast(label+' copied to clipboard'),()=>fallback(text));}catch(e){fallback(text);}
+}
+function fallback(text){
+  $('#fallbackRoot').innerHTML=`<div class="fallback" data-act="closeFallback"><div class="card" data-stop><div class="row"><h3>Copy this text</h3><button class="btn btn-sm" data-act="closeFallback">Close</button></div><p class="hint">Your browser blocked automatic copying. The text is selected; press Ctrl+C or ⌘C.</p><textarea class="field-in" id="fbText" rows="12" readonly></textarea></div></div>`;
+  const t=$('#fbText');t.value=text;t.focus();t.select();
+}
+function download(name,text,type){
+  try{const b=new Blob([text],{type});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},800);}catch(e){}
+  toast('Download started. If nothing saved, use Copy — downloads only work when this page is opened as a local file.');
+}
+const fileStamp=()=>R.period.key+'_'+iso(R.snap);
+
+/* ---------- drawer ---------- */
+function renderDrawer(){
+  const root=$('#drawerRoot');const prevScroll=$('#dbody')?$('#dbody').scrollTop:0;
+  if(!ui.drawer){root.innerHTML='';return;}
+  const tabs=[['review','Review rules'],['sources','Source lists'],['systems','Systems'],['bulk','Bulk upload'],['backup','Backup & reset']];
+  let body='';
+  if(ui.dtab==='review')body=drawerReview();else if(ui.dtab==='sources')body=drawerSources();else if(ui.dtab==='systems')body=drawerSystems();else if(ui.dtab==='bulk')body=drawerBulk();else body=drawerBackup();
+  root.innerHTML=`<div class="scrim" data-act="closeSettings"></div><aside class="drawer" role="dialog" aria-modal="true" aria-label="Settings">
+    <div class="dhead"><h2>Settings</h2><button class="btn btn-sm" data-act="closeSettings" id="closeSettings">Done</button></div>
+    <div class="dtabs" role="tablist">${tabs.map(([k,l])=>`<button class="tab" role="tab" id="dt-${k}" aria-selected="${ui.dtab===k}" data-act="dtab" data-tab="${k}">${l}</button>`).join('')}</div>
+    <div class="dbody" id="dbody">${body}</div></aside>`;
+  const b=$('#dbody');if(b)b.scrollTop=prevScroll;
+  wireDrop();
+}
+function drawerReview(){
+  const s=S.settings;const cur=quarterOf(new Date());
+  return `<div class="card"><h3>Identity provider</h3>
+    <div class="radios">${Object.entries(IDP).map(([k,v])=>`<label class="radio"><input type="radio" name="idp" id="idp-${k}" value="${k}" data-set="idp" ${s.idp===k?'checked':''}><span><b>${v.name}</b><span>${k==='google'?'Status: Active / Suspended':'accountEnabled: True / False'}</span></span></label>`).join('')}</div></div>
+  <div class="card"><h3>Review quarter</h3>
+    <div class="radios">
+      <label class="radio"><input type="radio" name="qm" id="qm-auto" value="auto" data-set="quarterMode" ${s.quarterMode!=='manual'?'checked':''}><span><b>Pick automatically</b><span>Uses today’s date: ${esc(cur.label)}</span></span></label>
+      <label class="radio"><input type="radio" name="qm" id="qm-manual" value="manual" data-set="quarterMode" ${s.quarterMode==='manual'?'checked':''}><span><b>Choose a quarter</b><span>For catch-up or prior-period reviews</span></span></label>
+    </div>
+    <div class="fgrid">
+      ${s.quarterMode==='manual'?`<label class="f"><span>Quarter</span><select class="sel" id="qkey" data-set="quarterKey">${quarterList().map(q=>`<option value="${q.key}" ${s.quarterKey===q.key?'selected':''}>${esc(q.label)} · ${fmt(q.start)} – ${fmt(q.end)}</option>`).join('')}</select></label>`:''}
+      <label class="f"><span>Fiscal year starts in</span><select class="sel" id="fys" data-set="fyStart">${MONTHS.map((m,i)=>`<option value="${i+1}" ${+s.fyStart===i+1?'selected':''}>${m}</option>`).join('')}</select><small>January means calendar quarters.</small></label>
+    </div></div>
+  <div class="card"><h3>Test rules</h3><div class="fgrid">
+    <label class="f"><span>Terminated users in scope</span><select class="sel" id="pop" data-set="population">${Object.entries(POP_L).map(([k,l])=>`<option value="${k}" ${s.population===k?'selected':''}>${l}</option>`).join('')}</select><small>“All” also catches older orphans that earlier reviews missed.</small></label>
+    <label class="f"><span>Lists exported on</span><input class="field-in" type="date" id="snap" data-set="snapshotDate" value="${esc(s.snapshotDate)}"><small>Blank means today. Days since termination count to this date.</small></label>
+    <label class="f"><span>Deprovisioning window (days)</span><input class="field-in" type="number" min="0" max="30" id="sla" data-set="slaDays" value="${esc(s.slaDays)}"><small>Active accounts inside this window are Low, not High.</small></label>
+    <label class="f"><span>Equivalent email domains</span><input class="field-in" id="alias" data-set="domainAliases" value="${esc(s.domainAliases)}" placeholder="acme.com, acme.io"><small>Treats jdoe@acme.com and jdoe@acme.io as one person.</small></label>
+    <label class="f"><span>Service account patterns to ignore</span><input class="field-in" id="excl" data-set="exclusions" value="${esc(s.exclusions)}"><small>Comma-separated text found in an email or name. Applies to the Not in IdP list.</small></label>
+  </div>
+  <label class="check"><input type="checkbox" id="nm" data-set="nameMatch" ${s.nameMatch?'checked':''}><span><b>Match on full name when email and ID don’t match.</b> Name matches are flagged for you to verify.</span></label></div>
+  <div class="card"><h3>Privileged access</h3><p class="hint">An account is privileged when its role or status contains any of these words. A terminated user with an active privileged account is always Critical. Each system can override the list under Systems.</p>
+  <div class="fgrid">
+    <label class="f" style="grid-column:1/-1"><span>Privileged role keywords</span><input class="field-in" id="pk" data-set="privKeywords" value="${esc(s.privKeywords)}"><small>Comma-separated, matched anywhere in the value (“admin” matches “Super Admin” and “System Administrator”).</small></label>
+    <label class="f"><span>Flag privileged accounts idle for more than (days)</span><input class="field-in" type="number" min="1" id="dd" data-set="dormantDays" value="${esc(s.dormantDays)}"></label>
+    <label class="f"><span>Owner of ${esc(IDP[s.idp].name)} admin roles</span><input class="field-in" id="io" data-set="idpOwner" value="${esc(s.idpOwner)}"></label>
+    <label class="f"><span>Days owners have to respond</span><input class="field-in" type="number" min="1" id="rd" data-set="reviewDays" value="${esc(s.reviewDays)}"><small>Sets the due date in owner requests.</small></label>
+  </div></div>`;
+}
+function datasetBlock(slot,ds,title,hint){
+  const kind=slot.startsWith('app:')?'app':slot;const fields=SLOT_FIELDS[kind];
+  const sid=slot.replace(/[^a-z0-9]/gi,'_');
+  if(!ds)return `<div class="filebox"><span class="muted">${esc(hint||'No list uploaded yet.')}</span><label class="btn btn-primary btn-sm">Upload CSV<input type="file" id="up-${sid}" accept=".csv,.tsv,.txt,text/csv" data-upload="${esc(slot)}"></label></div>`;
+  const req=kind==='hris'?['termDate']:[];
+  const warn=[];
+  if(ds.map.email<0&&ds.map.name<0&&ds.map.first<0&&ds.map.empId<0)warn.push('Map an email, ID or name column so users can be matched.');
+  if(kind==='hris'&&ds.map.termDate<0)warn.push('Map the termination date column.');
+  if(kind==='idpAdmins'&&ds.map.role<0)warn.push('Map the role column.');
+  if(kind!=='hris'&&kind!=='idpAdmins'&&ds.map.status<0)warn.push('No status column mapped: every row will be treated as an active account.');
+  const prev=ds.rows.slice(0,3).map(r=>recordFrom(r,ds));
+  return `<div class="filebox"><span><span class="fn">${esc(ds.fileName)}</span><br><span class="muted" style="font-size:12px">${ds.rows.length} rows · loaded ${fmt(new Date(ds.uploadedAt))}</span></span>
+    <span class="row" style="gap:6px"><label class="btn btn-sm">Replace<input type="file" id="re-${sid}" accept=".csv,.tsv,.txt,text/csv" data-upload="${esc(slot)}"></label><button class="btn btn-sm btn-danger" data-act="removeDs" data-slot="${esc(slot)}">Remove</button></span></div>
+  ${warn.length?`<div class="pill warn" style="white-space:normal;padding:6px 10px">${warn.map(esc).join(' ')}</div>`:''}
+  <details ${warn.length?'open':''}><summary class="muted" style="cursor:pointer;font-size:12.5px;font-weight:600">Column mapping (detected automatically)</summary>
+    <div class="mapgrid" style="margin-top:10px">${fields.map(f=>`<label class="${req.includes(f)?'req':''}"><span>${FIELDS[f].label}</span><select class="sel" id="m-${sid}-${f}" data-map="${esc(slot)}" data-field="${f}"><option value="-1">— not in file —</option>${ds.headers.map((h,i)=>`<option value="${i}" ${ds.map[f]===i?'selected':''}>${esc(h||'(column '+(i+1)+')')}</option>`).join('')}</select></label>`).join('')}</div>
+    <div class="tblwrap" style="margin-top:10px"><table class="prev"><thead><tr><th>Email</th><th>Name</th>${kind==='hris'?'<th>Terminated</th>':kind==='idpAdmins'?'<th>Role</th>':'<th>Active?</th><th>Last sign-in</th>'}</tr></thead><tbody>
+    ${prev.map((a,i)=>`<tr><td class="em">${esc(a.email||'—')}</td><td>${esc(a.name||'—')}</td>${kind==='hris'?`<td>${fmt(parseDate(cell(ds.rows[i],ds.map.termDate)))}</td>`:kind==='idpAdmins'?`<td>${esc(a.role||'—')}</td>`:`<td>${a.active?'Active':'Disabled'} <span class="muted">${esc(a.statusRaw)}</span></td><td>${a.lastLogin?fmt(a.lastLogin):'—'}</td>`}</tr>`).join('')}
+    </tbody></table></div></details>`;
+}
+function drawerSources(){
+  return `<div class="card"><div><h3>HRIS termination list</h3><p class="hint">Export terminated employees with work email, employee ID and termination date. In Rippling: Reports → New report → filter Employment status is Terminated → add Work email, Employee ID, Termination date → export CSV.</p></div>
+    ${datasetBlock('hris',S.sources.hris,'HRIS','Most recent termination list (CSV).')}</div>
+  <div class="card"><div><h3>${esc(IDP[S.settings.idp].name)} user export</h3><p class="hint">${esc(IDP[S.settings.idp].hint)} Switch identity provider under Review rules.</p></div>
+    ${datasetBlock('idp',S.sources.idp,'IdP','All users, active and suspended (CSV).')}</div>
+  <div class="card"><div><h3>${esc(IDP[S.settings.idp].name)} admin role assignments <span class="pill">Optional</span></h3><p class="hint">${S.settings.idp==='google'?'The Google user export has no admin roles. Admin console → Account → Admin roles → open each role (Super Admin first) → Admins → export, or combine into one CSV with email and role columns.':'Entra admin center → Roles &amp; admins → select a role → Assignments → Download, or export all role assignments with email (UPN) and role name.'} Without this file, IdP admins are not part of the privileged review.</p></div>
+    ${datasetBlock('idpAdmins',S.sources.idpAdmins,'IdP admins','CSV with one row per admin and role.')}</div>`;
+}
+function drawerSystems(){
+  const confirmId=ui.confirm&&ui.confirm.startsWith('del:')?ui.confirm.slice(4):null;
+  return `<div class="card"><h3>Add a critical system</h3><p class="hint">Answer the control questions, then upload that system’s user list. Your answers set severity and the design notes in the workpaper.</p>
+    <div class="row" style="justify-content:flex-start"><input class="field-in" id="newApp" placeholder="e.g. Salesforce, AWS, NetSuite" style="flex:1;min-width:180px"><button class="btn btn-primary" data-act="addApp">Add system</button></div></div>
+  ${S.apps.length?S.apps.map(a=>{const sid='a_'+a.id;const open=ui.openApps.has(a.id);return `<details class="app" data-appdetails="${a.id}" ${open?'open':''}>
+    <summary><span class="nm">${esc(a.name)}</span>${a.crit?`<span class="pill">${esc(a.crit)}</span>`:''}${a.data?`<span class="pill good">List loaded · ${a.data.rows.length}</span>`:'<span class="pill warn">Awaiting list</span>'}${(!a.sso||!a.mfa||!a.scim||!a.deprov)?'<span class="pill warn">Questions open</span>':''}</summary>
+    <div class="inner"><div class="fgrid" style="margin-top:12px">
+      <label class="f"><span>System name</span><input class="field-in" id="${sid}-name" data-app="${a.id}" data-field="name" value="${esc(a.name)}"></label>
+      <label class="f"><span>Owner</span><input class="field-in" id="${sid}-owner" data-app="${a.id}" data-field="owner" value="${esc(a.owner||'')}" placeholder="Team or person"></label>
+      <label class="f"><span>Criticality</span><select class="sel" id="${sid}-crit" data-app="${a.id}" data-field="crit"><option value="">Choose…</option>${CRIT_L.map(c=>`<option ${a.crit===c?'selected':''}>${c}</option>`).join('')}</select></label>
+      <label class="f"><span>Do users sign in through ${esc(IDP[S.settings.idp].name)} (SSO)?</span>${sel(sid+'-sso',a,'sso',SSO_L)}</label>
+      <label class="f"><span>Is MFA enforced?</span>${sel(sid+'-mfa',a,'mfa',MFA_L)}${a.prefill&&a.prefill.mfa?`<small>${esc(a.prefill.mfa)}</small>`:''}</label>
+      <label class="f"><span>Are accounts created automatically (SCIM)?</span>${sel(sid+'-scim',a,'scim',SCIM_L)}</label>
+      <label class="f"><span>How are accounts removed at termination?</span>${sel(sid+'-deprov',a,'deprov',DEPROV_L)}</label>
+      <label class="f"><span>Where the user list comes from</span><input class="field-in" id="${sid}-src" data-app="${a.id}" data-field="source" value="${esc(a.source||'')}" placeholder="Admin console → Users → Export"></label>
+      <label class="f" style="grid-column:1/-1"><span>Roles that count as privileged here</span><input class="field-in" id="${sid}-priv" data-app="${a.id}" data-field="privRoles" value="${esc(a.privRoles||'')}" placeholder="Default: ${esc(S.settings.privKeywords)}"><small>Leave blank to use the default keywords. Click a role below to add it.</small></label>
+    </div>
+    ${datasetBlock('app:'+a.id,a.data,a.name,'Active user list for this system (CSV).')}
+    ${roleChips(a)}
+    <div class="row" style="justify-content:flex-end">${confirmId===a.id?`<span class="muted" style="font-size:13px">Delete ${esc(a.name)} and its list?</span><button class="btn btn-sm" data-act="cancelConfirm">Keep</button><button class="btn btn-sm btn-danger" data-act="delApp" data-id="${a.id}">Delete</button>`:`<button class="btn btn-sm btn-ghost btn-danger" data-act="askDel" data-id="${a.id}">Delete system</button>`}</div>
+    </div></details>`;}).join(''):'<div class="empty"><b>No systems yet</b>Add each critical system above, or use Bulk upload to create them from your export file names.</div>'}`;
+}
+function roleChips(a){
+  if(!a.data)return '';const ix=buildIndex(a.data);const counts=new Map();
+  ix.recs.filter(r=>r.active).forEach(r=>{const v=r.role||r.statusRaw;if(v)counts.set(v,(counts.get(v)||0)+1);});
+  if(!counts.size)return '';
+  const keys=privKeys(a);
+  return `<div class="f"><span>Role values in this list <small>(active accounts)</small></span><div class="chips">${[...counts.entries()].sort((x,y)=>y[1]-x[1]).slice(0,30).map(([v,n])=>{const p=keys.some(k=>v.toLowerCase().includes(k));
+    return `<button class="pill ${p?'bad':''}" style="border:0;cursor:pointer" data-act="toggleRole" data-app="${a.id}" data-role="${esc(v)}" title="${p?'Counted as privileged':'Click to count as privileged'}">${p?'★ ':''}${esc(v)} · ${n}</button>`;}).join('')}</div></div>`;
+}
+function sel(id,a,f,L){return `<select class="sel" id="${id}" data-app="${a.id}" data-field="${f}"><option value="">Not answered</option>${Object.entries(L).map(([k,l])=>`<option value="${k}" ${a[f]===k?'selected':''}>${esc(l)}</option>`).join('')}</select>`;}
+function drawerBulk(){
+  const targets=[['hris','HRIS termination list'],['idp',IDP[S.settings.idp].name+' users'],['idpAdmins',IDP[S.settings.idp].name+' admin roles'],...S.apps.map(a=>['app:'+a.id,a.name]),['new','New system'],['skip','Ignore this file']];
+  return `<div class="card"><h3>Drop every export at once</h3>
+    <p class="hint">Each file is routed by its columns and name. A file with a termination date goes to the HRIS slot. A Google Workspace or Entra ID export goes to the IdP slot and sets the provider. Anything else is matched to a system by file name (salesforce_users_q4.csv → Salesforce). Files that match nothing create a new system for you to answer questions on.</p>
+    <label class="drop" id="drop"><input type="file" id="bulkInput" multiple accept=".csv,.tsv,.txt,text/csv"><b>Drop CSV files here or choose files</b><span class="muted" style="font-size:12.5px">HRIS, IdP and app exports together</span></label></div>
+  ${ui.bulkLog.length?`<div class="card"><div class="row"><h3>Last upload</h3><button class="btn btn-sm btn-ghost" data-act="clearLog">Clear</button></div>
+    <div class="tblwrap"><table><thead><tr><th>File</th><th>Loaded into</th><th class="num">Rows</th><th>Detected</th></tr></thead><tbody>
+    ${ui.bulkLog.map(e=>`<tr><td class="em" style="font-family:var(--font-data)">${esc(e.fileName)}</td><td><select class="sel" id="bl-${e.id}" data-bulk="${e.id}">${targets.map(([k,l])=>`<option value="${esc(k)}" ${e.target===k?'selected':''}>${esc(l)}</option>`).join('')}</select></td><td class="num">${e.rows}</td><td class="muted" style="font-size:12px">${esc(e.note)}</td></tr>`).join('')}
+    </tbody></table></div><p class="hint">Change “Loaded into” to move a file. Then open Systems to answer the control questions for new systems.</p></div>`:''}`;
+}
+function drawerBackup(){
+  return `<div class="card"><h3>Storage on this device</h3>
+    <label class="check"><input type="checkbox" id="rem" data-set="remember" ${S.settings.remember?'checked':''}><span><b>Remember uploaded lists in this browser.</b> Turn off on shared machines; settings, systems and dispositions are still kept.</span></label>
+    <div class="row" style="justify-content:flex-start;gap:8px"><button class="btn btn-sm" data-act="clearLists">Clear uploaded lists</button><button class="btn btn-sm" data-act="loadSample">Load sample data</button></div></div>
+  <div class="card"><h3>Back up configuration</h3><p class="hint">Saves review rules, systems with their control answers, and every quarter’s dispositions. User lists are not included. Use it to move to another computer or keep a copy with the quarter’s evidence.</p>
+    <div class="row" style="justify-content:flex-start;gap:8px"><button class="btn btn-sm" data-act="copyCfg">Copy backup</button><button class="btn btn-sm" data-act="dlCfg">Download .json</button></div>
+    <label class="f"><span>Restore from a backup</span><textarea class="field-in" id="cfgIn" rows="4" placeholder="Paste backup JSON here"></textarea></label>
+    <div class="row" style="justify-content:flex-start;gap:8px"><button class="btn btn-sm btn-primary" data-act="importCfg">Restore</button><label class="btn btn-sm">Restore from file<input type="file" id="cfgFile" accept=".json,application/json" data-cfgfile></label></div></div>
+  <div class="card"><h3>Start over</h3><p class="hint">Removes everything this tool has stored in this browser.</p>
+    <div class="row" style="justify-content:flex-start;gap:8px">${ui.confirm==='reset'?`<span style="font-size:13px">Erase all settings, systems, lists and dispositions?</span><button class="btn btn-sm" data-act="cancelConfirm">Cancel</button><button class="btn btn-sm btn-danger" data-act="resetAll">Erase everything</button>`:`<button class="btn btn-sm btn-danger" data-act="askReset">Reset tool</button>`}</div></div>`;
+}
+
+/* ---------- data slot helpers ---------- */
+function getApp(id){return S.apps.find(a=>a.id===id);}
+function getDs(slot){if(slot==='hris')return S.sources.hris;if(slot==='idp')return S.sources.idp;if(slot==='idpAdmins')return S.sources.idpAdmins;if(slot.startsWith('app:')){const a=getApp(slot.slice(4));return a&&a.data;}return null;}
+function setDs(slot,ds){if(slot==='hris')S.sources.hris=ds;else if(slot==='idp')S.sources.idp=ds;else if(slot==='idpAdmins')S.sources.idpAdmins=ds;else if(slot.startsWith('app:')){const a=getApp(slot.slice(4));if(a)a.data=ds;}}
+function makeDataset(name,text,slot){
+  const kind=slot.startsWith('app:')?'app':slot;const p=parseCSV(text);
+  if(!p.headers.length||!p.rows.length)return null;
+  return {fileName:name,uploadedAt:new Date().toISOString(),headers:p.headers,rows:p.rows,map:autoMap(p.headers,p.rows,SLOT_FIELDS[kind])};
+}
+function detectIdp(headers){const H=headers.map(normH),raw=headers.join('|').toLowerCase();
+  if(/\[required\]|\[read only\]/.test(raw)&&H.includes('email address'))return 'google';
+  if(H.includes('userprincipalname')||H.includes('accountenabled')||H.includes('objectid'))return 'entra';return null;}
+function prefill(app){
+  const ds=app.data;if(!ds)return '';app.prefill=app.prefill||{};let note='';
+  if(!app.source)app.source=ds.fileName;
+  if(!app.mfa&&ds.map.mfa>=0){const ix=buildIndex(ds);const act=ix.recs.filter(a=>a.active&&a.mfa!==null);
+    if(act.length){const pct=act.filter(a=>a.mfa).length/act.length;app.mfa=pct===1?'inapp':'partial';
+      app.prefill.mfa=`Prefilled from “${ds.headers[ds.map.mfa]}”: ${Math.round(pct*100)}% of active users enrolled. Change it if MFA is enforced through the IdP.`;note='MFA answer prefilled';}}
+  return note;
+}
+function mapSummary(ds){const m=ds.map;const parts=[];['email','status','lastLogin','termDate','mfa'].forEach(f=>{if(m[f]!=null&&m[f]>=0)parts.push(`${FIELDS[f].label.split(' /')[0].toLowerCase()} → ${ds.headers[m[f]]}`);});return parts.join(', ');}
+async function handleUpload(input){
+  const f=input.files&&input.files[0];if(!f)return;const slot=input.dataset.upload;
+  const text=await f.text();const ds=makeDataset(f.name,text,slot);
+  if(!ds){toast(`${f.name} has no rows. Export it as CSV with a header row and try again.`);return;}
+  if(S.sample)leaveSample();
+  setDs(slot,ds);let extra='';
+  if(slot==='idp'){const d=detectIdp(ds.headers);if(d&&d!==S.settings.idp){S.settings.idp=d;extra=` Identity provider set to ${IDP[d].name}.`;}}
+  if(slot.startsWith('app:')){const n=prefill(getApp(slot.slice(4)));if(n)extra=' '+n+'.';}
+  save();renderAll();toast(`${f.name}: ${ds.rows.length} rows. ${mapSummary(ds)}.${extra}`);
+}
+
+/* ---------- bulk ---------- */
+const STOP=new Set(['users','user','export','exports','active','list','lists','accounts','account','members','member','report','all','csv','data','download','roster','q1','q2','q3','q4','fy','current','final','copy','of','and','the']);
+function fileWords(n){return String(n).toLowerCase().replace(/\.[a-z0-9]+$/,'').replace(/[_\-.()\[\]]+/g,' ').split(/\s+/).filter(w=>w&&!STOP.has(w)&&!/^\d+$/.test(w)&&!/^(fy|q)\d+$/.test(w)&&!/^\d{4}q\d$/.test(w));}
+const compact=s=>String(s).toLowerCase().replace(/[^a-z0-9]/g,'');
+function classify(name,headers,rows){
+  const fw=fileWords(name);const fc=fw.join('');
+  const hm=autoMap(headers,rows,SLOT_FIELDS.hris);
+  if(hm.termDate>=0&&valueRatio(rows,hm.termDate,v=>!!parseDate(v))>0.5)return {target:'hris',note:`Termination date column “${headers[hm.termDate]}”`};
+  const idp=detectIdp(headers);if(idp)return {target:'idp',idp,note:`${IDP[idp].name} export format`};
+  const am=autoMap(headers,rows,SLOT_FIELDS.idpAdmins);
+  if(am.role>=0&&/admin|role/.test(fc)&&(/google|workspace|gsuite|entra|azure|aad|idp|directory/.test(fc)||/^(admin|admins|adminroles?|roleassignments?|roles)$/.test(fc)))return {target:'idpAdmins',note:'IdP admin role assignments'};
+  if(/terminat|separat|offboard|hris|rippling/.test(fc))return {target:'hris',note:'File name looks like an HR export'};
+  const app=S.apps.find(a=>{const k=compact(a.name);return k.length>=3&&(fc.includes(k)||(fc.length>=3&&k.includes(fc)));});
+  if(app)return {target:'app:'+app.id,note:`File name matches ${app.name}`};
+  const nm=fw.map(w=>w[0].toUpperCase()+w.slice(1)).join(' ')||'New system';
+  return {target:'new',newName:nm,note:'No match; created a new system'};
+}
+function newApp(name){const a={id:Math.random().toString(36).slice(2,9),name,owner:'',crit:'',sso:'',mfa:'',scim:'',deprov:'',source:'',privRoles:'',data:null,prefill:{}};S.apps.push(a);return a;}
+async function bulk(files){
+  if(!files||!files.length)return;if(S.sample)leaveSample();
+  const log=[];
+  for(const f of files){
+    const text=await f.text();const p=parseCSV(text);const id=Math.random().toString(36).slice(2,9);
+    if(!p.headers.length||!p.rows.length){log.push({id,fileName:f.name,target:'skip',rows:0,note:'Empty or unreadable',text});continue;}
+    const c=classify(f.name,p.headers,p.rows);let target=c.target,note=c.note;
+    if(target==='idp'&&c.idp)S.settings.idp=c.idp;
+    if(target==='new'){const a=newApp(c.newName);target='app:'+a.id;ui.openApps.add(a.id);log.push({id,fileName:f.name,target,rows:p.rows.length,note,text,createdApp:a.id});}
+    else log.push({id,fileName:f.name,target,rows:p.rows.length,note,text});
+    const entry=log[log.length-1];assignBulk(entry,entry.target);
+  }
+  ui.bulkLog=log;save();renderAll();
+  toast(`${files.length} file${files.length===1?'':'s'} loaded. Check the routing below.`);
+}
+function assignBulk(entry,target){
+  if(target==='skip'||target==='new')return;
+  const ds=makeDataset(entry.fileName,entry.text,target);if(!ds)return;ds.bulkId=entry.id;setDs(target,ds);
+  if(target.startsWith('app:')){const n=prefill(getApp(target.slice(4)));if(n)entry.note+=` · ${n}`;}
+  if(target==='idp'){const d=detectIdp(ds.headers);if(d)S.settings.idp=d;}
+}
+function reassign(sel){
+  const e=ui.bulkLog.find(x=>x.id===sel.dataset.bulk);if(!e)return;const old=e.target;let to=sel.value;
+  const cur=old!=='skip'?getDs(old):null;if(cur&&cur.bulkId===e.id)setDs(old,null);
+  if(e.createdApp&&old==='app:'+e.createdApp){const a=getApp(e.createdApp);if(a&&!a.data&&!a.sso&&!a.mfa){S.apps=S.apps.filter(x=>x.id!==a.id);}e.createdApp=null;}
+  if(to==='new'){const a=newApp(fileWords(e.fileName).map(w=>w[0].toUpperCase()+w.slice(1)).join(' ')||'New system');to='app:'+a.id;e.createdApp=a.id;ui.openApps.add(a.id);}
+  e.target=to;e.note='Moved by you';assignBulk(e,to);save();renderAll();
+}
+function wireDrop(){
+  const d=$('#drop');if(!d)return;
+  ['dragenter','dragover'].forEach(ev=>d.addEventListener(ev,e=>{e.preventDefault();d.classList.add('over');}));
+  ['dragleave','drop'].forEach(ev=>d.addEventListener(ev,e=>{e.preventDefault();d.classList.remove('over');}));
+  d.addEventListener('drop',e=>{bulk(e.dataTransfer.files);});
+}
+
+/* ---------- sample data ---------- */
+const SAMPLE={
+hris:`Employee ID,Legal first name,Legal last name,Work email,Department,Manager,Termination date,Termination type
+E1042,Dana,Whitcomb,dana.whitcomb@example.com,Sales,Avery Chen,10/03/2026,Voluntary
+E1088,Marcus,Ortega,marcus.ortega@example.com,Engineering,Jordan Blake,10/14/2026,Involuntary
+E0977,Priya,Natarajan,priya.natarajan@example.com,Customer Success,Sam Ruiz,09/19/2026,Voluntary
+E1103,Owen,Lisle,owen.lisle@example.com,Finance,Morgan Price,10/27/2026,Voluntary
+E0861,Hannah,Brightwater,hannah.brightwater@example.com,Marketing,Riley Foster,08/08/2026,Voluntary
+E1015,Theo,Castellanos,theo.castellanos@example.com,Engineering,Jordan Blake,07/22/2026,Involuntary
+E1120,Grace,Okafor,grace.okafor@example.com,Support,Casey Nguyen,11/06/2026,Voluntary
+E0790,Leo,Marchetti,leo.marchetti@example.com,IT,Avery Chen,04/30/2026,Voluntary`,
+idp:`First Name [Required],Last Name [Required],Email Address [Required],Status [READ ONLY],Last Sign In [READ ONLY],2sv Enrolled [READ ONLY],Org Unit Path [Required]
+Avery,Chen,avery.chen@example.com,Active,2026/10/28 08:15:03,True,/Operations
+Jordan,Blake,jordan.blake@example.com,Active,2026/10/28 09:02:41,True,/Engineering
+Sam,Ruiz,sam.ruiz@example.com,Active,2026/10/27 17:44:10,True,/Customer Success
+Morgan,Price,morgan.price@example.com,Active,2026/10/28 07:58:22,True,/Finance
+Riley,Foster,riley.foster@example.com,Active,2026/10/26 14:20:05,False,/Marketing
+Casey,Nguyen,casey.nguyen@example.com,Active,2026/10/28 10:11:37,True,/Support
+Grace,Okafor,grace.okafor@example.com,Active,2026/10/28 09:30:00,True,/Support
+Dana,Whitcomb,dana.whitcomb@example.com,Suspended,2026/10/03 16:40:12,True,/Sales
+Marcus,Ortega,marcus.ortega@example.com,Active,2026/10/20 21:12:44,True,/Engineering
+Priya,Natarajan,priya.natarajan@example.com,Suspended,2026/09/18 11:05:51,True,/Customer Success
+Owen,Lisle,owen.lisle@example.com,Active,2026/10/27 16:02:00,True,/Finance
+Theo,Castellanos,theo.castellanos@example.com,Suspended,2026/07/22 10:15:09,True,/Engineering
+Leo,Marchetti,leo.marchetti@example.com,Suspended,2026/04/30 15:47:33,False,/IT`,
+idpAdmins:`Admin email,Admin role
+avery.chen@example.com,Super Admin
+jordan.blake@example.com,Groups Admin
+marcus.ortega@example.com,User Management Admin
+theo.castellanos@example.com,Super Admin
+casey.nguyen@example.com,Help Desk Admin`,
+apps:[
+ {name:'Slack',owner:'IT',crit:'High',sso:'yes',mfa:'idp',scim:'yes',deprov:'scim',source:'Admin → Manage members → Export',file:'slack_members_export.csv',csv:`username,email,status,billing-active,has-2fa,has-sso,userid,fullname,displayname
+avery,avery.chen@example.com,Admin,1,1,1,U01A,Avery Chen,Avery
+jordan,jordan.blake@example.com,Member,1,1,1,U01B,Jordan Blake,Jordan
+sam,sam.ruiz@example.com,Member,1,1,1,U01C,Sam Ruiz,Sam
+morgan,morgan.price@example.com,Member,1,1,1,U01D,Morgan Price,Morgan
+riley,riley.foster@example.com,Member,1,0,1,U01E,Riley Foster,Riley
+casey,casey.nguyen@example.com,Member,1,1,1,U01F,Casey Nguyen,Casey
+dana,dana.whitcomb@example.com,Deactivated,0,1,1,U02A,Dana Whitcomb,Dana
+marcus,marcus.ortega@example.com,Member,1,1,1,U02B,Marcus Ortega,Marcus
+priya,priya.natarajan@example.com,Deactivated,0,1,1,U02C,Priya Natarajan,Priya
+owen,owen.lisle@example.com,Member,1,1,1,U02D,Owen Lisle,Owen
+theo,theo.castellanos@example.com,Member,1,1,1,U02E,Theo Castellanos,Theo
+hannah,hannah.brightwater@example.com,Deactivated,0,0,1,U02F,Hannah Brightwater,Hannah`},
+ {name:'Salesforce',owner:'RevOps',crit:'Critical',sso:'yes',mfa:'idp',scim:'no',deprov:'manual',source:'Setup → Users → List view export',file:'salesforce_users.csv',csv:`Full Name,Username,Email,Profile,Active,Last Login
+Avery Chen,avery.chen@example.com.prod,avery.chen@example.com,System Administrator,TRUE,10/28/2026 8:20 AM
+Sam Ruiz,sam.ruiz@example.com.prod,sam.ruiz@example.com,Standard User,TRUE,10/27/2026 4:51 PM
+Morgan Price,morgan.price@example.com.prod,morgan.price@example.com,Finance User,TRUE,10/28/2026 9:05 AM
+Dana Whitcomb,dana.whitcomb@example.com.prod,dana.whitcomb@example.com,Sales User,TRUE,10/09/2026 7:42 PM
+Priya Natarajan,priya.natarajan@example.com.prod,priya.natarajan@example.com,Standard User,FALSE,09/18/2026 2:10 PM
+Hannah Brightwater,hannah.brightwater@example.com.prod,hannah.brightwater@example.com,Marketing User,FALSE,08/07/2026 11:33 AM`},
+ {name:'GitHub',owner:'Engineering',crit:'Critical',sso:'partial',mfa:'inapp',scim:'no',deprov:'manual',source:'Org → People → Export',file:'github_org_members.csv',csv:`login,name,email,role,2fa_enabled,last_active
+avery-c,Avery Chen,avery.chen@example.com,admin,true,2026-10-28
+jblake,Jordan Blake,jordan.blake@example.com,member,true,2026-10-28
+theo-cast,Theo Castellanos,theo.castellanos@example.com,member,true,2026-07-21
+svc-deploy,,svc-deploy@example.com,member,false,2026-10-28
+mkowalski-ext,Mira Kowalski,mira@kowalski-dev.io,outside collaborator,true,2026-10-21`},
+ {name:'1Password',owner:'Security',crit:'Critical',sso:'yes',mfa:'idp',scim:'yes',deprov:'scim',source:'Admin → People → Export',file:'1password_people.csv',csv:`Name,Email,State,Type,Last Authentication
+Avery Chen,avery.chen@example.com,Active,Owner,2026-10-28
+Jordan Blake,jordan.blake@example.com,Active,Member,2026-10-27
+Morgan Price,morgan.price@example.com,Active,Member,2026-10-28
+Priya Natarajan,priya.natarajan@example.com,Suspended,Member,2026-09-18
+Leo Marchetti,leo.marchetti@example.com,Active,Admin,2026-04-28
+Theo Castellanos,theo.castellanos@example.com,Suspended,Member,2026-07-22`},
+ {name:'Zendesk',owner:'Support Ops',crit:'Moderate',sso:'yes',mfa:'idp',scim:'no',deprov:'manual',source:'Admin Center → Team members',file:null,csv:null}
+]};
+function sampleState(){
+  S=freshState();S.sample=true;S.settings.snapshotDate='2026-10-28';
+  const t='2026-10-28T13:00:00';
+  S.sources.hris={...makeDataset('rippling_terminations.csv',SAMPLE.hris,'hris'),uploadedAt:t};
+  S.sources.idp={...makeDataset('google_workspace_users.csv',SAMPLE.idp,'idp'),uploadedAt:t};
+  S.sources.idpAdmins={...makeDataset('google_admin_roles.csv',SAMPLE.idpAdmins,'idpAdmins'),uploadedAt:t};
+  SAMPLE.apps.forEach(x=>{const a=newApp(x.name);Object.assign(a,{owner:x.owner,crit:x.crit,sso:x.sso,mfa:x.mfa,scim:x.scim,deprov:x.deprov,source:x.source});
+    if(x.csv)a.data={...makeDataset(x.file,x.csv,'app:'+a.id),uploadedAt:t};});
+}
+function leaveSample(){const keep=S.settings.idp;S=freshState();S.settings.idp=keep;ui.bulkLog=[];ui.openApps=new Set();}
+
+/* ---------- toast ---------- */
+let toastTimer;
+function toast(msg){$('#toastRoot').innerHTML=`<div class="toast" role="status">${esc(msg)}</div>`;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{$('#toastRoot').innerHTML='';},5200);}
+
+/* ---------- events ---------- */
+const actions={
+  openSettings:b=>{ui.drawer=true;ui.dtab=b.dataset.tab||'review';ui.confirm=null;renderDrawer();setTimeout(()=>{const c=$('#closeSettings');c&&c.focus();},0);},
+  closeSettings:()=>{ui.drawer=false;ui.confirm=null;renderDrawer();$('#settingsBtn').focus();},
+  dtab:b=>{ui.dtab=b.dataset.tab;ui.confirm=null;renderDrawer();const t=$('#dt-'+ui.dtab);t&&t.focus();},
+  tab:b=>{ui.tab=b.dataset.tab;renderBody();const t=$('#tab-'+ui.tab);t&&t.focus();},
+  sev:b=>{ui.sev=b.dataset.v;renderPanel();},
+  copyCSV:b=>copyText(exportCSV(b.dataset.what),'CSV'),
+  dlCSV:b=>download(`access-review_${b.dataset.what}_${fileStamp()}.csv`,exportCSV(b.dataset.what),'text/csv'),
+  copyWP:()=>copyText(workpaper(),'Workpaper'),
+  dlWP:()=>download(`access-review_workpaper_${fileStamp()}.txt`,workpaper(),'text/plain'),
+  clearSample:()=>{leaveSample();save();renderAll();toast('Sample data cleared. Open Settings to load your lists.');},
+  loadSample:()=>{sampleState();save();renderAll();toast('Sample data loaded.');},
+  removeDs:b=>{setDs(b.dataset.slot,null);save();renderAll();},
+  addApp:()=>{const i=$('#newApp');const n=(i.value||'').trim();if(!n){i.focus();toast('Type a system name first.');return;}
+    if(S.sample)leaveSample();const a=newApp(n);ui.openApps.add(a.id);save();renderAll();toast(`${n} added. Answer the questions and upload its user list.`);},
+  askDel:b=>{ui.confirm='del:'+b.dataset.id;renderDrawer();},
+  delApp:b=>{S.apps=S.apps.filter(a=>a.id!==b.dataset.id);ui.confirm=null;save();renderAll();},
+  cancelConfirm:()=>{ui.confirm=null;renderDrawer();},
+  askReset:()=>{ui.confirm='reset';renderDrawer();},
+  resetAll:()=>{try{localStorage.removeItem(KEY);}catch(e){}S=freshState();ui.confirm=null;ui.bulkLog=[];save();renderAll();toast('Everything erased.');},
+  toggleRole:b=>{const a=getApp(b.dataset.app);if(!a)return;const v=b.dataset.role.toLowerCase();let keys=privKeys(a);
+    if(keys.some(k=>v.includes(k)))keys=keys.filter(k=>!v.includes(k));else keys.push(v);
+    a.privRoles=keys.join(', ');if(!a.privRoles)a.privRoles='(none)';save();renderAll();},
+  copyOwner:b=>copyText(ownerRequest(b.dataset.owner),'Owner request'),
+  copyOwnerCSV:b=>copyText(exportCSV('owner:'+b.dataset.owner),'Owner CSV'),
+  clearLists:()=>{S.sources={hris:null,idp:null,idpAdmins:null};S.apps.forEach(a=>a.data=null);save();renderAll();toast('Uploaded lists cleared. Systems and answers kept.');},
+  clearLog:()=>{ui.bulkLog=[];renderDrawer();},
+  copyCfg:()=>copyText(configJSON(),'Backup'),
+  dlCfg:()=>download(`access-review_config_${iso(new Date())}.json`,configJSON(),'application/json'),
+  importCfg:()=>importCfg($('#cfgIn').value),
+  closeFallback:(b,e)=>{if(e.target.closest('[data-stop]')&&!b.matches('button'))return;$('#fallbackRoot').innerHTML='';}
+};
+function configJSON(){return JSON.stringify({tool:'offboarding-access-review',version:1,exportedAt:new Date().toISOString(),settings:S.settings,reviewer:S.reviewer,apps:S.apps.map(a=>({...a,data:null})),dispositions:S.dispositions,privReviews:S.privReviews},null,2);}
+function importCfg(text){
+  try{const o=JSON.parse(text);if(o.tool!=='offboarding-access-review')throw 0;
+    const keepData=new Map(S.apps.map(a=>[a.name.toLowerCase(),a.data]));
+    S.sample=false;S.settings={...DEFAULT_SETTINGS,...o.settings};S.reviewer=o.reviewer||'';S.dispositions=o.dispositions||{};S.privReviews=o.privReviews||{};
+    S.apps=(o.apps||[]).map(a=>({...a,data:keepData.get(String(a.name).toLowerCase())||null}));
+    save();renderAll();toast('Backup restored.');
+  }catch(e){toast('That isn’t a backup from this tool. Paste the full JSON from “Copy backup”.');}
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const fn=actions[b.dataset.act];if(fn){if(b.tagName==='BUTTON')e.preventDefault();fn(b,e);}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('#fallbackRoot').innerHTML){$('#fallbackRoot').innerHTML='';}else if(ui.drawer)actions.closeSettings();}
+  if(e.key==='Enter'&&e.target.id==='newApp'){e.preventDefault();actions.addApp();}});
+document.addEventListener('toggle',e=>{const d=e.target;if(d.matches&&d.matches('[data-appdetails]')){const id=d.dataset.appdetails;if(d.open)ui.openApps.add(id);else ui.openApps.delete(id);}},true);
+document.addEventListener('input',e=>{if(e.target.id==='fQ'){ui.q=e.target.value;renderFTable();}});
+document.addEventListener('change',async e=>{
+  const t=e.target;
+  if(t.id==='quarterSel'){if(t.value==='auto'){S.settings.quarterMode='auto';}else{S.settings.quarterMode='manual';S.settings.quarterKey=t.value;}save();renderAll();return;}
+  if(t.id==='fSys'){ui.sys=t.value;renderFTable();return;}
+  if(t.id==='fDisp'){ui.disp=t.value;renderFTable();return;}
+  if(t.id==='pOwner'){ui.privOwner=t.value;renderPanel();return;}
+  if(t.id==='pDec'){ui.privDec=t.value;renderPanel();return;}
+  if(t.matches('[data-priv]')||t.matches('[data-privnote]')){
+    const key=t.dataset.priv||t.dataset.privnote;const q=R.period.key;S.privReviews[q]=S.privReviews[q]||{};
+    const x=R.priv.find(p=>p.key===key);const cur=S.privReviews[q][key]||{decision:x?x.dec.decision:'pending',note:x?x.dec.note:''};
+    if(t.matches('[data-priv]'))cur.decision=t.value;else cur.note=t.value;cur.at=new Date().toISOString();
+    S.privReviews[q][key]=cur;save();renderAll();return;}
+  if(t.id==='reviewer'){S.reviewer=t.value;save();const wp=$('#wp');if(wp)wp.textContent=workpaper();return;}
+  if(t.id==='bulkInput'){await bulk(t.files);return;}
+  if(t.matches('[data-cfgfile]')){const f=t.files[0];if(f)importCfg(await f.text());return;}
+  if(t.matches('[data-upload]')){await handleUpload(t);return;}
+  if(t.matches('[data-bulk]')){reassign(t);return;}
+  if(t.matches('[data-set]')){const k=t.dataset.set;let v=t.type==='checkbox'?t.checked:t.value;if(k==='slaDays'||k==='fyStart')v=+v||0;if(k==='fyStart'&&v<1)v=1;
+    S.settings[k]=v;if(k==='quarterMode'&&v==='manual'&&!S.settings.quarterKey)S.settings.quarterKey=quarterOf(new Date()).key;
+    if(k==='fyStart'){S.settings.quarterMode='auto';}
+    save();renderAll();return;}
+  if(t.matches('[data-app]')){const a=getApp(t.dataset.app);if(!a)return;a[t.dataset.field]=t.value;if(t.dataset.field==='mfa'&&a.prefill)a.prefill.mfa='';save();renderAll();return;}
+  if(t.matches('[data-map]')){const ds=getDs(t.dataset.map);if(!ds)return;const f=t.dataset.field;const v=+t.value;
+    Object.keys(ds.map).forEach(k=>{if(k!==f&&ds.map[k]===v&&v>=0)ds.map[k]=-1;});ds.map[f]=v;save();renderAll();return;}
+  if(t.matches('[data-disp]')||t.matches('[data-dispnote]')){
+    const key=t.dataset.disp||t.dataset.dispnote;const q=R.period.key;S.dispositions[q]=S.dispositions[q]||{};
+    const cur=S.dispositions[q][key]||{status:'open',note:''};
+    if(t.matches('[data-disp]'))cur.status=t.value;else cur.note=t.value;cur.at=new Date().toISOString();
+    S.dispositions[q][key]=cur;save();renderAll();return;}
+});
+
+/* ---------- boot ---------- */
+S=load();if(!S||S.sample)sampleState();
+renderAll();
+})();
+</script>
+</body>
+</html>

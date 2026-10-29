@@ -241,7 +241,7 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
         <img class="hero-logo" src="assets/logo-lockup-reversed.webp" alt="Lyn Hall, Security &amp; GRC, AI Portfolio" width="804" height="240">
         <span class="eyebrow">Cybersecurity &amp; GRC Leader · AI Builder</span>
         <h1>Practical AI tools for <em>security and compliance</em> work.</h1>
-        <p class="lede">I build security programs in regulated industries, and I use AI to make that work faster and more reliable. These are four tools I designed and directed with Claude. Each one keeps people in charge of decisions, keeps sensitive data where it belongs, and is clear about what it does not know.</p>
+        <p class="lede">I build security programs in regulated industries, and I use AI to make that work faster and more reliable. These are six tools I designed and directed with Claude. Each one keeps people in charge of decisions, keeps sensitive data where it belongs, and is clear about what it does not know.</p>
         <div class="ctas">
           <a class="btn btn-cta" href="#projects">View the projects</a>
           <a class="btn btn-line" href="resume.html">View my resume</a>
@@ -280,7 +280,7 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
     <div class="wrap">
       <div class="sec-head">
         <span class="eyebrow">Projects</span>
-        <h2 id="projects-h">Five tools, one standard</h2>
+        <h2 id="projects-h">Six tools, one standard</h2>
         <p>Choose a project to read how it works, what it produces, and the safeguards built into it.</p>
       </div>
       <div class="cards">
@@ -317,6 +317,13 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
           <h3>Homeschool Gradebook &amp; Records</h3>
           <p>A sign-in web app that reads curriculum workbooks, schedules every lesson on the school calendar, and produces print-ready report cards, attendance records, and reading logs.</p>
           <div class="tags"><span>Records management</span><span>Supabase</span><span>Web app</span></div>
+          <span class="more">View project</span>
+        </a>
+        <a class="card" href="#access-review">
+          <div class="card-top"><span class="pid">AI-06</span><span class="status ready">Ready to deploy</span></div>
+          <h3>Offboarding &amp; Privileged Access Review</h3>
+          <p>A quarterly user access review that tests offboarding against the HR termination list, flags terminated users who still hold admin rights, and sends each system owner their privileged accounts to recertify.</p>
+          <div class="tags"><span>Access reviews</span><span>SOC 2 evidence</span><span>Offline web app</span></div>
           <span class="more">View project</span>
         </a>
       </div>
@@ -574,6 +581,54 @@ Full scorecard: INC-042 Subsequent Scorecard 2026-10-10 1529 EDT.pdf (Incident E
           <span class="note">Sample data for a fictional student. Runs in your browser; nothing is sent anywhere. Opens in a new tab.</span>
         </div>
         <div class="tags"><span>HTML / JavaScript</span><span>Supabase</span><span>PostgreSQL row-level security</span><span>GitHub Pages</span><span>pdf.js</span><span>jsPDF</span><span>Claude</span><span>Playwright testing</span></div>
+        <a class="back" href="#projects">Back to all projects</a>
+      </article>
+
+      <article class="project" id="access-review" aria-labelledby="p6-h">
+        <div class="p-head">
+          <div class="card-top"><span class="pid">AI-06</span><span class="status ready">Ready to deploy</span></div>
+          <h3 id="p6-h">Offboarding &amp; Privileged Access Review</h3>
+          <p>A quarterly user access review that tests whether offboarding actually removed access. It compares the HR termination list with the identity provider (Google Workspace or Microsoft Entra ID) and the user list from each critical system, rates every account still active after termination, and pulls every privileged account into a report for its system owner to recertify. The output is the auditor's evidence: an exceptions log with dispositions, a full test log, a coverage table of each system's controls, and a written workpaper.</p>
+        </div>
+        <dl class="facts">
+          <div><dt>Domain</dt><dd>Identity and access management, SOC 2 CC6.2 / CC6.3 evidence</dd></div>
+          <div><dt>Data protection</dt><dd>Every file is read in the browser; nothing is uploaded or sent anywhere</dd></div>
+          <div><dt>Delivered as</dt><dd>Single-file web app with CSV and text exports for the audit file</dd></div>
+        </dl>
+        <div class="callout"><b>Design decision:</b> a terminated user who still holds an admin role is always rated Critical, even inside the one-day deprovisioning window that turns an ordinary leftover account into a Low. A disabled account that still carries an admin role is not an exception, but it is listed in the workpaper for clean-up so the role cannot come back with a re-enabled account.</div>
+        <div class="shots">
+          <figure><img src="assets/access-review-app.webp" alt="Review summary for Q4 2026 showing terminated users tested, open exceptions by severity, sign-ins after termination, privileged accounts, and an exceptions table with dispositions" width="1300" height="1180" loading="lazy"><figcaption>Quarter summary and exceptions (sample data)</figcaption></figure>
+          <figure><img src="assets/access-review-privileged.webp" alt="Privileged access grouped by system owner, each account with its role, last sign-in, flags such as Terminated, and a Keep, Reduce or Remove decision" width="1300" height="1000" loading="lazy"><figcaption>Privileged access, grouped by system owner</figcaption></figure>
+        </div>
+        <div class="two">
+          <div class="block"><h4>What it does</h4><ul>
+            <li>Picks the review quarter from today's date, with fiscal-year support and a choice of which terminations are in scope</li>
+            <li>Takes the HR termination list, the identity provider export, an optional admin-role export, and a user list from each critical system, one at a time or all at once</li>
+            <li>Routes bulk uploads by their columns and file names, maps columns automatically from known exports, and fills in answers it can read from the data, such as MFA enrollment</li>
+            <li>Asks the control questions for each system (SSO, MFA, automated provisioning, how accounts are removed) and uses the answers to rate findings and write design notes</li>
+            <li>Rates each active account: Critical for privileged access or a sign-in after termination, High for an active account, Medium when the identity provider already blocks sign-in, Low inside the deprovisioning window</li>
+            <li>Lists every active privileged account by system owner with flags for terminated, not in the identity provider, idle, and no MFA, and drafts the request each owner receives with a due date</li>
+            <li>Lists active app accounts with no identity provider account at all, such as contractors and local admins that never came through HR</li>
+          </ul></div>
+          <div class="block"><h4>Safeguards</h4><ul>
+            <li>Runs entirely in the browser; HR and user lists never leave the computer</li>
+            <li>Uploaded lists can be kept off the device on shared machines, while settings and decisions are kept</li>
+            <li>Name-only matches are labeled for manual confirmation rather than treated as certain</li>
+            <li>Service accounts are excluded only by patterns the reviewer sets, so nothing is hidden silently</li>
+            <li>Missing user lists and unanswered control questions are called out in the conclusion, so incomplete coverage cannot pass as a clean review</li>
+            <li>The configuration backup holds settings and decisions only, never user data</li>
+          </ul></div>
+        </div>
+        <div class="block"><h4>How it was verified</h4><ul>
+          <li>Built against the column layouts of real exports: Google Workspace user downloads, Entra ID user downloads, and common SaaS admin exports with their own status and role conventions</li>
+          <li>Run end to end in a headless browser on a sample set designed to hit every rating, including a sign-in after termination, a still-active admin, a disabled admin, an identity-provider block, a future-dated termination, and a service account</li>
+          <li>Each result was checked against the expected rating before the demo was published</li>
+        </ul></div>
+        <div class="actions">
+          <a class="btn btn-cta" href="demo/access-review.html" target="_blank" rel="noopener">Try the live demo</a>
+          <span class="note">Invented example.com users. Runs in your browser; nothing is sent anywhere. Opens in a new tab.</span>
+        </div>
+        <div class="tags"><span>HTML / JavaScript</span><span>Google Workspace</span><span>Microsoft Entra ID</span><span>SOC 2</span><span>Claude</span><span>Playwright testing</span></div>
         <a class="back" href="#projects">Back to all projects</a>
       </article>
 
