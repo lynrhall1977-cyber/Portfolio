@@ -1057,6 +1057,7 @@ function renderRequest(){
     <div class="fgrid"><label class="f"><span>${toLabel}</span><input class="field-in" id="rqTo" data-rq="to" value="${esc(rq.to)}" placeholder="${esc(toPh)}"></label>
       <label class="f"><span>Respond by</span><input class="field-in" type="date" id="rqDue" data-rq="due" value="${esc(rq.due)}"></label></div>
     <label class="f"><span>Message</span><textarea class="field-in mono" id="rqMsg" rows="12" readonly>${esc(msg)}</textarea><small>The two links open this review page, where the owner approves or requests changes. Owners need access to this page in claude.ai as a Contributor to respond.</small></label>
+    ${S.sample?`<p class="reqmiss" style="color:var(--muted)">Sample data: this request is saved only in this browser, so its links open only here. Clear the sample data and load your own lists to send requests owners can answer.</p>`:''}
     ${rq.error?`<p class="reqmiss" role="alert">${esc(rq.error)}</p>`:''}
     <div class="row" style="justify-content:flex-start;gap:8px">
       ${rq.platform==='slack'?`<button class="btn btn-primary" data-act="sendSlack" data-needs-to ${rq.to&&!rq.busy?'':'disabled'}>${rq.busy?'Sending…':'Send in Slack'}</button>`:''}
@@ -1142,7 +1143,7 @@ async function renderAttest(){
 }
 function drawAttest(){
   const a=ui.att;const root=$('#attestRoot');const req=a.req;const back=store.mode!=='respond'?'<button class="btn btn-sm" data-act="attBack">Back to the review</button>':'';
-  if(!req){root.innerHTML=`<div class="wrap attest-wrap"><header class="top"><div class="brand"><div class="eyebrow">Privileged access confirmation</div><h1>Request not found</h1></div>${back}</header><p style="max-width:62ch">This request doesn’t exist or isn’t shared with you. Ask the person who sent it to give you access to this page as a Contributor, then open the link again.</p></div>`;return;}
+  if(!req){root.innerHTML=`<div class="wrap attest-wrap"><header class="top"><div class="brand"><div class="eyebrow">Privileged access confirmation</div><h1>Request not found</h1></div>${back}</header><p style="max-width:62ch">${store.db&&!S.sample?'This request doesn’t exist or isn’t shared with you. Ask the person who sent it to give you access to this page as a Contributor, then open the link again.':'This request isn’t saved in this browser. While sample data is loaded, requests are kept only in the browser that sent them, so their links open only there.'}</p></div>`;return;}
   const accts=req.accounts||[];const allKeep=accts.every(x=>x.term||a.dec[x.key]==='keep');
   const ql=qLabel(req.quarter);
   root.innerHTML=`<div class="wrap attest-wrap">
@@ -1801,8 +1802,9 @@ Leo Marchetti,leo.marchetti@example.com,Active,Admin,2026-04-28
 Theo Castellanos,theo.castellanos@example.com,Suspended,Member,2026-07-22`},
  {name:'Zendesk',owner:'Support Ops',crit:'Moderate',sso:'yes',mfa:'idp',scim:'no',deprov:'manual',source:'Admin Center → Team members',file:null,csv:null}
 ]};
+const SAMPLE_V='4';
 function sampleState(){
-  S=freshState();S.sample=true;S.settings.snapshotDate='2026-10-28';
+  S=freshState();S.sample=true;S.sampleV=SAMPLE_V;S.settings.snapshotDate='2026-10-28';
   const t='2026-10-28T13:00:00';
   S.sources.hris={...makeDataset('rippling_terminations.csv',SAMPLE.hris,'hris'),uploadedAt:t};
   S.sources.idp={...makeDataset('google_workspace_users.csv',SAMPLE.idp,'idp'),uploadedAt:t};
@@ -1943,7 +1945,7 @@ document.addEventListener('change',async e=>{
 });
 
 /* ---------- boot ---------- */
-S=load();if(!S||S.sample)sampleState();
+S=load();if(!S||(S.sample&&S.sampleV!==SAMPLE_V)){sampleState();save();}
 renderAll();renderAttest();
 window.addEventListener('hashchange',()=>{ui.att=null;renderAttest();if(!attestRoute())renderAll();});
 initStore().then(()=>{renderAll();renderAttest();});
