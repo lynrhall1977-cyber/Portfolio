@@ -8,6 +8,7 @@ A static website. No build step, no server code. Upload this whole folder as-is.
 - `demo/incident-scorecard.html` - live Incident Scoring System demo (works fully, including PDF download)
 - `demo/homeschool-gradebook.html` - live Homeschool Gradebook demo with a fictional sample student (saves only in the visitor's browser)
 - `demo/access-review.html` - live Offboarding & Privileged Access Review demo with invented example.com users, remediation tracking, owner confirmations, and a PDF executive report (runs only in the visitor's browser)
+- `demo/curriculum-studio.html` - live Curriculum Design Studio demo: pick a grade (1-5) and a learning method, and it builds a Math Loops student workbook and a matching Teacher's Guide, checks every page, and prints both as letter-size PDFs (runs only in the visitor's browser; sample content, no student data)
 - `samples/cve-weekly-report-2026-10-10.html` - sample CVE pilot report (synthetic data)
 
 ## Publish free with Netlify Drop (about 2 minutes)

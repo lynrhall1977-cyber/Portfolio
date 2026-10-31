@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Curriculum Design Studio Demo</title>
+<meta name="description" content="Live demo: choose a grade and a learning method, and the studio writes a matching student workbook and Teacher's Guide for one cycle of Math Loops, checks every page, and readies both to print.">
+<link rel="icon" href="../assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@400;600;700&display=swap">
+<style>
+/* Expedition Workbooks brand: Lexend headings, Atkinson Hyperlegible reading text, navy ink, one subject accent per page (Math = Cobalt + square mark) */
+:root{
+  --navy:#14213D; --blaze:#F26B1D; --gold:#F5C542; --ink:#1E2A36; --muted:#4B5867;
+  --dir:#E8EEF9; --rem:#F6EEDC; --cream:#FBF7EE; --rule:#CDD5DA;
+  --acc:#1F4FD1; --tint:#E4EAF9;
+  --ui-line:#E2DCCD; --ui-card:#FFFFFF;
+  --f-head:"Lexend",Arial,sans-serif; --f-body:"Atkinson Hyperlegible",Arial,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--cream);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+
+/* ---------- App chrome ---------- */
+.topbar{background:var(--navy);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.topbar .mk{width:30px;height:30px;border-radius:7px;background:var(--blaze);display:grid;place-items:center;flex:none}
+.topbar .mk i{width:12px;height:12px;background:var(--navy);border-radius:2px}
+.topbar h1{font:700 19px/1.2 var(--f-head);margin:0}
+.topbar p{margin:0;font-size:14px;color:#C9D3E6}
+.topbar .sp{flex:1}
+.topbar a{color:#fff;font:600 14px var(--f-head);text-decoration:none;border:1px solid #3B4A6B;border-radius:8px;padding:7px 12px}
+.topbar a:hover{background:#22325A}
+.shell{display:grid;grid-template-columns:340px minmax(0,1fr);gap:0;min-height:calc(100vh - 58px)}
+.side{border-right:1px solid var(--ui-line);padding:20px;background:#FFFDF8;position:sticky;top:0;align-self:start;max-height:100vh;overflow:auto}
+.side h2{font:600 13px/1.3 var(--f-head);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:22px 0 8px}
+.side h2:first-child{margin-top:0}
+.intro{font-size:15px;margin:0 0 4px}
+.subj{display:grid;gap:6px}
+.subj label{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--ui-line);border-radius:10px;background:#fff;font-size:15px;cursor:pointer}
+.subj label.off{opacity:.55;cursor:not-allowed}
+.subj small{margin-left:auto;font-size:12px;color:var(--muted)}
+.sw{width:14px;height:14px;border-radius:3px;flex:none}
+.grades{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.grades button{font:700 18px var(--f-head);padding:10px 0;border:1px solid var(--ui-line);background:#fff;border-radius:10px;color:var(--navy);cursor:pointer}
+.grades button[aria-pressed="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.methods{display:grid;gap:8px}
+.methods label{display:block;border:1px solid var(--ui-line);background:#fff;border-radius:12px;padding:10px 12px 10px 40px;position:relative;cursor:pointer}
+.methods input{position:absolute;left:12px;top:13px;width:18px;height:18px;accent-color:var(--navy)}
+.methods b{font:600 15px var(--f-head);color:var(--navy);display:block}
+.methods span{font-size:14px;color:var(--muted);display:block}
+.methods label:has(input:checked){border-color:var(--navy);box-shadow:0 0 0 1px var(--navy)}
+.setrow{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--muted)}
+.btn{font:600 15px var(--f-head);border-radius:10px;padding:10px 14px;border:1px solid var(--navy);background:#fff;color:var(--navy);cursor:pointer}
+.btn.pri{background:var(--navy);color:#fff}
+.btn:hover{filter:brightness(1.08)}
+.qa{list-style:none;padding:0;margin:0;display:grid;gap:6px;font-size:14px}
+.qa li{display:flex;gap:8px;align-items:flex-start;background:#fff;border:1px solid var(--ui-line);border-radius:10px;padding:7px 10px}
+.qa .ok{color:#23753A;font-weight:700;flex:none}
+.qa .bad{color:#B0202F;font-weight:700;flex:none}
+.note{font-size:13px;color:var(--muted);margin:10px 0 0}
+.main{padding:16px 20px 40px;min-width:0}
+.docbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:5;background:var(--cream);padding:6px 0 12px}
+.tabs{display:flex;gap:4px;background:#EFE8D8;border-radius:12px;padding:4px}
+.tabs button{font:600 15px var(--f-head);border:0;background:transparent;color:var(--muted);padding:9px 14px;border-radius:9px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:#fff;color:var(--navy);box-shadow:0 1px 2px rgba(20,33,61,.12)}
+.tabs .ct{font:400 13px var(--f-body);color:var(--muted);margin-left:6px}
+.docbar .sp{flex:1}
+.status{font-size:14px;color:var(--muted)}
+.viewer{--s:.6}
+.doc{display:none;flex-direction:column;align-items:center;gap:18px}
+.doc.active{display:flex}
+.pg-wrap{width:calc(816px*var(--s));height:calc(1056px*var(--s));flex:none;box-shadow:0 1px 3px rgba(20,33,61,.15),0 8px 24px rgba(20,33,61,.08);background:#fff}
+.pg-wrap .page{transform:scale(var(--s));transform-origin:0 0}
+.building{position:fixed;inset:auto 20px 20px auto;background:var(--navy);color:#fff;padding:10px 14px;border-radius:10px;font:600 14px var(--f-head);display:none}
+.building.on{display:block}
+@media (max-width:900px){.shell{grid-template-columns:1fr}.side{position:static;max-height:none;border-right:0;border-bottom:1px solid var(--ui-line)}}
+
+/* ---------- Printed page (816 x 1056 px = US Letter at 96 dpi) ---------- */
+.page{width:816px;height:1056px;background:#fff;position:relative;padding:60px;display:flex;flex-direction:column;color:var(--ink);font-family:var(--f-body);font-size:var(--fs);line-height:var(--lh);letter-spacing:.02em;overflow:hidden}
+.doc.m-standard{--fs:18px;--lh:1.5;--gap:14px;--bl:58px}
+.doc.m-dyslexia{--fs:20px;--lh:1.6;--gap:16px;--bl:66px}
+.doc.m-focus{--fs:18px;--lh:1.55;--gap:14px;--bl:58px}
+.doc.m-hands{--fs:18px;--lh:1.5;--gap:14px;--bl:58px}
+.doc.tg{--fs:16px;--lh:1.45;--gap:12px}
+.tab{position:absolute;top:0;left:60px;width:96px;height:12px;background:var(--acc)}
+.pg-head{display:flex;justify-content:space-between;align-items:center;height:26px;margin:-28px 0 14px;font:600 14px/1.3 var(--f-head);color:var(--muted);letter-spacing:0}
+.badge{display:flex;gap:8px;align-items:center;color:var(--navy)}
+.mark{width:22px;height:22px;border-radius:5px;background:var(--acc);display:grid;place-items:center;flex:none}
+.mark i{width:9px;height:9px;background:#fff}
+.pg-body{flex:1;min-height:0;display:flex;flex-direction:column;gap:var(--gap,16px);overflow:hidden}
+.pg-body>*{flex-shrink:0}
+.pg-body>.grow{flex:1 1 auto}
+.natural .pg-body>.grow{flex-grow:0}
+.pg-foot{position:absolute;left:60px;right:60px;bottom:22px;display:flex;justify-content:space-between;font:600 14px/1.3 var(--f-head);color:var(--muted);letter-spacing:0}
+.page h1{font:700 30px/1.2 var(--f-head);color:var(--navy);margin:0;letter-spacing:0}
+.page h3{font:600 22px/1.3 var(--f-head);color:var(--navy);margin:0 0 6px;letter-spacing:0}
+.page h3 .pn{color:var(--acc)}
+.page h3 .pv{font:400 15px var(--f-body);color:var(--muted);margin-left:6px}
+.namedate{display:flex;gap:28px;font-size:16px;color:var(--muted)}
+.namedate span{flex:1;display:flex;gap:8px;align-items:flex-end}
+.namedate span:last-child{flex:.55}
+.namedate i{flex:1;border-bottom:1.5px solid #9AA6B2;height:1.2em}
+.panel{border-radius:8px;padding:12px 16px}
+.panel.dirp{background:var(--dir)}
+.panel.remp{background:var(--rem)}
+.panel.tryp{background:var(--tint)}
+.panel .lbl{display:block;font:600 14px/1.3 var(--f-head);color:var(--navy);letter-spacing:0;margin-bottom:2px}
+.dir{font-weight:700;background:var(--dir);border-radius:8px;padding:4px 12px;margin-bottom:10px}
+.grid{display:grid;gap:14px 26px}
+.c1{grid-template-columns:1fr}.c2{grid-template-columns:1fr 1fr}.c3{grid-template-columns:repeat(3,1fr)}.c4{grid-template-columns:repeat(4,1fr)}
+.it{display:flex;gap:10px;align-items:flex-start;min-width:0}
+.it .n{font:700 var(--fs)/var(--lh) var(--f-head);color:var(--acc);width:28px;flex:none;letter-spacing:0}
+.it .bd{flex:1;min-width:0}
+.ln{display:inline-block;width:var(--bl);border-bottom:2px solid #8A97A4;height:1.15em;vertical-align:baseline;margin-left:6px}
+.bl{display:inline-block;width:var(--bl);border-bottom:2px solid #8A97A4;height:1.15em;vertical-align:baseline;margin:0 4px}
+.fr .bl{width:40px;margin:0}
+.op{padding:0 2px}
+.m-dyslexia .sec-new .op{background:var(--gold);color:var(--navy);border-radius:4px;padding:0 5px;font-weight:700}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.15;margin:0 3px;font-weight:700}
+.fr>span:first-child{border-bottom:2px solid currentColor;padding:0 4px}
+.vt{border-collapse:collapse;font-size:calc(var(--fs) * 1.15);margin-left:auto;margin-right:auto}
+.vt td{padding:0 2px;text-align:right;line-height:1.35}
+.vt tr.ans td{border-top:2.5px solid var(--ink);height:1.6em}
+.d{display:inline-block;width:.64em;text-align:center}
+.pic{display:flex;flex-direction:column;gap:6px}
+.pic svg{width:100%;height:auto;max-height:var(--pich,104px)}
+.pic svg[width]{width:auto;max-width:100%;align-self:center}
+.pq .bl{width:48px}
+.m-dyslexia{--pich:100px}
+.story b,.pq b,.bd b{font-weight:700}
+.ansrow{display:flex;align-items:flex-end;gap:8px;margin-top:6px;font-weight:700}
+.ansrow i{flex:1;border-bottom:2px solid #8A97A4;height:1.2em}
+.work{border:2px dashed #A8B3BE;border-radius:4px;min-height:80px;margin-top:8px;position:relative}
+.work .wl{position:absolute;left:10px;top:6px;font:600 13px var(--f-head);color:#8A97A4;letter-spacing:0}
+.think{display:flex;flex-direction:column}
+.think .it{flex:1;display:flex;align-items:stretch}
+.think .bd{display:flex;flex-direction:column}
+.think .work{flex:1;min-height:50px}
+.turn{text-align:right;font:600 18px var(--f-head);color:var(--navy);letter-spacing:0}
+.facts{display:grid;grid-template-columns:repeat(5,1fr);gap:10px 18px}
+.facts div{white-space:nowrap}
+.facts .ln{width:36px;margin-left:4px}
+.facts{gap:10px 12px}
+.strip{display:flex;gap:14px;align-items:center;font:600 15px var(--f-head);color:var(--navy);letter-spacing:0;background:var(--tint);border-radius:8px;padding:8px 14px}
+.strip span{display:flex;align-items:center;gap:6px}
+.box{width:18px;height:18px;border:2px solid var(--navy);border-radius:4px;display:inline-block}
+.brk{font:600 15px var(--f-head);color:var(--navy);background:var(--rem);border-radius:8px;padding:6px 14px;letter-spacing:0}
+.graphbox{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;align-items:start}
+.graphbox svg{width:100%;height:auto;max-height:200px}
+.graphbox svg.tm,table.tally svg{width:auto;height:24px;max-height:24px}
+.graphbox .grid{gap:10px}
+table.tally{border-collapse:collapse;width:100%;font-size:var(--fs)}
+table.tally th{font:600 15px var(--f-head);text-align:left;color:var(--navy);padding:4px 8px;border-bottom:2px solid var(--ink)}
+table.tally td{padding:5px 8px;border-bottom:1px solid var(--rule)}
+table.tally caption{font:600 16px var(--f-head);color:var(--navy);text-align:left;padding-bottom:6px}
+.lines{background-image:linear-gradient(to bottom,transparent 38px,var(--rule) 38px,var(--rule) 40px);background-size:100% 40px;min-height:80px}
+.score{font:600 18px var(--f-head);color:var(--navy);text-align:right;letter-spacing:0}
+.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px 26px;flex:1}
+.tcell{border:1.5px solid var(--rule);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column}
+.tcell .it{flex:1}
+.tcell.wide{grid-column:1/-1}
+.tcell .work{flex:1;min-height:36px}
+.test .pic svg{max-height:var(--pich,80px)}
+.test.tight .tgrid{gap:8px 20px}.test.tight .tcell{padding:6px 10px}.test.tight .tcell .work{min-height:18px}.test.tight .pg-body{gap:10px}
+.draw{display:flex;flex-direction:column}.draw .work{flex:1;min-height:36px}
+.test .tgrid{grid-auto-rows:minmax(min-content,auto)}
+
+/* Covers */
+.cover{padding:0}
+.cover .slab{background:var(--navy);color:#fff;padding:90px 70px 60px;height:600px;position:relative}
+.cover .flag{position:absolute;top:0;right:70px;width:64px;height:110px;background:var(--blaze)}
+.cover .brandline{font:600 15px var(--f-head);color:#C9D3E6;letter-spacing:.08em;text-transform:uppercase;margin-bottom:120px}
+.cover .cmark{width:64px;height:64px;border-radius:12px;background:var(--acc);display:grid;place-items:center;margin-bottom:26px}
+.cover .cmark i{width:26px;height:26px;background:#fff}
+.cover .ctitle{font:700 64px/1.05 var(--f-head);margin:0 0 14px;letter-spacing:0}
+.cover .csub{font:600 26px/1.3 var(--f-head);color:#fff;letter-spacing:0}
+.cover .cbot{padding:50px 70px;display:flex;flex-direction:column;gap:22px}
+.cover .cline{display:flex;gap:12px;align-items:flex-end;font:600 18px var(--f-head);color:var(--navy);letter-spacing:0}
+.cover .cline i{flex:1;border-bottom:2px solid #8A97A4;height:1.3em}
+.cover .inside{font-size:17px;color:var(--ink)}
+.cover .inside b{font-family:var(--f-head);color:var(--navy)}
+
+/* Teacher's Guide */
+.tg .page h1{font-size:28px}
+.tg .page h3{font-size:18px;margin-bottom:6px}
+.tg .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.tg ul{margin:0;padding-left:20px}
+.tg li{margin:2px 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--tint);color:var(--navy);border-radius:999px;padding:2px 10px;font:600 13px/1.5 var(--f-head);letter-spacing:0}
+.chip.prev{background:var(--rem)}
+table.steps{width:100%;border-collapse:collapse}
+table.steps td{padding:5px 8px;border-bottom:1px solid var(--rule);vertical-align:top}
+table.steps td:first-child{font:600 14px/1.4 var(--f-head);color:var(--navy);width:150px;letter-spacing:0}
+table.steps td.min{width:58px;font:700 14px var(--f-head);color:var(--acc);white-space:nowrap;letter-spacing:0}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.three>div{border:1.5px solid var(--rule);border-radius:8px;padding:10px 12px}
+.akey{display:grid;grid-template-columns:1fr 1fr;gap:3px 24px;font-size:15px;line-height:1.45}
+.akey div{break-inside:avoid}
+.akey .an{font-weight:700;color:var(--navy)}
+.akey .num{font:700 14px var(--f-head);color:var(--acc);display:inline-block;min-width:26px;letter-spacing:0}
+.asec{margin-bottom:4px}
+.asec h3{font-size:16px !important;margin:0 0 3px !important}
+.fkey{display:grid;grid-template-columns:repeat(6,1fr);gap:2px 10px;font-size:14px}
+.tg.fs1 .akey{font-size:14px;line-height:1.35}
+.tg.fs1 .asec h3{font-size:15px !important}
+table.glance{width:100%;border-collapse:collapse;font-size:15px}
+table.glance th{font:600 13px var(--f-head);text-align:left;color:var(--navy);border-bottom:2px solid var(--ink);padding:4px 6px;letter-spacing:0}
+table.glance td{border-bottom:1px solid var(--rule);padding:5px 6px;vertical-align:top}
+.spiral{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.spiral div{border:1.5px solid var(--rule);border-radius:8px;padding:6px 8px;font-size:13px;line-height:1.3}
+.spiral b{font:700 20px var(--f-head);color:var(--acc);display:block;letter-spacing:0}
+
+/* ---------- Print: only the active document, one page per sheet, no scaling ---------- */
+@page{size:letter;margin:0}
+@media print{
+  html,body{background:#fff}
+  .topbar,.side,.docbar,.building{display:none !important}
+  .shell{display:block}
+  .main{padding:0}
+  .doc{display:none !important;gap:0}
+  .doc.active{display:block !important}
+  .pg-wrap{width:auto;height:auto;box-shadow:none;break-after:page;page-break-after:always}
+  .pg-wrap:last-child{break-after:auto;page-break-after:auto}
+  .pg-wrap .page{transform:none}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="mk" aria-hidden="true"><i></i></div>
+  <div>
+    <h1>Curriculum Design Studio</h1>
+    <p>Live demo · Math Loops · sample content for a fictional student</p>
+  </div>
+  <div class="sp"></div>
+  <a href="../index.html#curriculum-studio">Back to portfolio</a>
+</header>
+
+<div class="shell">
+  <aside class="side" aria-label="Build settings">
+    <p class="intro">Choose a grade and a learning method. The studio writes a matching student workbook and Teacher's Guide for the first cycle of Math Loops, measures every page, checks the work, and gets both ready to print.</p>
+
+    <h2>Subject</h2>
+    <div class="subj" role="radiogroup" aria-label="Subject">
+      <label><input type="radio" name="subj" checked> <span class="sw" style="background:#1F4FD1"></span>Math Loops</label>
+      <label class="off" title="Built in the full studio; not in this demo"><input type="radio" name="subj" disabled> <span class="sw" style="background:#0B7174"></span>Language Arts Loops <small>full studio</small></label>
+      <label class="off"><input type="radio" name="subj" disabled> <span class="sw" style="background:#4A3AB0"></span>Spelling Steps <small>full studio</small></label>
+      <label class="off"><input type="radio" name="subj" disabled> <span class="sw" style="background:#23753A"></span>Science Explorers <small>full studio</small></label>
+      <label class="off"><input type="radio" name="subj" disabled> <span class="sw" style="background:#B8460F"></span>Social Studies Explorers <small>full studio</small></label>
+    </div>
+
+    <h2 id="g-h">Grade</h2>
+    <div class="grades" role="group" aria-labelledby="g-h" id="grades"></div>
+
+    <h2>Learning method</h2>
+    <div class="methods" id="methods" role="radiogroup" aria-label="Learning method"></div>
+
+    <h2>Problem set</h2>
+    <div class="setrow"><button class="btn" id="newset" type="button">New problem set</button><span id="setlbl">Set 1</span></div>
+    <p class="note">Each set is reproducible: the same grade, method and set number always builds the same pages, so the workbook and its answer key always match.</p>
+
+    <h2>Checks on this build</h2>
+    <ul class="qa" id="qa" aria-live="polite"><li>Building…</li></ul>
+  </aside>
+
+  <main class="main">
+    <div class="docbar">
+      <div class="tabs" role="tablist" aria-label="Documents">
+        <button role="tab" id="tab-st" aria-selected="true" aria-controls="doc-st" data-doc="st">Student Workbook<span class="ct" id="ct-st"></span></button>
+        <button role="tab" id="tab-tg" aria-selected="false" aria-controls="doc-tg" data-doc="tg">Teacher's Guide<span class="ct" id="ct-tg"></span></button>
+      </div>
+      <div class="sp"></div>
+      <span class="status" id="status"></span>
+      <button class="btn pri" id="print" type="button">Print or save as PDF</button>
+    </div>
+    <div class="viewer" id="viewer">
+      <div class="doc active" id="doc-st" role="tabpanel" aria-labelledby="tab-st"></div>
+      <div class="doc tg" id="doc-tg" role="tabpanel" aria-labelledby="tab-tg"></div>
+    </div>
+  </main>
+</div>
+<div class="building" id="building">Building pages…</div>
+
+<script>
+"use strict";
+/* =====================================================================
+   Curriculum Design Studio (demo)
+   One cycle of Math Loops = 10 lessons (one per strand) + a 2-page test.
+   Every lesson is one sheet: front (new skill + review) and back (review,
+   Think It Through, Quick Facts). The Teacher's Guide gets a teaching page
+   and an answer page per lesson. Both books are built from the same data,
+   so the key always matches the workbook.
+   ===================================================================== */
+
+/* ---------- seeded random ---------- */
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+let rnd=Math.random;
+const ri=(a,b)=>a+Math.floor(rnd()*(b-a+1));
+const pick=a=>a[Math.floor(rnd()*a.length)];
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const nf=n=>Number(n).toLocaleString('en-US');
+const strip=h=>h.replace(/<[^>]+>/g,'').replace(/\{_\}/g,'___').replace(/\s+/g,' ').trim();
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+
+/* ---------- item builders ---------- */
+const op=s=>`<span class="op">${s}</span>`;
+const B=s=>`<b>${s}</b>`;
+const fr=(n,d)=>`<span class="fr"><span>${n}</span><span>${d}</span></span>`;
+const EQ=(a,s,b,ans)=>({t:'eq',q:`${a} ${op(s)} ${b} =`,qt:`${a} ${s} ${b} =`,a:String(ans),k:`${a}${s}${b}`});
+const VT=(a,s,b,ans)=>({t:'vert',top:String(a),bot:String(b),sym:s,qt:`${a} ${s} ${b} =`,a:String(ans),k:`${a}${s}${b}`});
+const BLK=(q,ans,k,qt)=>({t:'blank',q,qt:qt||strip(q),a:String(ans),k:k||strip(q)});
+const PIC=(svg,q,ans,k,qt)=>({t:'pic',svg,q,qt,a:String(ans),k});
+const STO=(html,ans,sol)=>({t:'story',q:html,qt:strip(html),a:String(ans),sol,k:strip(html)});
+const bnum=s=>s.replace(/(\$?\d[\d,.]*)/g,'<b>$1</b>');
+
+/* ---------- pictures (full colour; never recoloured to the subject accent) ---------- */
+const PAL=['#E4572E','#29A3D1','#7FB800','#F2A541','#9B5DE5','#00A6A6'];
+const FONT='font-family="Atkinson Hyperlegible,Arial"';
+function svgClock(h,m){
+  let s=`<svg viewBox="0 0 120 120" role="img" aria-label="clock"><circle cx="60" cy="60" r="55" fill="#FFF9EC" stroke="#D9483B" stroke-width="5"/>`;
+  for(let i=0;i<60;i++){const a=i*6*Math.PI/180,r1=i%5?49:45;s+=`<line x1="${(60+r1*Math.sin(a)).toFixed(1)}" y1="${(60-r1*Math.cos(a)).toFixed(1)}" x2="${(60+51*Math.sin(a)).toFixed(1)}" y2="${(60-51*Math.cos(a)).toFixed(1)}" stroke="#1E2A36" stroke-width="${i%5?1:2.2}"/>`}
+  for(let i=1;i<=12;i++){const a=i*30*Math.PI/180;s+=`<text x="${(60+37*Math.sin(a)).toFixed(1)}" y="${(60-37*Math.cos(a)+4.6).toFixed(1)}" font-size="13" ${FONT} font-weight="700" text-anchor="middle" fill="#1E2A36">${i}</text>`}
+  const ha=((h%12)+m/60)*30*Math.PI/180,ma=m*6*Math.PI/180;
+  s+=`<line x1="60" y1="60" x2="${(60+25*Math.sin(ha)).toFixed(1)}" y2="${(60-25*Math.cos(ha)).toFixed(1)}" stroke="#1E2A36" stroke-width="6" stroke-linecap="round"/>`;
+  s+=`<line x1="60" y1="60" x2="${(60+41*Math.sin(ma)).toFixed(1)}" y2="${(60-41*Math.cos(ma)).toFixed(1)}" stroke="#2B6CB0" stroke-width="3.5" stroke-linecap="round"/><circle cx="60" cy="60" r="4" fill="#D9483B"/></svg>`;
+  return s;
+}
+function svgFrac(shape,parts,shaded,orient){
+  const F='#F4A62A',E='#FFFFFF',S='#1E2A36';
+  if(shape==='circle'){
+    let s=`<svg viewBox="0 0 120 120" role="img" aria-label="circle in ${parts} equal parts">`;
+    for(let i=0;i<parts;i++){const a0=i*2*Math.PI/parts,a1=(i+1)*2*Math.PI/parts;
+      s+=`<path d="M60 60 L${(60+52*Math.sin(a0)).toFixed(2)} ${(60-52*Math.cos(a0)).toFixed(2)} A52 52 0 0 1 ${(60+52*Math.sin(a1)).toFixed(2)} ${(60-52*Math.cos(a1)).toFixed(2)} Z" fill="${i<shaded?F:E}" stroke="${S}" stroke-width="2.5"/>`}
+    return s+'</svg>';
+  }
+  const W=shape==='square'?100:150,H=shape==='square'?100:80;
+  let s=`<svg viewBox="-4 -4 ${W+8} ${H+8}" role="img" aria-label="${shape} in ${parts} equal parts">`;
+  for(let i=0;i<parts;i++){
+    if(orient==='h'){const h=H/parts;s+=`<rect x="0" y="${(i*h).toFixed(2)}" width="${W}" height="${h.toFixed(2)}" fill="${i<shaded?F:E}" stroke="${S}" stroke-width="2.5"/>`}
+    else{const w=W/parts;s+=`<rect x="${(i*w).toFixed(2)}" y="0" width="${w.toFixed(2)}" height="${H}" fill="${i<shaded?F:E}" stroke="${S}" stroke-width="2.5"/>`}
+  }
+  return s+'</svg>';
+}
+function svgGroups(g,n,col){
+  const per=Math.min(n,3),rows=Math.ceil(n/3),gw=per*18+16,gh=rows*18+16;
+  let s=`<svg viewBox="0 0 ${g*(gw+10)} ${gh+4}" width="${g*(gw+10)}" height="${gh+4}" role="img" aria-label="${g} groups of ${n}">`;
+  for(let i=0;i<g;i++){const x=i*(gw+10)+2;s+=`<rect x="${x}" y="2" width="${gw}" height="${gh}" rx="10" fill="#FFFFFF" stroke="#4B5867" stroke-width="2"/>`;
+    for(let j=0;j<n;j++)s+=`<circle cx="${x+17+(j%3)*18}" cy="${19+Math.floor(j/3)*18}" r="7" fill="${col}"/>`}
+  return s+'</svg>';
+}
+function svgDots(t,col){const per=6,rows=Math.ceil(t/per);let s=`<svg viewBox="0 0 ${per*22+4} ${rows*22+4}" width="${per*22+4}" height="${rows*22+4}" role="img" aria-label="${t} counters">`;
+  for(let j=0;j<t;j++)s+=`<circle cx="${13+(j%per)*22}" cy="${13+Math.floor(j/per)*22}" r="8" fill="${col}" stroke="#1E2A36" stroke-width="1"/>`;return s+'</svg>'}
+function svgArray(r,c,col){let s=`<svg viewBox="0 0 ${c*22+8} ${r*22+8}" width="${c*22+8}" height="${r*22+8}" role="img" aria-label="array of ${r} rows and ${c} columns">`;
+  for(let i=0;i<r;i++)for(let j=0;j<c;j++)s+=`<circle cx="${15+j*22}" cy="${15+i*22}" r="8" fill="${col}"/>`;return s+'</svg>'}
+function svgB10(h,t,o){
+  let x=2,s='';const C='#3A7BD5',U='#7FB800',L='#1E2A36';
+  for(let i=0;i<h;i++){s+=`<rect x="${x}" y="2" width="90" height="90" fill="${C}" stroke="${L}" stroke-width="1.5"/>`;for(let k=1;k<10;k++)s+=`<line x1="${x+k*9}" y1="2" x2="${x+k*9}" y2="92" stroke="#ffffff" stroke-width=".8"/><line x1="${x}" y1="${2+k*9}" x2="${x+90}" y2="${2+k*9}" stroke="#ffffff" stroke-width=".8"/>`;x+=98}
+  for(let i=0;i<t;i++){s+=`<rect x="${x}" y="2" width="9" height="90" fill="${C}" stroke="${L}" stroke-width="1.2"/>`;for(let k=1;k<10;k++)s+=`<line x1="${x}" y1="${2+k*9}" x2="${x+9}" y2="${2+k*9}" stroke="#ffffff" stroke-width=".8"/>`;x+=13}
+  if(o){x+=6;for(let i=0;i<o;i++){s+=`<rect x="${x+(i%2)*12}" y="${2+Math.floor(i/2)*12}" width="9" height="9" fill="${U}" stroke="${L}" stroke-width="1.2"/>`}x+=26}
+  return `<svg viewBox="0 0 ${x} 96" role="img" aria-label="base-ten blocks">${s}</svg>`;
+}
+function regPts(n,R,rot){const p=[];for(let i=0;i<n;i++){const a=rot+i*2*Math.PI/n;p.push(`${(60+R*Math.sin(a)).toFixed(1)},${(60-R*Math.cos(a)).toFixed(1)}`)}return p.join(' ')}
+const SHAPES={
+  triangle:{s:3,pts:()=>regPts(3,52,0)},
+  square:{s:4,pts:()=>'18,18 102,18 102,102 18,102'},
+  rectangle:{s:4,pts:()=>'6,30 114,30 114,90 6,90'},
+  pentagon:{s:5,pts:()=>regPts(5,52,0)},
+  hexagon:{s:6,pts:()=>regPts(6,52,Math.PI/6)},
+  octagon:{s:8,pts:()=>regPts(8,52,Math.PI/8)},
+  rhombus:{s:4,pts:()=>'60,6 104,60 60,114 16,60'},
+  trapezoid:{s:4,pts:()=>'34,28 86,28 114,92 6,92'},
+  circle:{s:0}
+};
+function svgShape(name,col){
+  const sh=SHAPES[name];
+  const body=name==='circle'?`<circle cx="60" cy="60" r="50" fill="${col}" stroke="#1E2A36" stroke-width="2.5"/>`:`<polygon points="${sh.pts()}" fill="${col}" stroke="#1E2A36" stroke-width="2.5" stroke-linejoin="round"/>`;
+  return `<svg viewBox="0 0 120 120" role="img" aria-label="${name}">${body}</svg>`;
+}
+function svgGrid(w,h){const c=20;let s=`<svg viewBox="0 0 ${w*c+4} ${h*c+4}" role="img" aria-label="rectangle of unit squares">`;
+  for(let i=0;i<h;i++)for(let j=0;j<w;j++)s+=`<rect x="${2+j*c}" y="${2+i*c}" width="${c}" height="${c}" fill="#BFE3F5" stroke="#2B6CB0" stroke-width="1.5"/>`;return s+'</svg>'}
+function svgRect(l,w,u){const W=Math.min(170,60+l*10),H=Math.min(96,34+w*7);
+  return `<svg viewBox="0 0 ${W+84} ${H+44}" role="img" aria-label="rectangle ${l} by ${w} ${u}"><rect x="8" y="26" width="${W}" height="${H}" fill="#DDEFD8" stroke="#2E7D32" stroke-width="2.5"/><text x="${8+W/2}" y="20" text-anchor="middle" font-size="21" ${FONT} font-weight="700" fill="#1E2A36">${l} ${u}</text><text x="${W+14}" y="${26+H/2+5}" font-size="21" ${FONT} font-weight="700" fill="#1E2A36">${w} ${u}</text></svg>`}
+function svgPrism(l,w,h){const s=11,L=l*s,H=h*s,D=w*s*.55,x0=10,y0=12+D;
+  const pts=(a)=>a.map(p=>p.join(',')).join(' ');
+  const front=[[x0,y0],[x0+L,y0],[x0+L,y0+H],[x0,y0+H]],top=[[x0,y0],[x0+D,y0-D],[x0+L+D,y0-D],[x0+L,y0]],side=[[x0+L,y0],[x0+L+D,y0-D],[x0+L+D,y0+H-D],[x0+L,y0+H]];
+  const W=x0+L+D+50,Ht=y0+H+30;
+  return `<svg viewBox="0 0 ${W} ${Ht}" role="img" aria-label="box ${l} by ${w} by ${h}"><polygon points="${pts(front)}" fill="#F8C471" stroke="#1E2A36" stroke-width="2"/><polygon points="${pts(top)}" fill="#FAD7A0" stroke="#1E2A36" stroke-width="2"/><polygon points="${pts(side)}" fill="#E59866" stroke="#1E2A36" stroke-width="2"/>
+  <text x="${x0+L/2}" y="${y0+H+22}" text-anchor="middle" font-size="21" ${FONT} font-weight="700" fill="#1E2A36">${l}</text>
+  <text x="${x0+L+D+8}" y="${y0+H/2-D/2+5}" font-size="21" ${FONT} font-weight="700" fill="#1E2A36">${h}</text>
+  <text x="${x0+L+D/2+8}" y="${y0-D/2-2}" font-size="21" ${FONT} font-weight="700" fill="#1E2A36">${w}</text></svg>`}
+function svgBar(title,cats,vals,step,max){
+  const W=420,H=260,L=44,T=34,Bt=34,gh=H-T-Bt,gw=W-L-8;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="bar graph: ${title}"><text x="${L}" y="20" font-family="Lexend,Arial" font-weight="600" font-size="16" fill="#14213D">${title}</text>`;
+  for(let v=0;v<=max;v+=step){const y=T+gh-gh*v/max;s+=`<line x1="${L}" x2="${W-8}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#D5DCE2"/><text x="${L-7}" y="${(y+4.5).toFixed(1)}" text-anchor="end" font-size="13" ${FONT} fill="#1E2A36">${v}</text>`}
+  const bw=gw/cats.length;
+  cats.forEach((c,i)=>{const h=gh*vals[i]/max,x=L+i*bw+bw*.18;s+=`<rect x="${x.toFixed(1)}" y="${(T+gh-h).toFixed(1)}" width="${(bw*.64).toFixed(1)}" height="${h.toFixed(1)}" fill="${PAL[i]}"/><text x="${(x+bw*.32).toFixed(1)}" y="${H-Bt+20}" text-anchor="middle" font-size="14" ${FONT} fill="#1E2A36">${cap(c)}</text>`});
+  return s+`<line x1="${L}" y1="${T}" x2="${L}" y2="${T+gh}" stroke="#1E2A36" stroke-width="2"/><line x1="${L}" y1="${T+gh}" x2="${W-8}" y2="${T+gh}" stroke="#1E2A36" stroke-width="2"/></svg>`;
+}
+function svgTallyMarks(n){let s='',x=2;for(let g=0;g<Math.ceil(n/5);g++){const k=Math.min(5,n-g*5);for(let i=0;i<Math.min(k,4);i++)s+=`<line x1="${x+i*7}" y1="3" x2="${x+i*7}" y2="25" stroke="#1E2A36" stroke-width="2.4" stroke-linecap="round"/>`;if(k===5)s+=`<line x1="${x-4}" y1="22" x2="${x+26}" y2="6" stroke="#E4572E" stroke-width="2.4" stroke-linecap="round"/>`;x+=42}
+  return `<svg class="tm" viewBox="0 0 ${x} 28" width="${x}" height="28" role="img" aria-label="${n} tally marks">${s}</svg>`}
+function svgCoord(pts){const c=30,O=26,N=8;let s=`<svg viewBox="0 0 ${O+N*c+16} ${N*c+O+24}" role="img" aria-label="coordinate grid">`;
+  for(let i=0;i<=N;i++){s+=`<line x1="${O+i*c}" y1="10" x2="${O+i*c}" y2="${10+N*c}" stroke="#D5DCE2"/><line x1="${O}" y1="${10+i*c}" x2="${O+N*c}" y2="${10+i*c}" stroke="#D5DCE2"/>`;
+    s+=`<text x="${O+i*c}" y="${10+N*c+18}" text-anchor="middle" font-size="12" ${FONT} fill="#1E2A36">${i}</text><text x="${O-8}" y="${10+N*c-i*c+4}" text-anchor="end" font-size="12" ${FONT} fill="#1E2A36">${i}</text>`}
+  s+=`<line x1="${O}" y1="10" x2="${O}" y2="${10+N*c}" stroke="#1E2A36" stroke-width="2"/><line x1="${O}" y1="${10+N*c}" x2="${O+N*c}" y2="${10+N*c}" stroke="#1E2A36" stroke-width="2"/>`;
+  pts.forEach((p,i)=>{const x=O+p.x*c,y=10+N*c-p.y*c;s+=`<circle cx="${x}" cy="${y}" r="6" fill="${PAL[i%PAL.length]}" stroke="#1E2A36"/><text x="${x+8}" y="${y-7}" font-size="15" font-family="Lexend,Arial" font-weight="700" fill="#14213D">${p.l}</text>`});
+  return s+'</svg>'}
+
+/* ---------- story contexts ---------- */
+const KIDS=[['Maya','She'],['Leo','He'],['Ava','She'],['Sam','He'],['Zoe','She'],['Eli','He'],['Nora','She'],['Owen','He'],['Ruby','She'],['Theo','He']];
+const THINGS=['shells','rocks','acorns','stickers','pine cones','marbles','buttons','crayons','blueberries','beads'];
+const kid=()=>pick(KIDS);
+
+/* ---------- graphs ---------- */
+const THEMES=[
+  ['Birds at the Feeder',['robins','jays','finches','crows']],
+  ['Beach Finds',['shells','rocks','crabs','sea glass']],
+  ['Fruit Picked',['apples','pears','plums','peaches']],
+  ['Pond Animals',['frogs','ducks','turtles','fish']],
+  ['Books Read',['mystery','animal','sports','space']],
+  ['Boats in the Harbor',['sailboats','lobster boats','kayaks','ferries']]
+];
+function distinctVals(n,lo,hi,step){const s=new Set();let guard=0;while(s.size<n&&guard++<500)s.add(ri(lo/step,hi/step)*step);return [...s]}
+function graphQuestions(cats,vals,nq,grade,tag){
+  const pool=[];const I=[0,1,2,3];
+  const mx=Math.max(...vals),mn=Math.min(...vals);
+  const i1=pick(I);pool.push({q:`How many ${cats[i1]}? {_}`,a:vals[i1],ty:'n'+i1});
+  pool.push({q:`Which has the most? {_}`,a:cats[vals.indexOf(mx)],ty:'most'});
+  pool.push({q:`Which has the fewest? {_}`,a:cats[vals.indexOf(mn)],ty:'few'});
+  const [x,y]=shuf(I).slice(0,2);const hi=vals[x]>vals[y]?x:y,lo=hi===x?y:x;
+  pool.push({q:`How many more ${cats[hi]} than ${cats[lo]}? {_}`,a:vals[hi]-vals[lo],ty:'diff'});
+  const [p,q]=shuf(I).slice(0,2);pool.push({q:`How many ${cats[p]} and ${cats[q]} in all? {_}`,a:vals[p]+vals[q],ty:'sum'});
+  if(grade>=3)pool.push({q:`How many in all? {_}`,a:vals.reduce((s,v)=>s+v,0),ty:'all'});
+  if(grade>=4){const [a,b,c]=shuf(I);const v=vals[a]+vals[b]-vals[c];if(v>0)pool.push({q:`${cap(cats[a])} plus ${cats[b]}, minus ${cats[c]}? {_}`,a:v,ty:'two'})}
+  const chosen=[pool[0],pool[3]].concat(shuf(pool.filter((_,i)=>i!==0&&i!==3))).slice(0,nq);
+  return chosen.map(c=>BLK(c.q,c.a,`${tag}|${c.ty}`));
+}
+function barGraphGen(grade,lo,hi,step,max){return function(nq){
+  const [title,cats]=pick(THEMES);const vals=distinctVals(4,lo,hi,step);const tag=title+vals.join(',');
+  return {visual:svgBar(title,cats,vals,step,max),data:`${title}: ${cats.map((c,i)=>c+' '+vals[i]).join(', ')}`,items:graphQuestions(cats,vals,nq,grade,tag)};
+}}
+function tallyGen(nq){
+  const [title,cats]=pick(THEMES.slice(0,4));const vals=distinctVals(4,2,9,1);const tag='T'+title+vals.join(',');
+  const rows=cats.map((c,i)=>`<tr><td>${cap(c)}</td><td>${svgTallyMarks(vals[i])}</td></tr>`).join('');
+  return {visual:`<table class="tally"><caption>${title}</caption><tr><th>Kind</th><th>Tally</th></tr>${rows}</table>`,data:`${title}: ${cats.map((c,i)=>c+' '+vals[i]).join(', ')}`,items:graphQuestions(cats,vals,nq,1,tag)};
+}
+function coordGen(nq){
+  const used=new Set(),pts=[];const letters=shuf(['A','B','C','D','E','F','G','H']).slice(0,5);
+  while(pts.length<5){const x=ri(1,8),y=ri(1,8);if(!used.has(x+','+y)){used.add(x+','+y);pts.push({x,y,l:letters[pts.length]})}}
+  const tag='C'+pts.map(p=>p.l+p.x+p.y).join('');
+  const qs=shuf(pts).map((p,i)=>i%2?BLK(`Which point is at (${p.x}, ${p.y})? {_}`,p.l,tag+'w'+p.l):BLK(`Write the coordinates of point ${p.l}. ({_}, {_})`,`(${p.x}, ${p.y})`,tag+'c'+p.l));
+  return {visual:svgCoord(pts),data:'Points: '+pts.map(p=>`${p.l} (${p.x}, ${p.y})`).join(', '),items:qs.slice(0,nq)};
+}
+
+/* ---------- stories by grade ---------- */
+function story(grade){
+  const [N,P]=kid();const T=pick(THINGS);
+  if(grade===1){const t=ri(1,3);
+    if(t===1){const a=ri(4,12),b=ri(2,20-a);return STO(bnum(`${N} has ${a} ${T}. ${P} finds ${b} more. How many ${T} now?`),`${a+b} ${T}`,`${a} + ${b} = ${a+b}`)}
+    if(t===2){const a=ri(8,20),b=ri(2,a-2);return STO(bnum(`${N} has ${a} ${T}. ${P} gives away ${b}. How many are left?`),`${a-b} ${T}`,`${a} − ${b} = ${a-b}`)}
+    const a=ri(5,12),b=ri(2,20-a);return STO(bnum(`There are ${a} ducks on the pond. ${b} more ducks land. How many ducks now?`),`${a+b} ducks`,`${a} + ${b} = ${a+b}`)}
+  if(grade===2){const t=ri(1,3);
+    if(t===1){const a=ri(24,68),b=ri(13,99-a);return STO(bnum(`${N} picks ${a} blueberries. Then ${P.toLowerCase()} picks ${b} more. How many blueberries now?`),`${a+b} blueberries`,`${a} + ${b} = ${a+b}`)}
+    if(t===2){const a=ri(45,95),b=ri(12,a-10);return STO(bnum(`A boat has ${a} lobster traps. It drops ${b} in the water. How many traps are still on the boat?`),`${a-b} traps`,`${a} − ${b} = ${a-b}`)}
+    const a=ri(40,90),b=ri(15,a-8);const [M]=kid();return STO(bnum(`${N} has ${a} ${T}. ${M===N?'Kai':M} has ${b} ${T}. How many more does ${N} have?`),`${a-b} more`,`${a} − ${b} = ${a-b}`)}
+  if(grade===3){const t=ri(1,3);
+    if(t===1){const g=ri(3,9),n=ri(3,9);return STO(bnum(`${N} has ${g} bags. Each bag holds ${n} ${T}. How many ${T} in all?`),`${g*n} ${T}`,`${g} × ${n} = ${g*n}`)}
+    if(t===2){const g=ri(3,8),n=ri(3,9);return STO(bnum(`${N} shares ${g*n} ${T} equally with ${g} friends. How many does each friend get?`),`${n} ${T}`,`${g*n} ÷ ${g} = ${n}`)}
+    const r=ri(4,9),c=ri(3,8);return STO(bnum(`There are ${r} rows of chairs. Each row has ${c} chairs. How many chairs?`),`${r*c} chairs`,`${r} × ${c} = ${r*c}`)}
+  if(grade===4){const t=ri(1,3);
+    if(t===1){const g=ri(4,9),n=ri(12,25),b=ri(10,40);return STO(bnum(`${N} buys ${g} packs of cards. Each pack has ${n} cards. A friend gives ${P==='She'?'her':'him'} ${b} more. How many cards now?`),`${g*n+b} cards`,`${g} × ${n} = ${g*n}; ${g*n} + ${b} = ${g*n+b}`)}
+    if(t===2){const n=ri(14,30),g=ri(3,7),b=ri(5,20);return STO(bnum(`A lobster boat hauls ${n} traps on each trip. It makes ${g} trips. ${b} traps need fixing. How many traps are fine?`),`${n*g-b} traps`,`${n} × ${g} = ${n*g}; ${n*g} − ${b} = ${n*g-b}`)}
+    const tot=ri(120,480),k=ri(3,6),per=Math.floor(tot/k),left=tot-per*k;return STO(bnum(`A farm stand has ${tot} ears of corn. They fill ${k} crates with ${per} ears each. How many ears are left over?`),`${left} ears`,`${k} × ${per} = ${k*per}; ${tot} − ${k*per} = ${left}`)}
+  const t=ri(1,3);
+  if(t===1){const k=ri(2,4),p=ri(125,395)/100,bill=pick([10,20]);return STO(bnum(`${N} buys ${k} notebooks. Each one costs $${p.toFixed(2)}. ${P} pays with a $${bill} bill. How much change?`),`$${(bill-k*p).toFixed(2)}`,`${k} × $${p.toFixed(2)} = $${(k*p).toFixed(2)}; $${bill} − $${(k*p).toFixed(2)} = $${(bill-k*p).toFixed(2)}`)}
+  if(t===2){const d=ri(15,48)/10,k=ri(3,6);return STO(bnum(`A trail is ${d.toFixed(1)} km long. ${N} hikes it ${k} times this month. How far does ${P.toLowerCase()} hike?`),`${(d*k).toFixed(1)} km`,`${d.toFixed(1)} × ${k} = ${(d*k).toFixed(1)}`)}
+  const a=ri(115,260)/100,b=ri(115,260)/100,c=ri(50,150)/100;return STO(bnum(`${N} pours ${a.toFixed(2)} liters and ${b.toFixed(2)} liters of water into a tank. Then ${c.toFixed(2)} liters leak out. How much water is left?`),`${(a+b-c).toFixed(2)} L`,`${a.toFixed(2)} + ${b.toFixed(2)} = ${(a+b).toFixed(2)}; ${(a+b).toFixed(2)} − ${c.toFixed(2)} = ${(a+b-c).toFixed(2)}`);
+}
+
+/* ---------- skills: one per strand per grade (Cycle 1 topics) ---------- */
+const STR=['Place Value','Addition','Subtraction','Multiplication','Division','Fractions','Time, Money & Measuring','Shapes & Area','Graphs & Data','Story Problems'];
+const STRS=['Place Value','Addition','Subtraction','Multiplication','Division','Fractions','Time & Measuring','Shapes & Area','Graphs & Data','Story Problems'];
+const hm=(h,m)=>`${h}:${String(m).padStart(2,'0')}`;
+const W1={2:'half',3:'third',4:'fourth'};
+const fracWord=(k,n)=>`${k} ${W1[n]}${k>1?'s':''}`;
+function decDigit(nstr){/* bold one non-zero digit that appears once */
+  const idx=[...nstr].map((c,i)=>i).filter(i=>/[1-9]/.test(nstr[i])&&nstr.split(nstr[i]).length===2);
+  return idx.length?pick(idx):-1}
+
+const SK={1:[],2:[],3:[],4:[],5:[]};
+/* Grade 1 */
+SK[1]=[
+ {n:'Tens and Ones',t:'pic',pc:2,dir:'Count the tens and ones. Write the number.',
+  rem:`${B('3')} tens and ${B('4')} ones is ${B('34')}. Count tens: 10, 20, 30. Then ones: 31, 32, 33, 34.`,
+  goal:'Show a two-digit number as tens and ones.',need:['base-ten rods and cubes (or bundles of 10 straws)'],words:['ten','one','digit','place'],
+  show:'Build 34 with 3 rods and 4 cubes. Count the rods by tens, then count on the ones. Write 3 tens 4 ones = 34.',
+  hands:'Have them build each number with rods and cubes, then count it out loud.',hs:'Build each number with blocks first.',
+  watch:'Writing 304 for 34, or counting each cube inside a rod one by one.',hard:'Use numbers under 50 and count rods by tens out loud together.',ready:'Ask for 1 more ten and 1 less ten than each number.',
+  g(){const t=ri(1,9),o=ri(0,9);return PIC(svgB10(0,t,o),'{_} tens {_} ones = {_}',`${t} tens ${o} ones = ${t*10+o}`,'pv'+t+o,'Blocks')}},
+ {n:'Adding Within 20',t:'eq',dir:'Add. Write the sum.',rem:`${B('8 + 5')}: start at 8, count on 5: 9, 10, 11, 12, 13. So 8 + 5 = ${B('13')}.`,
+  goal:'Add two numbers with a sum up to 20.',need:['20 counters','a number line 0–20'],words:['add','plus','sum','equals'],
+  show:'Show 8 + 5 on the number line: put a finger on 8 and hop 5 times. Then show it with a ten frame: 8 + 2 makes 10, then 3 more.',
+  hands:'Have them make each problem with counters on two ten frames.',hs:'Use counters to make each problem.',
+  watch:'Counting the starting number as the first hop (8 + 5 = 12).',hard:'Start with the bigger number and count on with counters.',ready:'Try three numbers: 4 + 5 + 6.',
+  g(){const a=ri(3,14),b=ri(2,20-a);return EQ(a,'+',b,a+b)}},
+ {n:'Subtracting Within 20',t:'eq',dir:'Subtract. Write the difference.',rem:`${B('15 − 7')}: count back 7 from 15, or think 7 + ? = 15. So 15 − 7 = ${B('8')}.`,
+  goal:'Subtract within 20 by counting back or thinking addition.',need:['20 counters','a number line 0–20'],words:['subtract','minus','difference','take away'],
+  show:'Show 15 − 7 two ways: hop back 7 on the number line, then ask "7 plus what makes 15?"',
+  hands:'Have them build the first number with counters and take the second number away.',hs:'Use counters. Take away, then count what is left.',
+  watch:'Subtracting the smaller digit from the bigger one in any order.',hard:'Use numbers within 10 first, then within 20.',ready:'Find the missing number: 13 − ? = 6.',
+  g(){const a=ri(6,20),b=ri(2,a-1);return EQ(a,'−',b,a-b)}},
+ {n:'Equal Groups',t:'pic',pc:2,dir:'Count the equal groups. Write how many in all.',rem:`${B('3')} groups of ${B('4')} is 4, 8, 12. That is ${B('12')} in all.`,
+  goal:'Count equal groups by skip counting.',need:['cups or bowls','small counters or cereal'],words:['equal','group','in all','skip count'],
+  show:'Put 4 counters in each of 3 cups. Skip count 4, 8, 12 while touching each cup.',
+  hands:'Have them make each picture with cups and counters before writing.',hs:'Make each set of groups with cups and counters.',
+  watch:'Counting the number of groups instead of the total.',hard:'Use groups of 2 and 5 only and skip count together.',ready:'Ask how many groups of 3 make 15.',
+  g(){const g=ri(2,4),n=ri(2,5);return PIC(svgGroups(g,n,pick(PAL)),`${g} groups of ${n} = {_}`,g*n,'eg'+g+n,`${g} groups of ${n}`)}},
+ {n:'Sharing Equally',t:'pic',pc:2,dir:'Circle equal groups. Write how many in each group.',rem:`Share ${B('12')} into ${B('3')} groups: give one at a time to each group. Each group gets ${B('4')}.`,
+  goal:'Share a set into equal groups.',need:['counters','3–4 small plates'],words:['share','equal','each','group'],
+  show:'Deal 12 counters onto 3 plates one at a time, like dealing cards. Count one plate: 4.',
+  hands:'Have them deal real counters onto plates for each problem.',hs:'Deal counters onto plates. Count one plate.',
+  watch:'Groups that are not equal, or counting all the counters.',hard:'Share into 2 groups only.',ready:'Ask what happens if there is one left over.',
+  g(){const g=ri(2,4),n=ri(2,5);return PIC(svgDots(g*n,pick(PAL)),`${g*n} into ${g} groups: {_} each`,n,'sh'+g+n,`Share ${g*n} into ${g} groups`)}},
+ {n:'Halves and Fourths',t:'pic',pc:3,dir:'Look at the shaded part. Write its name.',rem:`A shape cut into ${B('2')} equal parts shows halves. ${B('4')} equal parts show fourths. One part shaded is ${B('1 half')} or ${B('1 fourth')}.`,
+  goal:'Name halves and fourths of a shape.',need:['paper circles and squares','safety scissors'],words:['equal parts','half','fourth','whole'],
+  show:'Fold a paper square in half and color one part: 1 half. Fold again and show 4 equal parts: color one, 1 fourth.',
+  hands:'Have them fold and color paper shapes to match each picture.',hs:'Fold a paper shape to match each picture.',
+  watch:'Calling any 2 parts "halves" even when they are not equal.',hard:'Work only with halves first.',ready:'Ask which is bigger: 1 half or 1 fourth of the same pizza?',
+  g(){const sh=pick(['circle','rect','square']),p=pick([2,4]),k=p===2?1:ri(1,3),o=pick(['v','h']);return PIC(svgFrac(sh,p,k,o),'Shaded: {_}',fracWord(k,p),'f'+sh+p+k+(sh==='circle'?'':o),`${sh}, ${k} of ${p} parts shaded`)}},
+ {n:'Time to the Hour and Half Hour',t:'pic',pc:3,dir:'Read each clock. Write the time.',rem:`When the long hand points to ${B('12')}, it is o'clock (3:00). When it points to ${B('6')}, it is half past (3:30).`,
+  goal:'Tell time to the hour and half hour.',need:['a clock with moving hands'],words:['hour hand','minute hand',"o'clock",'half past'],
+  show:'Move the long hand all the way around: one hour goes by. Stop at 12 for o\'clock and at 6 for half past.',
+  hands:'Have them set a real clock to each time, then write it.',hs:'Set a clock to match. Then write the time.',
+  watch:'Mixing up the hour hand and the minute hand.',hard:'Do only o\'clock times first.',ready:'Ask what time it will be in one hour.',
+  g(){const h=ri(1,12),m=pick([0,30]);return PIC(svgClock(h,m),'Time: {_}',hm(h,m),'c'+h+m,'Clock')}},
+ {n:'Flat Shapes',t:'pic',pc:3,dir:'Count the sides and corners of each shape.',rem:`A ${B('triangle')} has 3 sides and 3 corners. A ${B('circle')} has 0 sides and 0 corners.`,
+  goal:'Describe flat shapes by sides and corners.',need:['pattern blocks or paper shapes'],words:['side','corner','triangle','hexagon'],
+  show:'Trace a finger along each side of a hexagon and count. Tap each corner and count.',
+  hands:'Have them trace each side with a finger while counting.',hs:'Trace each side with your finger while you count.',
+  watch:'Counting the same corner twice.',hard:'Mark a dot on each corner as you count.',ready:'Ask them to draw a shape with 5 sides.',
+  g(){const nm=pick(['triangle','square','rectangle','pentagon','hexagon','rhombus','trapezoid','circle']);const s=SHAPES[nm].s;return PIC(svgShape(nm,pick(PAL)),'Sides {_} Corners {_}',`${s} sides, ${s} corners`,'sh'+nm,cap(nm))}},
+ {n:'Tally Charts',t:'graph',dir:'Use the tally chart to answer each question.',rem:`Each mark is ${B('1')}. A bundle with a slash is ${B('5')}. Count 5, then count on: 6, 7.`,
+  goal:'Read a tally chart and compare counts.',need:['a tally chart of family favorites'],words:['tally','most','fewest','how many more'],
+  show:'Make a tally chart of favorite fruit at home. Count bundles of 5 first, then the extra marks.',
+  hands:'Have them make a tally mark for each item as you name it.',hs:'Count each row out loud before you answer.',
+  watch:'Counting the slash in a bundle as a sixth mark.',hard:'Use one question at a time and point to the row.',ready:'Ask them to make a tally chart of their own.',
+  gg:tallyGen},
+ {n:'Adding and Subtracting Stories',t:'story',dir:'Read each story. Solve it.',rem:`"Finds more" or "in all" means ${B('add')}. "Gives away" or "left" means ${B('subtract')}.`,
+  goal:'Choose to add or subtract in a story problem.',need:['counters','paper for drawing'],words:['in all','more','left','how many'],
+  show:'Act out a story with counters: 6 shells, find 3 more. Ask: are there more now or fewer? Then write 6 + 3 = 9.',
+  hands:'Have them act out each story with counters.',hs:'Act out the story with counters. Then solve.',
+  watch:'Adding every pair of numbers no matter the story.',hard:'Read the story aloud and act it out first.',ready:'Ask them to tell their own story for 9 − 4.',
+  g(){return story(1)}}
+];
+/* Grade 2 */
+SK[2]=[
+ {n:'Hundreds, Tens and Ones',t:'blank',cols:1,dir:'Write how many hundreds, tens and ones.',rem:`${B('362')} = ${B('3')} hundreds ${B('6')} tens ${B('2')} ones = 300 + 60 + 2.`,
+  goal:'Read and write three-digit numbers by place.',need:['base-ten flats, rods and cubes'],words:['hundred','ten','one','digit'],
+  show:'Build 362 with 3 flats, 6 rods and 2 cubes. Point to each digit and the blocks it stands for.',
+  hands:'Have them build each number with blocks before writing.',hs:'Build each number with blocks first.',
+  watch:'Writing 30062 for 362.',hard:'Use a place-value mat with three labeled columns.',ready:'Ask for 10 more and 100 more than each number.',
+  g(){const h=ri(1,9),t=ri(0,9),o=ri(0,9),n=h*100+t*10+o;return rnd()<.6?BLK(`${n} = {_} hundreds {_} tens {_} ones`,`${h} hundreds ${t} tens ${o} ones`,'p'+n):BLK(`${h} hundreds ${t} tens ${o} ones = {_}`,n,'p'+n)}},
+ {n:'Adding Two-Digit Numbers',t:'vert',dir:'Add. Regroup when you need to.',rem:`${B('47 + 26')}: 7 + 6 = 13. Write 3, carry 1 ten. 4 + 2 + 1 = 7. Sum: ${B('73')}.`,
+  goal:'Add two-digit numbers with regrouping.',need:['base-ten rods and cubes'],words:['regroup','carry','ones','tens'],
+  show:'Build 47 and 26. Push the ones together: 13 ones. Trade 10 ones for a rod. Count: 7 tens 3 ones.',
+  hands:'Have them build both numbers and trade 10 ones for a ten.',hs:'Build both numbers. Trade 10 ones for a ten.',
+  watch:'Writing 13 in the ones place (sum 613).',hard:'Do problems with no regrouping first.',ready:'Add three two-digit numbers.',
+  g(){const a=ri(15,78),b=ri(12,99-a);return VT(a,'+',b,a+b)}},
+ {n:'Subtracting Two-Digit Numbers',t:'vert',dir:'Subtract. Trade a ten when you need to.',rem:`${B('52 − 27')}: 2 is less than 7. Trade a ten: 12 − 7 = 5. Then 4 − 2 = 2. Answer: ${B('25')}.`,
+  goal:'Subtract two-digit numbers with regrouping.',need:['base-ten rods and cubes'],words:['trade','regroup','difference','tens'],
+  show:'Build 52. You need to take 7 ones but have 2. Trade 1 rod for 10 cubes: 12 ones. Now take away.',
+  hands:'Have them build the top number and trade a rod when needed.',hs:'Build the top number. Trade a ten if you need it.',
+  watch:'Subtracting the smaller ones digit from the bigger one (52 − 27 = 35).',hard:'Ask "Do I have enough ones?" before every problem.',ready:'Check each answer by adding.',
+  g(){const a=ri(31,99),b=ri(12,a-6);return VT(a,'−',b,a-b)}},
+ {n:'Arrays',t:'pic',pc:2,dir:'Count the rows and columns. Write the total.',rem:`${B('3')} rows of ${B('4')} is 4 + 4 + 4 = ${B('12')}.`,
+  goal:'Find the total in an array with repeated addition.',need:['counters','muffin tin or egg carton'],words:['row','column','array','total'],
+  show:'Fill a muffin tin 3 rows by 4. Run a finger along each row and add: 4, 8, 12.',
+  hands:'Have them build each array with counters in rows.',hs:'Build each array with counters in rows.',
+  watch:'Mixing up rows (across) and columns (down).',hard:'Use 2 rows only, then add rows.',ready:'Ask if 4 rows of 3 has the same total.',
+  g(){const r=ri(2,5),c=ri(2,6);return PIC(svgArray(r,c,pick(PAL)),'{_} rows of {_} = {_}',`${r} rows of ${c} = ${r*c}`,'a'+r+c,`Array ${r} by ${c}`)}},
+ {n:'Making Equal Groups',t:'blank',cols:2,dir:'Find how many go in each equal group.',rem:`${B('15')} in ${B('3')} equal groups: deal one at a time. Each group gets ${B('5')}.`,
+  goal:'Split a number into equal groups.',need:['counters','small cups'],words:['equal','each','share','split'],
+  show:'Deal 15 counters into 3 cups one at a time. Check that every cup has the same: 5.',
+  hands:'Have them deal counters into cups for each problem.',hs:'Deal counters into cups. Count one cup.',
+  watch:'Uneven groups.',hard:'Use 2 groups only.',ready:'Ask how many groups of 4 you can make from 20.',
+  g(){const g=ri(2,5),n=ri(2,6);return BLK(`${g*n} in ${g} groups: {_} each`,n,'eg'+g+n)}},
+ {n:'Halves, Thirds and Fourths',t:'pic',pc:3,dir:'Write the part that is shaded.',rem:`${B('3')} equal parts are thirds. If ${B('2')} parts are shaded, that is ${B('2 thirds')}.`,
+  goal:'Name halves, thirds and fourths of a shape.',need:['paper circles and rectangles'],words:['equal parts','third','fourth','whole'],
+  show:'Fold a strip into 3 equal parts and color 2: 2 thirds. Count the shaded parts, then the total parts.',
+  hands:'Have them fold paper strips to match each picture.',hs:'Fold a paper strip to match each picture.',
+  watch:'Counting unshaded parts.',hard:'Name halves and fourths before thirds.',ready:'Ask: how many thirds make a whole?',
+  g(){const sh=pick(['circle','rect']),p=pick([2,3,4]),k=ri(1,p-1),o=pick(['v','h']);return PIC(svgFrac(sh,p,k,o),'Shaded: {_}',fracWord(k,p),'f'+sh+p+k+(sh==='circle'?'':o),`${sh}, ${k} of ${p} parts shaded`)}},
+ {n:'Time to 5 Minutes',t:'pic',pc:3,dir:'Read each clock. Write the time.',rem:`Count by ${B('5s')} from the 12 to the minute hand. Hand on 4: 5, 10, 15, 20. So ${B('20')} minutes.`,
+  goal:'Tell time to the nearest five minutes.',need:['a clock with moving hands'],words:['hour hand','minute hand','minutes','past'],
+  show:'Move the minute hand around the clock and count by 5s at each number.',
+  hands:'Have them set a real clock to each time first.',hs:'Count by 5s around the clock with your finger.',
+  watch:'Reading the hour as the next hour when the minute hand is past 6.',hard:'Write 0, 5, 10… around a paper clock.',ready:'Ask what time it will be in 15 minutes.',
+  g(){const h=ri(1,12),m=5*ri(0,11);return PIC(svgClock(h,m),'Time: {_}',hm(h,m),'c'+h+m,'Clock')}},
+ {n:'Shapes and Their Sides',t:'pic',pc:3,dir:'Count the sides. Write the shape name.',rem:`A shape with ${B('4')} sides is a ${B('quadrilateral')}. 5 sides: pentagon. 6 sides: hexagon. 8 sides: octagon.`,
+  goal:'Name shapes by the number of sides.',need:['pattern blocks','paper and ruler'],words:['quadrilateral','pentagon','hexagon','octagon'],
+  show:'Hold up a square, a rhombus and a trapezoid. Count sides: all 4. They are all quadrilaterals.',
+  hands:'Have them trace each side with a finger and count.',hs:'Trace each side with your finger while you count.',
+  watch:'Calling every 4-sided shape a square.',hard:'Keep a sides-to-name card on the table.',ready:'Ask them to draw a quadrilateral that is not a square.',
+  g(){const nm=pick(['triangle','square','rectangle','rhombus','trapezoid','pentagon','hexagon','octagon']);const s=SHAPES[nm].s;const nameAns=s===4?'quadrilateral':s===3?'triangle':nm;return PIC(svgShape(nm,pick(PAL)),'Sides {_} Name {_}',`${s} sides, ${nameAns}`,'sh'+nm,cap(nm))}},
+ {n:'Bar Graphs',t:'graph',dir:'Use the bar graph to answer each question.',rem:`Find the top of the bar. Look straight across to the number. That bar shows ${B('7')}.`,
+  goal:'Read a bar graph and compare amounts.',need:['a ruler or card to line up bars'],words:['bar graph','scale','most','fewest'],
+  show:'Lay a card flat across from the top of a bar to the number line on the side.',
+  hands:'Have them line up a card from each bar to the scale.',hs:'Use a card to line up each bar with its number.',
+  watch:'Reading the line just above or below the bar.',hard:'Ask one "How many" question per bar first.',ready:'Ask them to make a bar graph of their toys.',
+  gg:barGraphGen(2,1,10,1,10)},
+ {n:'Two-Digit Stories',t:'story',dir:'Read each story. Solve it.',rem:`Find the question first. Then decide: put together (${B('add')}) or take apart or compare (${B('subtract')}).`,
+  goal:'Solve one-step add and subtract stories to 100.',need:['base-ten blocks','scrap paper'],words:['in all','left','how many more','compare'],
+  show:'Read a compare story. Draw two bars, one longer. The difference is the gap between them.',
+  hands:'Have them build each story with blocks or draw bars.',hs:'Draw a picture or bars. Then solve.',
+  watch:'Adding in "how many more" stories.',hard:'Read aloud and underline the question together.',ready:'Ask them to write a compare story.',
+  g(){return story(2)}}
+];
+/* Grade 3 */
+SK[3]=[
+ {n:'Expanded Form',t:'blank',cols:1,dir:'Write each number in expanded form.',rem:`${B('526')} = ${B('500')} + ${B('20')} + ${B('6')}. Each digit shows its value.`,
+  goal:'Write three-digit numbers in expanded form.',need:['place-value cards (hundreds, tens, ones)'],words:['expanded form','value','digit','place'],
+  show:'Lay the 500, 20 and 6 cards on top of each other to make 526. Pull them apart: 500 + 20 + 6.',
+  hands:'Have them build each number with place-value cards, then pull it apart.',hs:'Build the number with cards. Pull it apart.',
+  watch:'Writing 5 + 2 + 6 (the digits, not the values).',hard:'Say each part out loud: five hundred, twenty, six.',ready:'Try numbers with a zero, like 708.',
+  g(){const h=ri(1,9),t=ri(1,9),o=ri(1,9),n=h*100+t*10+o;return BLK(`${n} = {_} + {_} + {_}`,`${h*100} + ${t*10} + ${o}`,'ex'+n)}},
+ {n:'Adding 3-Digit Numbers',t:'vert',dir:'Add. Regroup when you need to.',rem:`${B('358 + 274')}: 8 + 4 = 12, carry 1. 5 + 7 + 1 = 13, carry 1. 3 + 2 + 1 = 6. Sum: ${B('632')}.`,
+  goal:'Add three-digit numbers, regrouping ones and tens.',need:['base-ten blocks','grid paper'],words:['regroup','carry','sum','place'],
+  show:'Work one column at a time from the right. Say what you write and what you carry.',
+  hands:'Have them build problem 1 with blocks and trade when they reach 10.',hs:'Build problem 1 with blocks. Trade at 10.',
+  watch:'Forgetting to add the carried 1.',hard:'Use grid paper so each digit has its own box.',ready:'Estimate first: round each number to the hundred.',
+  g(){const a=ri(105,789),b=ri(105,999-a);return VT(a,'+',b,a+b)}},
+ {n:'Subtracting 3-Digit Numbers',t:'vert',dir:'Subtract. Regroup when you need to.',rem:`${B('542 − 186')}: trade a ten, 12 − 6 = 6. Trade a hundred, 13 − 8 = 5. 4 − 1 = 3. Answer: ${B('356')}.`,
+  goal:'Subtract three-digit numbers with regrouping.',need:['base-ten blocks','grid paper'],words:['regroup','trade','difference','check'],
+  show:'Ask "Do I have enough?" at each column before subtracting. Trade only when the answer is no.',
+  hands:'Have them build the top number and trade a block when needed.',hs:'Build the top number. Trade when you need more.',
+  watch:'Subtracting top from bottom when the top digit is smaller.',hard:'Circle each column that needs a trade first.',ready:'Check each answer by adding.',
+  g(){const a=ri(300,999),b=ri(102,a-40);return VT(a,'−',b,a-b)}},
+ {n:'Multiplication Facts',t:'eq',dir:'Multiply. Write the product.',rem:`${B('4 × 6')} means 4 groups of 6: 6, 12, 18, 24. So 4 × 6 = ${B('24')}.`,
+  goal:'Multiply facts with factors up to 10.',need:['counters','a hundred chart'],words:['multiply','factor','product','groups of'],
+  show:'Show 4 × 6 as 4 rows of 6 counters. Skip count by 6 down the rows.',
+  hands:'Have them build any fact they do not know as an array.',hs:'Build a fact you do not know as an array.',
+  watch:'Adding instead of multiplying (4 × 6 = 10).',hard:'Start with ×2, ×5 and ×10, then add others.',ready:'Ask what 4 × 60 is.',
+  g(){const a=ri(2,10),b=ri(0,10);return EQ(a,'×',b,a*b)}},
+ {n:'Division Facts',t:'eq',dir:'Divide. Write the quotient.',rem:`${B('24 ÷ 4')}: think 4 × ? = 24. 4 × 6 = 24, so 24 ÷ 4 = ${B('6')}.`,
+  goal:'Divide using related multiplication facts.',need:['counters','fact family cards'],words:['divide','quotient','fact family','equal groups'],
+  show:'Write the fact family for 4, 6 and 24. Cover the 6 and ask what is missing.',
+  hands:'Have them share counters into equal groups for any fact they are unsure of.',hs:'Share counters into equal groups if you are stuck.',
+  watch:'Writing the divisor as the answer.',hard:'Keep a multiplication chart on the table.',ready:'Ask what 240 ÷ 4 is.',
+  g(){const b=ri(2,10),c=ri(1,10);return EQ(b*c,'÷',b,c)}},
+ {n:'Unit Fractions',t:'pic',pc:3,dir:'Write the fraction that is shaded.',rem:`${B('1')} part shaded out of ${B('4')} equal parts is ${fr(1,4)}. The bottom number counts the parts.`,
+  goal:'Write unit fractions for one part of a whole.',need:['fraction strips or paper strips'],words:['numerator','denominator','unit fraction','equal parts'],
+  show:'Fold a strip into 4 equal parts. Shade one. Write 1 on top (shaded) and 4 on bottom (parts).',
+  hands:'Have them fold or use fraction strips to match each picture.',hs:'Use fraction strips to match each picture.',
+  watch:'Writing the number of unshaded parts on the bottom.',hard:'Count the parts out loud before writing.',ready:'Ask which is bigger: 1/3 or 1/8.',
+  g(){const sh=pick(['circle','rect']),p=pick([2,3,4,6,8]),o=pick(['v','h']);return PIC(svgFrac(sh,p,1,o),'Fraction: {_}',`1/${p}`,'u'+sh+p+(sh==='circle'?'':o),`${sh}, 1 of ${p} parts shaded`)}},
+ {n:'Time to the Minute',t:'pic',pc:3,dir:'Read each clock. Write the time to the minute.',rem:`Count by ${B('5s')} to the last number passed, then count on by ${B('1s')}. 5, 10, 15, 16, 17: ${B('17')} minutes.`,
+  goal:'Tell time to the nearest minute.',need:['a clock with moving hands'],words:['minute','hour','past','to'],
+  show:'Move the minute hand slowly. Count by 5s, then by ones for the small marks.',
+  hands:'Have them set a real clock to each time.',hs:'Count by 5s, then by 1s, on a real clock.',
+  watch:'Reading the next hour when the hand is close to the next number.',hard:'Do times to 5 minutes first.',ready:'Ask how many minutes until the next hour.',
+  g(){const h=ri(1,12),m=ri(1,59);return PIC(svgClock(h,m),'Time: {_}',hm(h,m),'c'+h+m,'Clock')}},
+ {n:'Area by Counting Squares',t:'pic',pc:3,dir:'Count the squares. Write the area.',rem:`Area is how many squares cover a shape. ${B('3')} rows of ${B('4')} squares is ${B('12')} square units.`,
+  goal:'Find area by counting unit squares.',need:['square tiles or sticky notes','grid paper'],words:['area','square unit','row','cover'],
+  show:'Cover a book with sticky notes, no gaps. Count them by rows.',
+  hands:'Have them build each rectangle with square tiles.',hs:'Build each shape with square tiles. Count them.',
+  watch:'Counting only the squares around the edge.',hard:'Count row by row and write each row total.',ready:'Ask them to multiply rows × columns.',
+  g(){const w=ri(2,7),h=ri(2,5);return PIC(svgGrid(w,h),'Area = {_} square units',`${w*h} square units`,'ar'+w+h,`${h} by ${w} rectangle`)}},
+ {n:'Bar Graphs with a Scale of 2',t:'graph',dir:'Use the bar graph to answer each question.',rem:`The scale counts by ${B('2s')}. A bar between 6 and 8 shows ${B('7')}.`,
+  goal:'Read a bar graph with a scale of 2.',need:['a ruler or card'],words:['scale','bar','compare','in all'],
+  show:'Point at the scale and count by 2s. Line up a card from a bar to the scale.',
+  hands:'Have them line up a card from each bar to the scale.',hs:'Use a card to line up each bar with its number.',
+  watch:'Counting each line as 1.',hard:'Write the missing odd numbers beside the scale.',ready:'Ask them to make a graph with a scale of 5.',
+  gg:barGraphGen(3,2,20,2,20)},
+ {n:'Equal Groups Stories',t:'story',dir:'Read each story. Solve it.',rem:`"Each bag has" or "rows of" means ${B('multiply')}. "Shares equally" means ${B('divide')}.`,
+  goal:'Solve multiplication and division stories.',need:['counters','cups'],words:['each','equally','in all','rows of'],
+  show:'Act out "3 bags with 5 in each" with cups, then write 3 × 5 = 15.',
+  hands:'Have them act out each story with cups and counters.',hs:'Draw groups or act it out. Then solve.',
+  watch:'Multiplying in a sharing story.',hard:'Draw circles for the groups and dots inside.',ready:'Ask them to write a story for 24 ÷ 6.',
+  g(){return story(3)}}
+];
+/* Grade 4 */
+SK[4]=[
+ {n:'Place Value to Millions',t:'blank',cols:2,dir:'Write the value of the bold digit.',rem:`In 4,${B('7')}28,315 the ${B('7')} is in the hundred thousands place. Its value is ${B('700,000')}.`,
+  goal:'Find the value of a digit in numbers to the millions.',need:['a place-value chart to millions'],words:['value','place','period','millions'],
+  show:'Write 4,728,315 in a place-value chart. Name each place from the right in groups of three.',
+  hands:'Have them write each number into the place-value chart first.',hs:'Write the number in a place-value chart first.',
+  watch:'Giving the digit (7) instead of its value (700,000).',hard:'Cover all digits but one and read its place.',ready:'Ask how the value changes if the digit moves one place left.',
+  g(){let n=ri(1000000,9999999),s=nf(n),i=decDigit(s);let guard=0;while(i<0&&guard++<20){n=ri(1000000,9999999);s=nf(n);i=decDigit(s)}
+    const dgt=+s[i];const after=s.slice(i+1).replace(/,/g,'').length;const val=dgt*10**after;return BLK(`${s.slice(0,i)}${B(s[i])}${s.slice(i+1)} Value: {_}`,nf(val),'pv'+s+i,`${s} (digit ${s[i]})`)}},
+ {n:'Adding Multi-Digit Numbers',t:'vert',dir:'Add. Regroup when you need to.',rem:`Line up the places. Add from the right. ${B('4,586 + 2,739')} = ${B('7,325')}.`,
+  goal:'Add four-digit numbers with the standard method.',need:['grid paper'],words:['regroup','place','sum','estimate'],
+  show:'Estimate first (5,000 + 3,000). Add one column at a time and say each carry out loud.',
+  hands:'Have them write problem 1 on grid paper with one digit per box.',hs:'Write problem 1 on grid paper, one digit per box.',
+  watch:'Columns that drift out of line.',hard:'Use grid paper for every problem.',ready:'Add three four-digit numbers.',
+  g(){const a=ri(1205,7999),b=ri(1105,9999-a);return VT(a,'+',b,a+b)}},
+ {n:'Subtracting Across Zeros',t:'vert',dir:'Subtract. Regroup across zeros when needed.',rem:`${B('5,003 − 1,647')}: trade 1 thousand for 9 hundreds, 9 tens, 10 ones. Answer: ${B('3,356')}.`,
+  goal:'Subtract four-digit numbers, including across zeros.',need:['grid paper','base-ten blocks (optional)'],words:['regroup','zero','difference','check'],
+  show:'Show 5,003 as 4,99(13): one trade across all the zeros. Then subtract each column.',
+  hands:'Have them use blocks to show the trade across zeros once.',hs:'Show the trade with blocks once. Then write it.',
+  watch:'Treating each zero separately and losing a ten.',hard:'Use 1,000-style numbers like 4,000 − 1,234 first.',ready:'Check by adding the answer to the number taken away.',
+  g(){const a=rnd()<.4?ri(2,9)*1000+ri(1,9):ri(2000,9999),b=ri(1001,a-100);return VT(a,'−',b,a-b)}},
+ {n:'Multiply by One Digit',t:'vert',dir:'Multiply. Regroup when you need to.',rem:`${B('326 × 4')}: 4 × 6 = 24, carry 2. 4 × 2 = 8, + 2 = 10, carry 1. 4 × 3 = 12, + 1 = 13. Product: ${B('1,304')}.`,
+  goal:'Multiply a three-digit number by a one-digit number.',need:['grid paper'],words:['product','factor','carry','partial product'],
+  show:'Show 326 × 4 as 300 × 4 + 20 × 4 + 6 × 4, then the short method.',
+  hands:'Have them write the partial products for problem 1 before the short method.',hs:'Break problem 1 into parts first.',
+  watch:'Adding the carry before multiplying.',hard:'Use the partial-products method only.',ready:'Multiply a four-digit number by one digit.',
+  g(){const a=ri(112,899),b=ri(3,9);return VT(a,'×',b,a*b)}},
+ {n:'Dividing with Remainders',t:'blank',cols:2,dir:'Divide. Write the quotient and remainder.',rem:`${B('29 ÷ 4')}: 4 × 7 = 28. 29 − 28 = 1. So 29 ÷ 4 = ${B('7 R 1')}.`,
+  goal:'Divide and name the remainder.',need:['counters'],words:['quotient','remainder','divisor','left over'],
+  show:'Share 29 counters into 4 groups. Show the 1 left over.',
+  hands:'Have them share counters for problem 1 and point to what is left.',hs:'Share counters for problem 1. Find what is left.',
+  watch:'A remainder bigger than the divisor.',hard:'List the multiples of the divisor first.',ready:'Ask what to do with a remainder in a story.',
+  g(){const b=ri(3,9),q=ri(4,12),re=ri(1,b-1),a=b*q+re;return BLK(`${a} ${op('÷')} ${b} = {_} R {_}`,`${q} R ${re}`,a+'÷'+b,`${a} ÷ ${b} =`)}},
+ {n:'Equivalent Fractions',t:'blank',cols:3,dir:'Write the missing number to make equal fractions.',rem:`${fr(2,3)} = ${fr(8,12)}. Multiply the top and bottom by the same number: ${B('× 4')}.`,
+  goal:'Make equivalent fractions by multiplying or dividing.',need:['fraction strips'],words:['equivalent','numerator','denominator','factor'],
+  show:'Line up 2/3 and 8/12 strips: same length. Show × 4 on top and bottom.',
+  hands:'Have them line up fraction strips to check two answers.',hs:'Check two answers with fraction strips.',
+  watch:'Adding the same number instead of multiplying.',hard:'Write "× ?" above and below each pair.',ready:'Simplify 12/18 to lowest terms.',
+  g(){let b=pick([2,3,4,5,6]),a=ri(1,b-1);while(gcd(a,b)!==1)a=ri(1,b-1);const k=ri(2,5);
+    return rnd()<.6?BLK(`${fr(a,b)} = ${fr('{_}',b*k)}`,a*k,`${a}/${b}=?/${b*k}`,`${a}/${b} = ?/${b*k}`):BLK(`${fr(a*k,b*k)} = ${fr('{_}',b)}`,a,`${a*k}/${b*k}=?/${b}`,`${a*k}/${b*k} = ?/${b}`)}},
+ {n:'Converting Units',t:'blank',cols:2,dir:'Convert each measurement. Write the missing number.',rem:`1 foot = 12 inches. ${B('3')} feet = 3 × 12 = ${B('36')} inches. Bigger unit to smaller: multiply.`,
+  goal:'Convert larger units to smaller units.',need:['a ruler and yardstick','a conversion card'],words:['convert','inch','foot','yard'],
+  show:'Lay three rulers end to end: 3 feet. Count inches by 12s: 12, 24, 36.',
+  hands:'Have them measure one real object in two units.',hs:'Measure one real object in two units.',
+  watch:'Dividing when changing to a smaller unit.',hard:'Keep a conversion card on the table.',ready:'Convert 2 feet 5 inches to inches.',
+  g(){const [u1,u2,f]=pick([['feet','inches',12],['yards','feet',3],['hours','minutes',60],['minutes','seconds',60],['pounds','ounces',16],['gallons','quarts',4],['days','hours',24],['weeks','days',7]]);const n=ri(2,9);return BLK(`${n} ${u1} = {_} ${u2}`,n*f,u1+n)}},
+ {n:'Area and Perimeter',t:'pic',pc:2,dir:'Find the area and perimeter of each rectangle.',rem:`Area = length × width: 8 × 5 = ${B('40')} square feet. Perimeter = all sides: 8 + 5 + 8 + 5 = ${B('26')} feet.`,
+  goal:'Find area and perimeter of rectangles.',need:['grid paper','string'],words:['area','perimeter','length','width'],
+  show:'Draw an 8 by 5 rectangle on grid paper. Trace the outside for perimeter. Shade inside for area.',
+  hands:'Have them wrap string around a book for perimeter and tile it for area.',hs:'Trace the outside for perimeter. Shade inside for area.',
+  watch:'Mixing up area and perimeter.',hard:'Write A = l × w and P = l + w + l + w on a card.',ready:'Find a rectangle with perimeter 20 and the biggest area.',
+  g(){let l=ri(3,12),w=ri(2,9);if(l===w)l++;const u=pick(['ft','m','in','cm']);return PIC(svgRect(l,w,u),'Area {_} Perimeter {_}',`${l*w} sq ${u}; ${2*(l+w)} ${u}`,'r'+l+w,`${l} by ${w} ${u} rectangle`)}},
+ {n:'Two-Step Graph Questions',t:'graph',dir:'Use the bar graph to answer each question.',rem:`For two steps, do one step at a time. Add the two bars first, then subtract.`,
+  goal:'Answer one- and two-step questions from a bar graph.',need:['a card for lining up bars','scrap paper'],words:['scale','total','difference','two-step'],
+  show:'Model a two-step question: write the first step, then the second.',
+  hands:'Have them write each step on scrap paper.',hs:'Write each step on scrap paper.',
+  watch:'Stopping after the first step.',hard:'Split each two-step question into two questions.',ready:'Ask them to write a two-step question for you.',
+  gg:barGraphGen(4,10,100,10,100)},
+ {n:'Multi-Step Stories',t:'story',dir:'Read each story. Solve it in steps.',rem:`Step 1: find the hidden number. Step 2: use it to answer the question. Write both steps.`,
+  goal:'Solve two-step stories with multiplication.',need:['scrap paper','bar-model cards'],words:['step','total','each','left over'],
+  show:'Underline the question. Ask "What do I need to find first?" Write step 1 and step 2.',
+  hands:'Have them draw a bar model for each story.',hs:'Draw a bar model. Then solve each step.',
+  watch:'Using every number once without checking the story.',hard:'Give the first step as a separate question.',ready:'Ask them to estimate before solving.',
+  g(){return story(4)}}
+];
+/* Grade 5 */
+SK[5]=[
+ {n:'Decimal Place Value',t:'blank',cols:2,dir:'Write the value of the bold digit.',rem:`In 3.4${B('8')}2 the ${B('8')} is in the hundredths place. Its value is ${B('0.08')}.`,
+  goal:'Name the place and value of digits in decimals.',need:['a place-value chart to thousandths'],words:['tenths','hundredths','thousandths','decimal point'],
+  show:'Write 3.482 in a chart. Say each place right of the point: tenths, hundredths, thousandths.',
+  hands:'Have them write each number in the chart before answering.',hs:'Write each number in a place-value chart first.',
+  watch:'Calling the first place after the point "tens".',hard:'Use money: 0.1 is a dime, 0.01 is a penny.',ready:'Compare 0.45 and 0.405.',
+  g(){let s,i,guard=0;do{s=(ri(1000,99999)/1000).toFixed(3);i=decDigit(s)}while((i<0||i<s.indexOf('.'))&&guard++<40);
+    const pos=i-s.indexOf('.');const names=['','tenths','hundredths','thousandths'];const val=(+s[i]/10**pos).toFixed(pos);return BLK(`${s.slice(0,i)}${B(s[i])}${s.slice(i+1)} Value: {_}`,`${val} (${s[i]} ${names[pos]})`,'d'+s+i,`${s} (digit ${s[i]})`)}},
+ {n:'Adding Decimals',t:'vert',dir:'Line up the decimal points. Add.',rem:`Line up the points. Add like whole numbers. ${B('4.75 + 2.68')} = ${B('7.43')}.`,
+  goal:'Add decimals to hundredths.',need:['grid paper','play money (optional)'],words:['decimal point','tenths','hundredths','line up'],
+  show:'Write 4.75 + 2.68 on grid paper with the points in one column. Add and bring the point straight down.',
+  hands:'Have them model problem 1 with play money.',hs:'Model problem 1 with play money.',
+  watch:'Points not lined up.',hard:'Write a zero to fill empty places.',ready:'Add three decimals.',
+  g(){const dp=pick([1,2]),m=10**dp,A=ri(1.2*m,79*m),Bv=ri(1.1*m,99*m-A);return VT((A/m).toFixed(dp),'+',(Bv/m).toFixed(dp),((A+Bv)/m).toFixed(dp))}},
+ {n:'Subtracting Decimals',t:'vert',dir:'Line up the decimal points. Subtract.',rem:`${B('8.40 − 3.65')}: line up the points, regroup as usual. Answer: ${B('4.75')}.`,
+  goal:'Subtract decimals to hundredths.',need:['grid paper','play money (optional)'],words:['decimal point','regroup','difference','zero'],
+  show:'Show 8.40 − 3.65 and trade a dime for 10 pennies.',
+  hands:'Have them model problem 1 with play money.',hs:'Model problem 1 with play money.',
+  watch:'Forgetting to bring down the decimal point.',hard:'Add zeros so both numbers have the same places.',ready:'Check by adding.',
+  g(){const dp=pick([1,2]),m=10**dp,A=ri(5*m,99*m),Bv=ri(1.1*m,A-m);return VT((A/m).toFixed(dp),'−',(Bv/m).toFixed(dp),((A-Bv)/m).toFixed(dp))}},
+ {n:'Multiply by Two Digits',t:'vert',dir:'Multiply. Show both partial products.',rem:`${B('46 × 23')}: 46 × 3 = 138. 46 × 20 = 920. 138 + 920 = ${B('1,058')}.`,
+  goal:'Multiply a two- or three-digit number by a two-digit number.',need:['grid paper'],words:['partial product','placeholder zero','product','factor'],
+  show:'Show the two rows: ones first, then a zero and the tens. Add the rows.',
+  hands:'Have them draw an area model for problem 1.',hs:'Draw an area model for problem 1.',
+  watch:'Leaving out the placeholder zero in the second row.',hard:'Use the area model for every problem.',ready:'Estimate each product first.',
+  g(){const a=ri(23,489),b=ri(12,58);return VT(a,'×',b,nf(a*b))}},
+ {n:'Divide by Two Digits',t:'eq',dir:'Divide. Write the quotient.',rem:`${B('864 ÷ 24')}: estimate 24 × 30 = 720. 864 − 720 = 144. 24 × 6 = 144. Answer: ${B('36')}.`,
+  goal:'Divide by a two-digit divisor.',need:['grid paper','a multiples list'],words:['divisor','dividend','quotient','estimate'],
+  show:'List multiples of 24 (24, 48, 72…). Use them to take away big chunks.',
+  hands:'Have them write the first five multiples of each divisor.',hs:'List multiples of the divisor first.',
+  watch:'Quotients that are 10 times too big or small.',hard:'Use the partial-quotients method.',ready:'Divide with a remainder and explain it.',
+  g(){const b=ri(12,32),q=ri(11,45);return EQ(nf(b*q),'÷',b,q)}},
+ {n:'Adding Unlike Fractions',t:'blank',cols:2,dir:'Add. Find a common denominator first.',rem:`${fr(1,3)} + ${fr(1,4)} = ${fr(4,12)} + ${fr(3,12)} = ${fr(7,12)}.`,
+  goal:'Add fractions with unlike denominators.',need:['fraction strips','multiplication chart'],words:['common denominator','equivalent','simplify','mixed number'],
+  show:'Line up 1/3 and 1/4 strips. Find twelfths that fit both. Rename and add.',
+  hands:'Have them check problem 1 with fraction strips.',hs:'Check problem 1 with fraction strips.',
+  watch:'Adding the denominators (1/3 + 1/4 = 2/7).',hard:'Use pairs where one denominator divides the other.',ready:'Subtract unlike fractions.',
+  g(){let b=pick([2,3,4,5,6,8]),d=pick([2,3,4,5,6,8,10,12]);while(d===b)d=pick([3,4,5,6,8,10,12]);const a=ri(1,b-1),c=ri(1,d-1);
+    let n=a*d+c*b,den=b*d;const g=gcd(n,den);n/=g;den/=g;const ans=n>=den?(n%den?`${Math.floor(n/den)} ${n%den}/${den}`:`${n/den}`):`${n}/${den}`;
+    return BLK(`${fr(a,b)} ${op('+')} ${fr(c,d)} = {_}`,ans,`${a}/${b}+${c}/${d}`,`${a}/${b} + ${c}/${d} =`)}},
+ {n:'Metric Conversions',t:'blank',cols:2,dir:'Convert each measurement. Write the missing number.',rem:`1 meter = 100 centimeters. ${B('3.5')} m = 3.5 × 100 = ${B('350')} cm.`,
+  goal:'Convert metric units using powers of 10.',need:['a meter stick','a kitchen scale'],words:['meter','centimeter','gram','liter'],
+  show:'Show moving the decimal point: × 100 moves it two places right.',
+  hands:'Have them measure a table in meters and centimeters.',hs:'Measure one real object in meters and centimeters.',
+  watch:'Moving the point the wrong way.',hard:'Use a place-value chart for the conversion.',ready:'Convert 2,500 g to kg.',
+  g(){const [u1,u2,f]=pick([['m','cm',100],['km','m',1000],['kg','g',1000],['L','mL',1000],['cm','mm',10]]);
+    if(rnd()<.5){const n=ri(2,95)/10;return BLK(`${n} ${u1} = {_} ${u2}`,nf(Math.round(n*f)),u1+n)}const n=ri(2,9)*f;return BLK(`${nf(n)} ${u2} = {_} ${u1}`,n/f,u2+n)}},
+ {n:'Volume of Boxes',t:'pic',pc:3,dir:'Find the volume of each box.',rem:`Volume = length × width × height. ${B('4 × 3 × 2')} = ${B('24')} cubic units.`,
+  goal:'Find the volume of a rectangular prism.',need:['unit cubes or sugar cubes','a small box'],words:['volume','cubic unit','length','height'],
+  show:'Build a 4 by 3 layer of cubes. Stack 2 layers. Count: 12, 24.',
+  hands:'Have them build problem 1 with cubes.',hs:'Build problem 1 with cubes. Count the layers.',
+  watch:'Adding the three numbers.',hard:'Find one layer first, then count layers.',ready:'Find a box with volume 36 a new way.',
+  g(){const l=ri(2,8),w=ri(2,6),h=ri(2,7);return PIC(svgPrism(l,w,h),'Volume = {_} cubic units',`${l*w*h} cubic units`,'v'+l+w+h,`box ${l} × ${w} × ${h}`)}},
+ {n:'The Coordinate Grid',t:'graph',dir:'Use the grid to answer each question.',rem:`Read ${B('(3, 5)')} as: go across ${B('3')}, then up ${B('5')}. Across first, then up.`,
+  goal:'Plot and read points on a coordinate grid.',need:['grid paper','two colors of pencil'],words:['x-axis','y-axis','ordered pair','origin'],
+  show:'Start at 0. Walk a finger across the bottom, then up. Say "across, then up."',
+  hands:'Have them trace each path with a finger: across, then up.',hs:'Trace across, then up, with your finger.',
+  watch:'Switching the order (going up first).',hard:'Color the x-axis and y-axis different colors.',ready:'Ask them to plot a shape and list its points.',
+  gg:coordGen},
+ {n:'Multi-Step Decimal Stories',t:'story',dir:'Read each story. Solve it in steps.',rem:`Find the hidden step. Money and measures use decimals: line up the points every time.`,
+  goal:'Solve multi-step stories with decimals.',need:['play money','scrap paper'],words:['total','change','each','estimate'],
+  show:'Estimate first, then write step 1 and step 2. Compare the answer to the estimate.',
+  hands:'Have them model money stories with play money.',hs:'Use play money or a drawing. Then solve.',
+  watch:'Decimal points not lined up in the second step.',hard:'Give the first step as a separate question.',ready:'Ask them to write a story with a 3-step answer.',
+  g(){return story(5)}}
+];
+
+/* quick facts per grade */
+function fact(grade){
+  if(grade===1){const a=ri(0,10),b=ri(0,10-a);return EQ(a,'+',b,a+b)}
+  if(grade===2){if(rnd()<.5){const a=ri(2,10),b=ri(2,10);return EQ(a,'+',b,a+b)}const a=ri(6,18),b=ri(2,Math.min(9,a-1));return EQ(a,'−',b,a-b)}
+  if(grade===3){const a=ri(2,10),b=ri(1,10);return EQ(a,'×',b,a*b)}
+  const hi=grade===4?10:12;
+  if(rnd()<.5){const a=ri(2,hi),b=ri(2,hi);return EQ(a,'×',b,a*b)}const b=ri(2,hi),c=ri(2,hi);return EQ(b*c,'÷',b,c);
+}
+
+/* ---------- learning methods ---------- */
+const METHODS={
+ standard:{label:'Standard',short:'Grade-level pacing with full practice sets.',
+  who:'A student working at grade level who reads directions on their own.',
+  size:{nw:{eq:8,vert:8,pic:6,blank:6,story:2,graph:4},rv:{eq:4,vert:4,pic:3,blank:4,story:1,graph:3}},cols:{eq:4,vert:4,pic:3,blank:2},
+  steps:[['Warm up',3,'Do five quick facts out loud from yesterday.'],['Show',5,null],['Do one together',5,'Solve problem 1 together. Think out loud at each step.'],['Try it with hands',5,null],['On their own',20,null]],
+  book:['Full practice sets: 8 new-skill problems in each lesson','3 review parts a lesson, so every strand comes back 3 times a cycle','Standard type size (18 px) and spacing'],
+  sup:['Read the Remember box together before Part 1.','Check Part 1 before the review parts; fix one mistake together.','Mark any review strand with two or more misses for the next cycle.']},
+ dyslexia:{label:'Dyslexia-friendly',short:'Bigger type, more space, fewer items per line, key symbols highlighted.',
+  who:'A student who understands more than they can read on their own, or who mixes up look-alike numbers and symbols.',
+  size:{nw:{eq:6,vert:6,pic:4,blank:4,story:1,graph:3},rv:{eq:3,vert:3,pic:2,blank:3,story:1,graph:3}},cols:{eq:3,vert:3,pic:2,blank:1},
+  steps:[['Warm up',3,'Say five facts together. Point to each symbol as you say it.'],['Show',6,null],['Do one together',6,'Read problem 1 aloud. Let them read the numbers and solve.'],['Try it with hands',5,null],['On their own',20,null]],
+  book:['Larger type (20 px), line spacing 1.6 and wider letter spacing','Fewer problems per line (2–3 across) and a single column for word-heavy items','The operation sign in each new-skill problem is highlighted in gold','Key numbers in story problems are bold; directions stay one line'],
+  sup:['Read each direction aloud; let them read the numbers.','Keep a card under the line they are working on.','Accept a reversed digit when the answer is clear; practice the digit later.','Print on cream or ivory paper to cut glare.']},
+ focus:{label:'Focus & attention',short:'Short parts, a check-off strip and built-in movement breaks.',
+  who:'A student who works best in short bursts with clear finish lines.',
+  size:{nw:{eq:6,vert:6,pic:3,blank:4,story:1,graph:3},rv:{eq:3,vert:3,pic:3,blank:2,story:1,graph:2}},cols:{eq:3,vert:3,pic:3,blank:2},
+  steps:[['Warm up',2,'Do three quick facts out loud, fast and fun.'],['Show',4,null],['Do one together',4,'Solve problem 1 together, then high-five and move on.'],['Movement break',2,'Stand up: 10 jumping jacks or a lap of the room.'],['Try it with hands',5,null],['On their own',20,'Work in two 10-minute blocks with a short break between.']],
+  book:['Shorter parts (3–6 problems) so each one is a quick win','A check-off strip at the top of each side to tick off parts','A movement-break reminder in the middle of the front','Same spiral review, spread over smaller chunks'],
+  sup:['Set a visible timer for each block (8–10 minutes).','Let them tick each part in the strip when it is done.','Start with the part they are most likely to get right.','Praise finishing, specifically: "You finished Part 2 without stopping."']},
+ hands:{label:'Hands-on',short:'Every lesson starts with something to build, fold or move.',
+  who:'A student who learns by building, moving and touching things first.',
+  size:{nw:{eq:6,vert:4,pic:4,blank:4,story:1,graph:3},rv:{eq:4,vert:3,pic:2,blank:3,story:1,graph:3}},cols:{eq:3,vert:4,pic:2,blank:2},
+  steps:[['Warm up',3,'Do five quick facts with counters or fingers.'],['Show',5,null],['Try it with hands',8,null],['Do one together',4,'Solve problem 1 together with the materials still out.'],['On their own',18,null]],
+  book:['A "Use Your Hands" panel on each lesson with the activity to do first','Bigger pictures (2 across) with room to mark, circle and count','Materials list in the Teacher\'s Guide for every lesson'],
+  sup:['Set out the materials before the lesson starts.','Have them build or act out problem 1 before writing anything.','Let them say the steps out loud while they move the pieces.','Keep materials on the table for the review parts too.']}
+};
+const MKEYS=Object.keys(METHODS);
+
+/* ---------- build the cycle model ---------- */
+let UID=0;
+function uniq(gen,used){for(let t=0;t<120;t++){const it=gen();if(!used.has(it.k)){used.add(it.k);return it}}return null}
+function colsFor(t,skill,M){if(t==='eq')return M.cols.eq;if(t==='vert')return M.cols.vert;if(t==='pic')return Math.min(M.cols.pic,skill.pc||3);if(t==='blank')return Math.min(M.cols.blank,skill.cols||2);return 1}
+function makeSection(kind,strand,skill,size,used,M,prevSkill){
+  const sec={id:'s'+(++UID),kind,strand,skill,t:skill.t,prev:!!prevSkill,items:[]};
+  const n=size[skill.t];
+  if(skill.t==='graph'){let g,guard=0;do{g=skill.gg(n)}while(g.items.some(i=>used.has(i.k))&&guard++<20);g.items.forEach(i=>used.add(i.k));sec.visual=g.visual;sec.data=g.data;sec.items=g.items;sec.cols=1}
+  else{for(let i=0;i<n;i++){const it=uniq(skill.g,used);if(it)sec.items.push(it)}sec.cols=colsFor(skill.t,skill,M)}
+  sec.items.forEach(it=>{it.id='i'+(++UID);it.kept=true});
+  return sec;
+}
+function buildModel(grade,mkey,set){
+  UID=0;rnd=mulberry(grade*7919+MKEYS.indexOf(mkey)*104729+set*15485863);
+  const M=METHODS[mkey],sk=SK[grade],prev=SK[Math.max(1,grade-1)];
+  const counts=Array(10).fill(0),lessons=[];
+  for(let k=0;k<10;k++){
+    const used=new Set();
+    const L={k,day:k+1,strand:k,skill:sk[k],used};
+    L.nw=makeSection('new',k,sk[k],M.size.nw,used,M);
+    const OFF=[[9,6,3],[9,7,4],[9,5,2],[9,7,3]][(set-1)%4];
+    let picks=OFF.map(o=>(k+o)%10);
+    const heavy=x=>sk[x].t==='graph'||sk[x].t==='story';
+    picks.sort((a,b)=>heavy(a)-heavy(b)); /* the one heavy review (graph or story) goes on the back */
+    picks.forEach(x=>counts[x]++);
+    const rev=picks.map(x=>x<k||grade===1?makeSection('rev',x,sk[x],M.size.rv,used,M):makeSection('rev',x,prev[x],M.size.rv,used,M,true));
+    L.front=[rev[0]];L.back=[rev[1],rev[2]];
+    L.thinkF={id:'t'+(++UID),...uniq(()=>story(grade),used),kept:true};
+    L.thinkB={id:'t'+(++UID),...uniq(()=>story(grade),used),kept:true};
+    L.facts=[];for(let i=0;i<30;i++){const f=uniq(()=>fact(grade),used);if(f){f.id='f'+(++UID);f.kept=true;L.facts.push(f)}}
+    lessons.push(L);
+  }
+  /* test: 2 items per strand, unique within the test */
+  const tu=new Set(),test=[];
+  for(let s=0;s<10;s++){const skl=sk[s];
+    if(skl.t==='graph'){const g=skl.gg(2);g.items.forEach(i=>{i.id='x'+(++UID);i.kept=true});test.push({strand:s,graph:g,items:g.items})}
+    else{const its=[uniq(skl.g,tu),uniq(skl.g,tu)].filter(Boolean);its.forEach(i=>{i.id='x'+(++UID);i.kept=true});test.push({strand:s,items:its,skill:skl})}}
+  return {grade,mkey,M,set,lessons,test};
+}
+
+/* ---------- render: student workbook ---------- */
+const fill=q=>q.replace(/\{_\}/g,'<span class="bl"></span>');
+const digits=s=>[...String(s)].map(c=>`<span class="d">${c}</span>`).join('');
+function itemHTML(it,num=true){
+  let b='';
+  if(it.t==='eq')b=`<span class="q">${it.q}</span><span class="ln"></span>`;
+  else if(it.t==='vert')b=`<table class="vt"><tr><td></td><td>${digits(it.top)}</td></tr><tr><td>${op(it.sym)}</td><td>${digits(it.bot)}</td></tr><tr class="ans"><td></td><td></td></tr></table>`;
+  else if(it.t==='blank')b=`<span class="pq">${fill(it.q)}</span>`;
+  else if(it.t==='pic')b=`<div class="pic">${it.svg}<div class="pq">${fill(it.q)}</div></div>`;
+  else if(it.t==='story')b=`<div class="story">${it.q}</div><div class="ansrow">Answer: <i></i></div>`;
+  return `<div class="it" data-iid="${it.id}">${num?'<span class="n"></span>':''}<div class="bd">${b}</div></div>`;
+}
+function sectionHTML(sec,M){
+  const head=sec.kind==='new'?`<span class="pn">Part 1:</span> New Skill`:`<span class="pn">Part 2:</span> Review · ${STR[sec.strand]}`;
+  const dir=`<div class="dir">${sec.skill.dir}</div>`;
+  let inner;
+  if(sec.t==='graph')inner=`<div class="graphbox"><div>${sec.visual}</div><div class="grid c1">${sec.items.map(i=>itemHTML(i)).join('')}</div></div>`;
+  else inner=`<div class="grid c${sec.cols}">${sec.items.map(i=>itemHTML(i)).join('')}</div>`;
+  return `<section class="sec ${sec.kind==='new'?'sec-new':''}" data-sid="${sec.id}" ${sec.kind==='new'?'data-new':'data-rev'} data-cols="${sec.cols}" data-t="${sec.t}"><h3>${head}</h3>${dir}${inner}</section>`;
+}
+function thinkHTML(t,opt){return `<section class="think grow" ${opt?'data-opt="think"':'data-opt2="think"'} data-sid="${t.id}"><h3>Think It Through</h3><div class="it" data-iid="${t.id}"><span class="n"></span><div class="bd"><div class="story">${t.q}</div><div class="work"><span class="wl">Work space</span></div><div class="ansrow">Answer: <i></i></div></div></div></section>`}
+function page(inner,{label='',foot='',cls='',body=true}={}){
+  return `<div class="pg-wrap"><div class="page ${cls}"><div class="tab"></div>${label!==null?`<div class="pg-head"><span class="badge"><span class="mark"><i></i></span>Math Loops</span><span>${label}</span></div>`:''}${body?`<div class="pg-body">${inner}</div>`:inner}<div class="pg-foot"><span>${foot}</span><span class="pgn"></span></div></div></div>`;
+}
+function stripHTML(n){return `<div class="strip">Check off each part: ${Array.from({length:n},(_,i)=>`<span><i class="box"></i>Part <b class="sn">${i+1}</b></span>`).join('')}</div>`}
+function renderStudent(m){
+  const g=m.grade,M=m.M,mk=m.mkey;const foot=`Math Loops · Grade ${g}`;
+  let h='';
+  /* cover */
+  h+=`<div class="pg-wrap"><div class="page cover"><div class="slab"><div class="flag"></div><div class="brandline">Expedition Workbooks</div><div class="cmark"><i></i></div><div class="ctitle">Math Loops</div><div class="csub">Grade ${g} · Student Workbook</div></div><div class="cbot"><div class="cline">Name <i></i></div><div class="cline">School year <i></i></div><p class="inside"><b>Cycle 1:</b> ten lessons, one for each math strand, and a two-page test. Each lesson is one sheet. Do the front, then turn it over.</p></div></div></div>`;
+  for(const L of m.lessons){
+    const lab=`Cycle 1 · Lesson ${L.day} · Day ${L.day}`;
+    let f='';
+    if(mk==='focus')f+=stripHTML(3);
+    f+=`<h1>${L.skill.n}</h1><div class="namedate"><span>Name <i></i></span><span>Date <i></i></span></div>`;
+    f+=`<div class="panel remp"><span class="lbl">Remember</span>${L.skill.rem}</div>`;
+    if(mk==='hands')f+=`<div class="panel tryp"><span class="lbl">Use Your Hands</span>${L.skill.hs}</div>`;
+    f+=sectionHTML(L.nw,M);
+    if(mk==='focus')f+=`<div class="brk" data-opt="brk">Brain break: stand up and stretch for one minute.</div>`;
+    f+=sectionHTML(L.front[0],M)+thinkHTML(L.thinkF,true)+`<div class="turn">Turn over →</div>`;
+    h+=page(f,{label:lab,foot,cls:'front'}).replace('class="pg-wrap"',`class="pg-wrap" data-lesson="${L.k}"`);
+    let b='';
+    if(mk==='focus')b+=stripHTML(3);
+    b+=`<h1>Keep Going!</h1>`+sectionHTML(L.back[0],M)+sectionHTML(L.back[1],M)+thinkHTML(L.thinkB,false);
+    b+=`<section class="sec" data-facts data-sid="F${L.k}"><h3><span class="pn">Part 6:</span> Quick Facts</h3><div class="dir">Solve each fact. Work fast but carefully.</div><div class="facts">${L.facts.map(x=>`<div data-iid="${x.id}">${x.q}<span class="ln"></span></div>`).join('')}</div></section>`;
+    h+=page(b,{label:lab,foot,cls:'back'}).replace('class="pg-wrap"',`class="pg-wrap" data-lesson="${L.k}"`);
+  }
+  /* test */
+  const lab=`Cycle 1 · Test · Day 11`;
+  for(let p=0;p<2;p++){
+    let t=`<h1>Cycle 1 Test${p?' (continued)':''}</h1>`;
+    if(!p)t+=`<div class="namedate"><span>Name <i></i></span><span>Date <i></i></span></div>`;
+    t+=`<div class="dir">Solve each problem. Show your work.</div><div class="tgrid grow">`;
+    for(const blk of (p?m.test.slice(6):m.test.slice(0,6))){
+      if(blk.graph){t+=`<div class="tcell wide"><div class="graphbox"><div>${blk.graph.visual}</div><div class="grid c1">${blk.items.map(i=>itemHTML(i)).join('')}</div></div></div>`;continue}
+      for(const it of blk.items){const wide=it.t==='blank'&&(blk.skill.cols||2)===1;const wk=it.t==='eq'||it.t==='story'||(it.t==='blank'&&blk.strand!==0);t+=`<div class="tcell${wide?' wide':''}">${itemHTML(it)}${wk?'<div class="work"></div>':''}</div>`}
+    }
+    t+=`</div>`;if(p)t+=`<div class="score">Score: ______ out of 20</div>`;
+    h+=page(t,{label:lab,foot,cls:'test'}).replace('class="pg-wrap"','class="pg-wrap" data-test="1"');
+  }
+  return h;
+}
+
+/* ---------- fit: measure each page and trim review rows until nothing overflows ---------- */
+const over=b=>b.scrollHeight>b.clientHeight+1;
+function trimRows(sec,min,park){if(!sec)return false;const its=[...sec.querySelectorAll('.it')];const cols=+sec.dataset.cols;const step=sec.dataset.t==='graph'?1:(its.length%cols||cols);if(its.length-step>=min){its.slice(-step).forEach(e=>park?park(e):e.remove());return true}return false}
+function fitPage(pg){
+  const b=pg.querySelector('.pg-body');if(!b)return;let guard=0;const parked=[];
+  const park=e=>{parked.push([e,e.parentNode,e.nextSibling]);e.remove()};
+  while(over(b)&&guard++<80){
+    const brk=b.querySelector('[data-opt="brk"]');if(brk){park(brk);continue}
+    const opt=b.querySelector('[data-opt="think"]');if(opt){park(opt);continue}
+    const secs=[...b.querySelectorAll('section[data-rev]')].sort((x,y)=>y.querySelectorAll('.it').length-x.querySelectorAll('.it').length);
+    if(secs.some(x=>trimRows(x,x.dataset.t==='story'?1:2,park)))continue;
+    if(pg.classList.contains('test')&&!pg.classList.contains('tight')){pg.classList.add('tight');continue}
+    if(!pg.classList.contains('small-pics')&&pg.querySelector('.pic svg')){pg.classList.add('small-pics');pg.style.setProperty('--pich','84px');continue}
+    if(trimRows(b.querySelector('section[data-new]'),4,park))continue;
+    const t2=b.querySelector('[data-opt2]');if(t2){park(t2);continue}
+    const fx=b.querySelector('.facts');if(fx&&fx.children.length>25){[...fx.children].slice(-5).forEach(park);continue}
+    break;
+  }
+  /* put back any optional block that now fits (Think It Through first) */
+  for(const [e,par,nx] of parked.reverse()){if(!par.isConnected)continue;par.insertBefore(e,nx&&nx.parentNode===par?nx:(par===b?b.querySelector('.turn'):null));if(over(b))e.remove()}
+  /* a lesson side with no stretching work area and real space left gets a Draw It box rather than a blank band */
+  if((pg.classList.contains('front')||pg.classList.contains('back'))&&!b.querySelector(':scope>.grow')){
+    const d=document.createElement('section');d.className='draw grow';d.innerHTML='<h3>Draw It</h3><div class="dir">Draw a picture for one problem on this page.</div><div class="work"></div>';
+    b.insertBefore(d,b.querySelector('.turn'));if(over(b))d.remove();
+  }
+}
+function naturalFill(pg){const b=pg.querySelector('.pg-body');if(!b)return 1;if(b.querySelector(':scope>.grow'))return 1;pg.classList.add('natural');const kids=[...b.children];let bottom=0;const top=b.getBoundingClientRect().top;
+  for(const k of kids){const r=k.getBoundingClientRect();bottom=Math.max(bottom,r.bottom-top)}pg.classList.remove('natural');const s=pg.getBoundingClientRect().height/1056;return (bottom/s)/(b.clientHeight)}
+
+/* ---------- render: Teacher's Guide ---------- */
+function stepsFor(L,M,partsF,partsB){
+  return M.steps.map(([nm,min,txt])=>{
+    let t=txt;
+    if(nm==='Show')t=L.skill.show;
+    if(nm==='Try it with hands')t=L.skill.hands;
+    if(nm==='On their own')t=(txt?txt+' ':'')+`Front, then back. Check Part 1 before the review parts.`;
+    return `<tr><td>${nm}</td><td class="min">${min} min</td><td>${t}</td></tr>`;
+  }).join('');
+}
+function keyLine(it){const calc=it.t==='eq'||it.t==='vert';const q=esc(it.qt.replace(/_{3}/g,'…').replace(/[:\s]+…$/,'').replace(/\s*=\s*…$/,' ='));return `<div><span class="num">${it.num||''}</span>${q}${calc?' ':' → '}<span class="an">${esc(it.a)}</span></div>`}
+function renderTG(m){
+  const g=m.grade,M=m.M,mk=m.mkey;const foot=`Math Loops Teacher's Guide · Grade ${g}`;
+  let h='';
+  h+=`<div class="pg-wrap"><div class="page cover"><div class="slab"><div class="flag"></div><div class="brandline">Expedition Workbooks</div><div class="cmark"><i></i></div><div class="ctitle">Math Loops</div><div class="csub">Grade ${g} · Teacher's Guide</div></div><div class="cbot"><div class="cline">Built for: ${M.label} learning</div><p class="inside"><b>Cycle 1</b> teaching plans and answer keys. Two pages per lesson: how to teach it, then every answer. The student workbook has no answers in it.</p></div></div></div>`;
+  /* how to use */
+  const tot=M.steps.reduce((s,x)=>s+x[1],0);
+  let u=`<h1>How to Use This Guide</h1>`;
+  u+=`<div class="panel dirp"><span class="lbl">This build is ${M.label}</span>${M.short} Made for: ${M.who}</div>`;
+  u+=`<div><h3>What this method changes in the workbook</h3><ul>${M.book.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
+  u+=`<div><h3>The daily lesson (about ${tot} minutes)</h3><table class="steps">${M.steps.map(([n,mi,t])=>`<tr><td>${n}</td><td class="min">${mi} min</td><td>${t||(n==='Show'?'Model the new skill using the plan for that lesson.':n==='Try it with hands'?'The hands-on activity listed in each lesson plan.':'Front, then back. Check Part 1 first.')}</td></tr>`).join('')}</table></div>`;
+  u+=`<div><h3>How each lesson is built</h3><ul><li><b>Front:</b> Remember box, Part 1 New Skill, one review part and a Think It Through problem when there is room.</li><li><b>Back:</b> two more review parts, Think It Through and Quick Facts.</li><li><b>Spiral review:</b> every strand comes back 3 times in the cycle, always including yesterday's strand. Strands not taught yet this year are reviewed at last year's level.</li><li>No problem repeats anywhere in a lesson, front or back.</li></ul></div>`;
+  u+=`<div><h3>Supports to use every day</h3><ul>${M.sup.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
+  u+=`<div class="lines grow"></div>`;
+  h+=page(u,{label:`Teacher's Guide`,foot});
+  /* at a glance */
+  let gl=`<h1>Cycle 1 at a Glance</h1><table class="glance"><tr><th>Day</th><th>New skill</th><th>Review parts</th></tr>`;
+  for(const L of m.lessons){gl+=`<tr><td>${L.day}</td><td><b>${L.skill.n}</b><br><span style="color:var(--muted);font-size:13px">${STR[L.strand]}</span></td><td><div class="chips">${L.front.concat(L.back).filter(s=>s.kept).map(s=>`<span class="chip${s.prev?' prev':''}">${STRS[s.strand]}</span>`).join('')}</div></td></tr>`}
+  gl+=`<tr><td>11</td><td><b>Cycle 1 Test</b></td><td>20 problems, 2 from each strand</td></tr></table>`;
+  gl+=`<div><h3>Spiral check: review parts per strand this cycle</h3><div class="spiral">${m.spiral.map((c,i)=>`<div><b>${c}</b>${STRS[i]}</div>`).join('')}</div><p style="margin:6px 0 0;font-size:14px;color:var(--muted)">Sand chips are last year's level of a strand that has not been taught yet this year.</p></div>`;
+  gl+=`<div class="lines grow"></div>`;
+  h+=page(gl,{label:`Teacher's Guide · Cycle 1`,foot});
+  for(const L of m.lessons){
+    const fParts=['Part 1'].concat(L.front.filter(s=>s.kept).map(s=>'Part '+s.pn)).join(', ')+(L.thinkF.kept?', Think It Through':'');
+    const bParts=L.back.filter(s=>s.kept).map(s=>'Part '+s.pn).concat(['Think It Through','Quick Facts']).join(', ');
+    let t=`<h1>Lesson ${L.day}: ${L.skill.n}</h1>`;
+    t+=`<div class="panel dirp"><span class="lbl">Goal · ${STR[L.strand]}</span>${L.skill.goal}</div>`;
+    t+=`<div class="two"><div><h3>What you need</h3><ul>${L.skill.need.map(x=>`<li>${x}</li>`).join('')}</ul></div><div><h3>Words to say and point to</h3><div class="chips">${L.skill.words.map(w=>`<span class="chip">${w}</span>`).join('')}</div><h3 style="margin-top:10px">Review today</h3><div class="chips">${L.front.concat(L.back).filter(s=>s.kept).map(s=>`<span class="chip${s.prev?' prev':''}">${STRS[s.strand]}${s.prev?' (last year)':''}</span>`).join('')}</div></div></div>`;
+    t+=`<div class="panel remp"><span class="lbl">Remember box on the student page</span>${L.skill.rem}</div>`;
+    t+=`<div><h3>Teach it</h3><table class="steps">${stepsFor(L,M,fParts,bParts)}</table></div>`;
+    t+=`<div class="three"><div><h3>Watch for</h3>${L.skill.watch}</div><div><h3>If it is hard</h3>${L.skill.hard}</div><div><h3>Ready for more</h3>${L.skill.ready}</div></div>`;
+    t+=`<div class="panel tryp"><span class="lbl">${M.label} supports</span><ul>${M.sup.slice(0,3).map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
+    t+=`<div class="lines grow" style="min-height:40px"></div>`;
+    h+=page(t,{label:`Lesson ${L.day} · Day ${L.day} · Teaching`,foot});
+    /* answers */
+    let a=`<h1>Lesson ${L.day} Answers</h1>`;
+    const secs=[L.nw,...L.front];
+    const block=(sec)=>{if(!sec.kept)return '';const its=sec.items.filter(i=>i.kept);const ttl=sec.kind==='new'?`Part 1 · New Skill`:`Part ${sec.pn} · Review · ${STRS[sec.strand]}${sec.prev?' (last year)':''}`;
+      return `<div class="asec"><h3>${ttl}</h3>${sec.data?`<div style="font-size:14px;color:var(--muted)">${esc(sec.data)}</div>`:''}<div class="akey">${its.map(keyLine).join('')}</div></div>`};
+    a+=`<div>${secs.map(block).join('')}`;
+    if(L.thinkF.kept)a+=`<div class="asec"><h3>Think It Through (front)</h3><div class="akey" style="grid-template-columns:1fr"><div><span class="num">${L.thinkF.num}</span><span class="an">${esc(L.thinkF.a)}</span> · ${esc(L.thinkF.sol)}</div></div></div>`;
+    a+=L.back.map(s=>block(s)).join('');
+    if(L.thinkB.kept)a+=`<div class="asec"><h3>Think It Through (back)</h3><div class="akey" style="grid-template-columns:1fr"><div><span class="num">${L.thinkB.num}</span><span class="an">${esc(L.thinkB.a)}</span> · ${esc(L.thinkB.sol)}</div></div></div>`;
+    const fk=L.facts.filter(f=>f.kept);
+    a+=`<div class="asec"><h3>Part ${L.factsPn||''} · Quick Facts (left to right, top to bottom)</h3><div class="fkey">${fk.map(f=>`<div>${esc(f.qt.replace(/ =$/,''))} = <b>${f.a}</b></div>`).join('')}</div></div></div>`;
+    a+=`<div class="grow" style="display:flex;flex-direction:column;min-height:60px"><h3>Notes for the next cycle</h3><div class="lines" style="flex:1;min-height:40px"></div></div>`;
+    h+=page(a,{label:`Lesson ${L.day} · Day ${L.day} · Answers`,foot,cls:'ak'}).replace('class="pg-wrap"','class="pg-wrap" data-ak="1"');
+  }
+  /* test day */
+  let td=`<h1>Test Day: Cycle 1 Test</h1><div class="panel dirp"><span class="lbl">How to give it</span>${mk==='dyslexia'?'Read every direction and story aloud. They read and write the numbers. No time limit.':mk==='focus'?'Give page 1, take a 2-minute movement break, then page 2. Keep a timer visible for each page.':mk==='hands'?'Leave counters, blocks and a clock on the table. Using them is allowed on the test.':'Give both pages in one sitting. Read a direction aloud if asked.'} Score 1 point per problem.</div>`;
+  td+=`<div class="akey">`;let n=0;
+  for(const blk of m.test){for(const it of blk.items){n++;it.num=it.num||n;td+=keyLine(it).replace(/<\/div>$/,` <span style="color:var(--muted);font-size:13px">(${STRS[blk.strand]})</span></div>`)}}
+  td+=`</div>${m.test.filter(b=>b.graph).map(b=>`<div style="font-size:14px;color:var(--muted)">Graph data · ${esc(b.graph.data)}</div>`).join('')}`;
+  td+=`<div><h3>Strands to reteach next cycle (2 misses in a strand)</h3><div class="spiral">${STRS.map(s=>`<div><i class="box" style="vertical-align:middle;margin-right:6px"></i>${s}</div>`).join('')}</div></div>`;
+  td+=`<div class="grow" style="display:flex;flex-direction:column"><h3>Notes</h3><div class="lines" style="flex:1"></div></div>`;
+  h+=page(td,{label:`Cycle 1 · Test · Day 11`,foot,cls:'ak'}).replace('class="pg-wrap"','class="pg-wrap" data-ak="1"');
+  return h;
+}
+function fitTG(pg){const b=pg.querySelector('.pg-body');if(!b)return;
+  const steps=[
+    ()=>b.querySelectorAll('.lines.grow, .grow .lines').forEach(x=>x.style.minHeight='0px'),
+    ()=>{pg.classList.add('fs1');pg.querySelectorAll('.akey').forEach(e=>{e.style.fontSize='14px';e.style.lineHeight='1.35'})},
+    ()=>{const ul=[...b.querySelectorAll('.panel.tryp li')];if(ul.length>2)ul[ul.length-1].remove()},
+    ()=>{b.style.gap='9px';b.querySelectorAll('table.steps td').forEach(td=>{td.style.paddingTop='3px';td.style.paddingBottom='3px'})},
+    ()=>{b.style.fontSize='15px';b.style.lineHeight='1.38'}
+  ];
+  for(const st of steps){if(!over(b))break;st()}
+}
+/* ---------- sync model with what survived the fit ---------- */
+function syncModel(m,root){
+  const have=new Set([...root.querySelectorAll('[data-iid]')].map(e=>e.dataset.iid));
+  const haveS=new Set([...root.querySelectorAll('[data-sid]')].map(e=>e.dataset.sid));
+  m.spiral=Array(10).fill(0);
+  for(const L of m.lessons){
+    const pages=[...root.querySelectorAll(`.pg-wrap[data-lesson="${L.k}"]`)];
+    let n=0,pn=0;
+    for(const pg of pages){
+      pg.querySelectorAll('.it .n').forEach(e=>{e.textContent=++n});
+      pg.querySelectorAll('section h3 .pn').forEach(e=>{e.textContent=`Part ${++pn}:`});
+      pg.querySelectorAll('.strip').forEach(st=>{const cnt=pg.querySelectorAll('section h3 .pn').length;const base=pn-cnt;st.innerHTML='Check off each part: '+Array.from({length:cnt},(_,i)=>`<span><i class="box"></i>Part ${base+i+1}</span>`).join('')});
+    }
+    const numOf=new Map();pages.forEach(pg=>pg.querySelectorAll('.it[data-iid]').forEach(e=>numOf.set(e.dataset.iid,e.querySelector('.n')?.textContent)));
+    for(const sec of [L.nw,...L.front,...L.back]){sec.kept=haveS.has(sec.id);sec.items.forEach(i=>{i.kept=sec.kept&&have.has(i.id);i.num=numOf.get(i.id)});
+      if(sec.kept){const h3=root.querySelector(`[data-sid="${sec.id}"] h3 .pn`);sec.pn=h3?h3.textContent.replace(/\D/g,''):'';if(sec.kind==='rev')m.spiral[sec.strand]++}}
+    for(const t of [L.thinkF,L.thinkB]){t.kept=have.has(t.id);t.num=numOf.get(t.id)}
+    L.facts.forEach(f=>f.kept=have.has(f.id));
+    const fh=root.querySelector(`[data-sid="F${L.k}"] h3 .pn`);L.factsPn=fh?fh.textContent.replace(/\D/g,''):'';
+  }
+  let n=0;const tp=[...root.querySelectorAll('.pg-wrap[data-test]')];tp.forEach(pg=>pg.querySelectorAll('.it .n').forEach(e=>{e.textContent=++n}));
+  const tnum=new Map();tp.forEach(pg=>pg.querySelectorAll('.it[data-iid]').forEach(e=>tnum.set(e.dataset.iid,e.querySelector('.n').textContent)));
+  m.test.forEach(b=>b.items.forEach(i=>{i.kept=have.has(i.id);i.num=tnum.get(i.id)}));
+}
+
+/* ---------- checks ---------- */
+const VERBS=['Write','Add','Subtract','Multiply','Divide','Solve','Circle','Draw','Find','Count','Use','Read','Look','Shade','Line','Convert','Build','Share','Answer','Check'];
+function runChecks(m,st,tg){
+  const res=[];const all=[...st.querySelectorAll('.page'),...tg.querySelectorAll('.page')];
+  const bodies=all.map(p=>p.querySelector('.pg-body')).filter(Boolean);
+  const ovf=bodies.filter(over).length;
+  res.push([ovf===0,`${all.length} pages measured in the browser: ${ovf} with overflow`]);
+  const fills=[...st.querySelectorAll('.page:not(.cover)')].map(naturalFill);const minFill=Math.round(Math.min(...fills)*100);
+  res.push([minFill>=80,`Student pages are full: every page at least ${minFill}% used (target 80%+)`]);
+  let dup=0;for(const L of m.lessons){const ks=[L.nw,...L.front,...L.back].filter(s=>s.kept).flatMap(s=>s.items.filter(i=>i.kept).map(i=>i.k)).concat([L.thinkF,L.thinkB].filter(t=>t.kept).map(t=>t.k),L.facts.filter(f=>f.kept).map(f=>f.k));if(new Set(ks).size!==ks.length)dup++}
+  const tk=m.test.flatMap(b=>b.items.map(i=>i.k));if(new Set(tk).size!==tk.length)dup++;
+  res.push([dup===0,`No repeated problem inside any lesson (front and back) or the test`]);
+  const mn=Math.min(...m.spiral);res.push([mn>=3,`Spiral review: every strand reviewed at least 3 times (lowest: ${mn})`]);
+  const stIds=[...st.querySelectorAll('[data-iid]')].length;
+  const keyN=m.lessons.reduce((s,L)=>s+[L.nw,...L.front,...L.back].filter(x=>x.kept).reduce((a,x)=>a+x.items.filter(i=>i.kept).length,0)+[L.thinkF,L.thinkB].filter(t=>t.kept).length+L.facts.filter(f=>f.kept).length,0)+m.test.reduce((s,b)=>s+b.items.length,0);
+  res.push([stIds===keyN,`Answer key covers every workbook problem (${keyN} of ${stIds})`]);
+  const dirs=[...st.querySelectorAll('.dir')].map(d=>d.textContent.trim());const badDir=dirs.filter(d=>d.split(/\s+/).length>12||!VERBS.includes(d.split(/\s+/)[0].replace(/[^A-Za-z]/g,'')));
+  res.push([badDir.length===0,`Directions: one line, 12 words or fewer, starting with a verb (${dirs.length} checked)`]);
+  const leaks=st.querySelectorAll('.an,.akey').length;res.push([leaks===0,`Student workbook contains no answers`]);
+  return res;
+}
+
+/* ---------- app ---------- */
+const state={grade:3,method:'dyslexia',set:1,doc:'st'};
+(function readURL(){const p=new URLSearchParams(location.search);const g=+p.get('grade');if(g>=1&&g<=5)state.grade=g;if(MKEYS.includes(p.get('method')))state.method=p.get('method');const s=+p.get('set');if(s>=1)state.set=Math.floor(s)})();
+const $=id=>document.getElementById(id);
+function controls(){
+  $('grades').innerHTML=[1,2,3,4,5].map(g=>`<button type="button" data-g="${g}" aria-pressed="${g===state.grade}" aria-label="Grade ${g}">${g}</button>`).join('');
+  $('methods').innerHTML=MKEYS.map(k=>`<label><input type="radio" name="method" value="${k}" ${k===state.method?'checked':''}><b>${METHODS[k].label}</b><span>${METHODS[k].short}</span></label>`).join('');
+  $('setlbl').textContent='Set '+state.set;
+}
+function scaleViewer(){const v=$('viewer');const w=v.clientWidth;const s=Math.max(.3,Math.min(1,(w-8)/816));v.style.setProperty('--s',s.toFixed(4))}
+let building=false,queued=false;
+async function build(){
+  if(building){queued=true;return}building=true;$('building').classList.add('on');
+  try{
+    history.replaceState(null,'',`?grade=${state.grade}&method=${state.method}&set=${state.set}`);
+    const m=buildModel(state.grade,state.method,state.set);
+    const st=$('doc-st'),tg=$('doc-tg');
+    st.className='doc m-'+state.method+(state.doc==='st'?' active':'');tg.className='doc tg m-'+state.method+(state.doc==='tg'?' active':'');
+    /* measure both while visible */
+    st.style.display='flex';tg.style.display='flex';
+    st.innerHTML=renderStudent(m);
+    await document.fonts.ready;
+    st.querySelectorAll('.page').forEach(fitPage);
+    syncModel(m,st);
+    st.querySelectorAll('.pgn').forEach((e,i)=>{e.textContent='Page '+(i+2)});
+    tg.innerHTML=renderTG(m);
+    await document.fonts.ready;
+    tg.querySelectorAll('.page').forEach(fitTG);
+    tg.querySelectorAll('.pgn').forEach((e,i)=>{e.textContent='Page '+(i+2)});
+    const res=runChecks(m,st,tg);
+    st.style.display='';tg.style.display='';
+    $('qa').innerHTML=res.map(([ok,t])=>`<li><span class="${ok?'ok':'bad'}">${ok?'✓':'✗'}</span><span>${t}</span></li>`).join('');
+    $('ct-st').textContent=st.querySelectorAll('.page').length+' pages';$('ct-tg').textContent=tg.querySelectorAll('.page').length+' pages';
+    $('status').textContent=`Grade ${state.grade} · ${METHODS[state.method].label} · Set ${state.set}`;
+    window.__studio={model:m,checks:res};
+  }finally{building=false;$('building').classList.remove('on');document.body.dataset.ready='1';if(queued){queued=false;build()}}
+}
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-g]');if(g){state.grade=+g.dataset.g;controls();build();return}
+  const t=e.target.closest('[data-doc]');if(t){state.doc=t.dataset.doc;document.querySelectorAll('[data-doc]').forEach(b=>b.setAttribute('aria-selected',b===t));$('doc-st').classList.toggle('active',state.doc==='st');$('doc-tg').classList.toggle('active',state.doc==='tg');window.scrollTo({top:0})}
+});
+document.addEventListener('change',e=>{if(e.target.name==='method'){state.method=e.target.value;build()}});
+$('newset').addEventListener('click',()=>{state.set++;controls();build()});
+$('print').addEventListener('click',()=>{const old=document.title;document.title=`Math-Loops-Grade-${state.grade}-${state.doc==='st'?'Student-Workbook':'Teachers-Guide'}-${METHODS[state.method].label.replace(/[^A-Za-z]+/g,'-')}`;window.print();setTimeout(()=>{document.title=old},500)});
+window.addEventListener('resize',scaleViewer);
+controls();scaleViewer();build();
+</script>
+</body>
+</html>

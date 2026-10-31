@@ -241,7 +241,7 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
         <img class="hero-logo" src="assets/logo-lockup-reversed.webp" alt="Lyn Hall, Security &amp; GRC, AI Portfolio" width="804" height="240">
         <span class="eyebrow">Cybersecurity &amp; GRC Leader · AI Builder</span>
         <h1>Practical AI tools for <em>security and compliance</em> work.</h1>
-        <p class="lede">I build security programs in regulated industries, and I use AI to make that work faster and more reliable. These are six tools I designed and directed with Claude. Each one keeps people in charge of decisions, keeps sensitive data where it belongs, and is clear about what it does not know.</p>
+        <p class="lede">I build security programs in regulated industries, and I use AI to make that work faster and more reliable. These are seven tools I designed and directed with Claude. Each one keeps people in charge of decisions, keeps sensitive data where it belongs, and is clear about what it does not know.</p>
         <div class="ctas">
           <a class="btn btn-cta" href="#projects">View the projects</a>
           <a class="btn btn-line" href="resume.html">View my resume</a>
@@ -280,7 +280,7 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
     <div class="wrap">
       <div class="sec-head">
         <span class="eyebrow">Projects</span>
-        <h2 id="projects-h">Six tools, one standard</h2>
+        <h2 id="projects-h">Seven tools, one standard</h2>
         <p>Choose a project to read how it works, what it produces, and the safeguards built into it.</p>
       </div>
       <div class="cards">
@@ -324,6 +324,13 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
           <h3>Offboarding &amp; Privileged Access Review</h3>
           <p>A quarterly user access review that tests offboarding against the HR termination list, flags terminated users who still hold admin rights, asks system owners to confirm privileged access over Slack, Teams, or Google Chat, and keeps a permanent register of every finding to closure.</p>
           <div class="tags"><span>Access reviews</span><span>SOC 2 evidence</span><span>Offline web app</span></div>
+          <span class="more">View project</span>
+        </a>
+        <a class="card" href="#curriculum-studio">
+          <div class="card-top"><span class="pid">AI-07</span><span class="status">In use</span></div>
+          <h3>Curriculum Design Studio</h3>
+          <p>Writes a matching student workbook and Teacher's Guide for a chosen grade and learning method, with spiral review, measures every printed page, and checks the work before anything prints.</p>
+          <div class="tags"><span>Document generation</span><span>Accessibility</span><span>Offline web app</span></div>
           <span class="more">View project</span>
         </a>
       </div>
@@ -639,6 +646,56 @@ Full scorecard: INC-042 Subsequent Scorecard 2026-10-10 1529 EDT.pdf (Incident E
           <span class="note">Invented example.com users. Update a finding, send and answer an owner confirmation, or download the executive report PDF. Runs in your browser; nothing is sent anywhere. Opens in a new tab.</span>
         </div>
         <div class="tags"><span>HTML / JavaScript</span><span>Google Workspace</span><span>Microsoft Entra ID</span><span>SOC 2</span><span>jsPDF</span><span>Claude</span><span>Playwright testing</span></div>
+        <a class="back" href="#projects">Back to all projects</a>
+      </article>
+
+      <article class="project" id="curriculum-studio" aria-labelledby="p7-h">
+        <div class="p-head">
+          <div class="card-top"><span class="pid">AI-07</span><span class="status">In use</span></div>
+          <h3 id="p7-h">Curriculum Design Studio</h3>
+          <p>The system behind a family homeschool's printed curriculum: seven subject workbooks a year, built on spiral review and dyslexia-friendly page rules and checked against state home instruction requirements. This live demo covers one subject, Math Loops. Pick a grade and a learning method, and it writes the first cycle of the year as two linked documents: a student workbook with no answers in it, and a Teacher's Guide with a teaching plan and a full answer key for every lesson. Both come from the same data, so the key always matches the pages, and both print as letter-size PDFs.</p>
+        </div>
+        <dl class="facts">
+          <div><dt>Domain</dt><dd>Curriculum design, accessible print documents</dd></div>
+          <div><dt>Data protection</dt><dd>Runs in the browser; no student data is collected or sent anywhere</dd></div>
+          <div><dt>Delivered as</dt><dd>Single-file web app with print-ready PDF output; the full studio is a Claude Project with skills and a Python page generator</dd></div>
+        </dl>
+        <div class="callout"><b>What testing caught:</b> the first build packed the front of each lesson so tightly that the layout step dropped whole review parts to make pages fit, and some strands came back once in a cycle instead of three times. The in-page check flagged it on all 20 grade and method builds. Review is now scheduled so every strand returns exactly three times, always including yesterday's, and the layout step may trim a row but never a review part.</div>
+        <div class="shots">
+          <figure><img src="assets/curriculum-studio-app.webp" alt="Curriculum Design Studio with grade 3 and the dyslexia-friendly method selected, showing the student workbook cover and tabs for the 23-page workbook and the 24-page Teacher's Guide" width="1300" height="1000" loading="lazy"><figcaption>Choose a grade and a learning method</figcaption></figure>
+          <figure><img src="assets/curriculum-studio-pages.webp" alt="A student lesson page on expanded form beside the matching Teacher's Guide teaching page with goal, materials, timed teaching steps and supports" width="1692" height="1096" loading="lazy"><figcaption>Student lesson and its Teacher's Guide page</figcaption></figure>
+        </div>
+        <div class="two">
+          <div class="block"><h4>What it does</h4><ul>
+            <li>Builds one cycle of Math Loops for grades 1 to 5: ten lessons, one for each math strand, and a two-page test</li>
+            <li>Each lesson is one sheet: a Remember box and the new skill on the front, review, a Think It Through problem, and quick facts on the back</li>
+            <li>Schedules spiral review so every strand returns three times a cycle, using last year's level for strands not taught yet this year</li>
+            <li>Four learning methods change the pages, not just the label: Standard, Dyslexia-friendly (larger type, more spacing, fewer items per line, highlighted symbols), Focus and attention (short parts, a check-off strip, movement breaks), and Hands-on (a build-it-first activity on every lesson)</li>
+            <li>Draws question pictures in full color: clocks, fraction shapes, base-ten blocks, arrays, graphs, tally charts, and a coordinate grid</li>
+            <li>Writes a Teacher's Guide with a how-to page, a cycle-at-a-glance table, a teaching plan with timed steps for the chosen method, and an answer page for every lesson and the test</li>
+            <li>Every problem set is seeded, so the same grade, method, and set number always rebuild the same pages</li>
+          </ul></div>
+          <div class="block"><h4>Safeguards</h4><ul>
+            <li>The student workbook is checked to contain no answers; every answer lives in the Teacher's Guide</li>
+            <li>No problem repeats anywhere in a lesson, front or back, or within the test</li>
+            <li>Every page is measured in the browser after layout; content that does not fit is trimmed a row at a time and put back if room frees up, so nothing runs into the footer</li>
+            <li>Pages with space left get a work area, not a blank band</li>
+            <li>Directions are checked to be one line, 12 words or fewer, and to start with a verb</li>
+            <li>The checks run on every build and show on screen next to the documents</li>
+            <li>The public demo uses no student names; it is sample content for a fictional student</li>
+          </ul></div>
+        </div>
+        <div class="block"><h4>How it was verified</h4><ul>
+          <li>All 60 combinations of grade, learning method, and problem set were loaded in headless Chrome with the real brand fonts, and every one passed every check: no overflow, no repeats, three reviews per strand, and a complete answer key</li>
+          <li>Both documents were printed to PDF and page-counted: 23 letter pages for the workbook and 24 for the Teacher's Guide</li>
+          <li>Contact sheets of fronts, backs, tests, and guide pages were reviewed by eye for crowding, empty space, and readable picture labels</li>
+          <li>Answer keys were spot-checked against the printed problems, including remainders, equivalent fractions, and decimal place value</li>
+        </ul></div>
+        <div class="actions">
+          <a class="btn btn-cta" href="demo/curriculum-studio.html" target="_blank" rel="noopener">Try the live demo</a>
+          <span class="note">Pick a grade and a learning method, switch between the two documents, and print or save either one as a PDF. Runs in your browser; nothing is sent anywhere. Opens in a new tab.</span>
+        </div>
+        <div class="tags"><span>HTML / JavaScript</span><span>SVG</span><span>Print CSS</span><span>Python page generator</span><span>Claude Projects and skills</span><span>Playwright testing</span></div>
         <a class="back" href="#projects">Back to all projects</a>
       </article>
 
