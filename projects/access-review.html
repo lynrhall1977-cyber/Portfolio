@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI-06 Offboarding &amp; Privileged Access Review | Lyn Hall, Security &amp; GRC</title>
+<meta name="description" content="A quarterly user access review that tests whether offboarding actually removed access. It compares the HR termination list with the identity provider…">
+<link rel="icon" type="image/png" href="../assets/favicon.png">
+<link rel="apple-touch-icon" href="../assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=JetBrains+Mono:wght@400;500&family=Montserrat:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/nav.css">
+<script src="../assets/analytics.js" defer></script>
+<script src="../assets/nav.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="bar">
+  <div class="wrap">
+    <a class="mark" href="../index.html" aria-label="Lyn Hall, Security and GRC, portfolio home"><img src="../assets/logo-mark-reversed.webp" alt="" width="98" height="112"><span><b>Lyn Hall</b><small>SECURITY &amp; GRC</small></span></a>
+    <nav aria-label="Main">
+      <ul>
+        <li><a href="../index.html#approach">Approach</a></li>
+        <li class="has-menu">
+          <button class="menu-btn current" type="button" aria-expanded="false" aria-controls="projects-menu">Projects<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1 3l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+          <div class="submenu" id="projects-menu">
+          <ul class="submenu-panel">
+            <li><a class="sm-all" href="../index.html#projects">All projects</a></li>
+            <li><a href="../projects/incident-scoring.html"><span class="sm-id">AI-01</span><span>Incident Scoring System</span></a></li>
+            <li><a href="../projects/virtual-ciso.html"><span class="sm-id">AI-02</span><span>Virtual CISO Kit</span></a></li>
+            <li><a href="../projects/cve-intelligence.html"><span class="sm-id">AI-03</span><span>Weekly CVE Intelligence &amp; Exposure Review</span></a></li>
+            <li><a href="../projects/career-ops.html"><span class="sm-id">AI-04</span><span>Career Operations System</span></a></li>
+            <li><a href="../projects/homeschool-gradebook.html"><span class="sm-id">AI-05</span><span>Homeschool Gradebook &amp; Records</span></a></li>
+            <li><a href="../projects/access-review.html" aria-current="page"><span class="sm-id">AI-06</span><span>Offboarding &amp; Privileged Access Review</span></a></li>
+            <li><a href="../projects/curriculum-studio.html"><span class="sm-id">AI-07</span><span>Curriculum Design Studio</span></a></li>
+          </ul>
+          </div>
+        </li>
+        <li><a href="../index.html#about">About</a></li>
+        <li><a href="../resume.html">Resume</a></li>
+        <li><a href="../index.html#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <section class="sec project-page">
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <ol>
+          <li><a href="../index.html">Portfolio</a></li>
+          <li><a href="../index.html#projects">Projects</a></li>
+          <li><span aria-current="page">AI-06 Offboarding &amp; Privileged Access Review</span></li>
+        </ol>
+      </nav>
+
+    <article class="project" id="access-review" aria-labelledby="p6-h">
+      <div class="p-head">
+        <div class="card-top"><span class="pid">AI-06</span><span class="status ready">Ready to deploy</span></div>
+        <h1 id="p6-h">Offboarding &amp; Privileged Access Review</h1>
+        <p>A quarterly user access review that tests whether offboarding actually removed access. It compares the HR termination list with the identity provider (Google Workspace or Microsoft Entra ID) and the user list from each critical system, rates every account still active after termination, and pulls every privileged account into a report for its system owner to recertify. Every finding is then tracked to closure, either offboarding completed with evidence or risk accepted under a documented security exception, in a register that builds up quarter after quarter and never deletes a finding. System owners confirm privileged access from a link in a Slack, Teams, or Google Chat message, and the quarter ends with an executive report as a PDF. The output is the auditor's evidence: a remediation tracker, a full test log, a coverage table of each system's controls, and a written workpaper.</p>
+      </div>
+      <dl class="facts">
+        <div><dt>Domain</dt><dd>Identity and access management, SOC 2 CC6.2 / CC6.3 evidence</dd></div>
+        <div><dt>Data protection</dt><dd>Every file is read in the browser; nothing is uploaded or sent anywhere</dd></div>
+        <div><dt>Delivered as</dt><dd>Single-file web app with a PDF executive report and CSV and text exports for the audit file</dd></div>
+      </dl>
+      <div class="callout"><b>Design decision:</b> a terminated user who still holds an admin role is always rated Critical, even inside the one-day deprovisioning window that turns an ordinary leftover account into a Low. A disabled account that still carries an admin role is not an exception, but it is listed in the workpaper for clean-up so the role cannot come back with a re-enabled account.</div>
+      <div class="shots">
+        <figure><img src="../assets/access-review-app.webp" alt="Review summary for Q4 2026 with the remediation tracker: counts of open, overdue, in progress, completed and risk-accepted findings, and a findings table with owner, status and due date" width="1300" height="1402" loading="lazy"><figcaption>Quarter summary and remediation tracker (sample data)</figcaption></figure>
+        <figure><img src="../assets/access-review-report.webp" alt="First page of the PDF executive report: control rating of Not effective with the reason, four headline figures, a summary, and key findings" width="935" height="1210" loading="lazy"><figcaption>Executive report, page one (PDF)</figcaption></figure>
+      </div>
+      <div class="two">
+        <div class="block"><h2>What it does</h2><ul>
+          <li>Picks the review quarter from today's date, with fiscal-year support and a choice of which terminations are in scope</li>
+          <li>Takes the HR termination list, the identity provider export, an optional admin-role export, and a user list from each critical system, one at a time or all at once</li>
+          <li>Routes bulk uploads by their columns and file names, maps columns automatically from known exports, and fills in answers it can read from the data, such as MFA enrollment</li>
+          <li>Asks the control questions for each system (SSO, MFA, automated provisioning, how accounts are removed) and uses the answers to rate findings and write design notes</li>
+          <li>Rates each active account: Critical for privileged access or a sign-in after termination, High for an active account, Medium when the identity provider already blocks sign-in, Low inside the deprovisioning window</li>
+          <li>Lists every active privileged account by system owner with flags for terminated, not in the identity provider, idle, and no MFA, and drafts the request each owner receives with a due date</li>
+          <li>Lists active app accounts with no identity provider account at all, such as contractors and local admins that never came through HR</li>
+          <li>Tracks each finding with an owner, a due date set by severity, and a ticket, through to offboarding completed with evidence or risk accepted under a numbered security exception with justification, compensating controls, approver, and expiry</li>
+          <li>Re-tests open findings against each newer user list: access that is gone closes the finding as verified, and access that is still there reopens a finding marked complete</li>
+          <li>Keeps one permanent findings register across every quarterly review: findings are only ever closed, and open findings carry into the next quarter marked as carried over</li>
+          <li>Sends each system owner a privileged access confirmation by Slack, Microsoft Teams, or Google Chat, records the date, time, and recipient, and links the owner to a page where they approve current access or request a change, which updates the review automatically</li>
+          <li>Builds a letter-size executive report as a PDF with a control rating, key findings, remediation status, security exceptions, privileged access by owner, every owner confirmation request with its date, time, recipient, and response, coverage, recommendations, and sign-off lines</li>
+        </ul></div>
+        <div class="block"><h2>Safeguards</h2><ul>
+          <li>Runs entirely in the browser; HR and user lists never leave the computer</li>
+          <li>Uploaded lists can be kept off the device on shared machines, while settings and decisions are kept</li>
+          <li>Name-only matches are labeled for manual confirmation rather than treated as certain</li>
+          <li>Service accounts are excluded only by patterns the reviewer sets, so nothing is hidden silently</li>
+          <li>Missing user lists and unanswered control questions are called out in the conclusion, so incomplete coverage cannot pass as a clean review</li>
+          <li>A finding counts as closed only when its evidence or exception record is complete, and an expired exception reopens its finding</li>
+          <li>The executive report can print initials instead of names for wider distribution</li>
+          <li>In the live tool, access rules let system owners read only their own request and write only their own response, recorded with their identity and time; they never see findings, user lists, or other owners' answers</li>
+          <li>The configuration backup holds settings and decisions only, never user data</li>
+        </ul></div>
+      </div>
+      <div class="block"><h2>How it was verified</h2><ul>
+        <li>Built against the column layouts of real exports: Google Workspace user downloads, Entra ID user downloads, and common SaaS admin exports with their own status and role conventions</li>
+        <li>Run end to end in a headless browser on a sample set designed to hit every rating, including a sign-in after termination, a still-active admin, a disabled admin, an identity-provider block, a future-dated termination, and a service account</li>
+        <li>Each result was checked against the expected rating before the demo was published</li>
+        <li>Remediation was tested by uploading a newer user list with accounts deactivated, which closed those findings as verified by re-test, and the PDF was rendered page by page to check layout and page breaks</li>
+        <li>Owner confirmations were tested end to end against a stand-in for the shared database: an owner without edit rights answered a request, the review applied the answer and marked the request responded, and a simulated next quarter carried open findings forward with nothing deleted</li>
+      </ul></div>
+      <div class="actions">
+        <a class="btn btn-cta" href="../demo/access-review.html" target="_blank" rel="noopener">Try the live demo</a>
+        <span class="note">Invented example.com users. Update a finding, send and answer an owner confirmation, or download the executive report PDF. Runs in your browser; nothing is sent anywhere. Opens in a new tab.</span>
+      </div>
+      <div class="tags"><span>HTML / JavaScript</span><span>Google Workspace</span><span>Microsoft Entra ID</span><span>SOC 2</span><span>jsPDF</span><span>Claude</span><span>Playwright testing</span></div>
+    </article>
+
+      <nav class="pager" aria-label="More projects">
+        <a class="prev" href="homeschool-gradebook.html" rel="prev"><small>&larr; Previous</small><b><span class="pid">AI-05</span>Homeschool Gradebook &amp; Records</b></a>
+        <a class="next" href="curriculum-studio.html" rel="next"><small>Next &rarr;</small><b><span class="pid">AI-07</span>Curriculum Design Studio</b></a>
+      </nav>
+      <p class="all-link"><a class="back" href="../index.html#projects">View all seven projects</a></p>
+    </div>
+  </section>
+
+  <section class="contact cta-band" aria-labelledby="cta-h">
+    <div class="wrap">
+      <div>
+        <h2 id="cta-h">Let's talk</h2>
+        <p>Questions about this project, or a role where this kind of work fits? Send me a note.</p>
+      </div>
+      <div class="ctas">
+        <a class="btn btn-cta" href="../index.html#contact">Contact me</a>
+        <a class="btn btn-line" href="../resume.html">View my resume</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap"><span>© 2026 Lyn Hall</span><span>Designed and directed by Lyn Hall. Built with Claude. Employer details are anonymized. Visit counts use cookie-free analytics.</span></div>
+</footer>
+</body>
+</html>

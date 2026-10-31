@@ -1,0 +1,29 @@
+/* Projects dropdown in the top navigation bar. Shared by every page. */
+nav > ul{align-items:center}
+nav > ul > li > a{display:inline-block}
+nav .has-menu{position:relative}
+nav .menu-btn{font:inherit;font-size:14px;font-weight:500;letter-spacing:.02em;color:var(--on-navy);background:none;border:0;border-bottom:2px solid transparent;padding:6px 0;margin:0;cursor:pointer;display:inline;line-height:inherit}
+nav .menu-btn svg{width:10px;height:10px;margin-left:6px;vertical-align:1px;transition:transform .15s}
+nav .menu-btn:hover,nav .menu-btn[aria-expanded="true"],nav .menu-btn.current{color:var(--white);border-bottom-color:var(--gold)}
+nav .menu-btn[aria-expanded="true"] svg{transform:rotate(180deg)}
+nav .submenu{display:none;position:absolute;top:100%;right:0;z-index:60;width:330px;padding-top:12px;flex-direction:column;gap:0}
+nav .has-menu.open .submenu{display:flex}
+@media (hover:hover) and (pointer:fine){
+  nav .has-menu:hover .submenu{display:flex}
+  nav .has-menu:hover .menu-btn{color:var(--white);border-bottom-color:var(--gold)}
+  nav .has-menu:hover .menu-btn svg{transform:rotate(180deg)}
+}
+nav .submenu-panel{background:var(--white);border-radius:var(--radius);border-top:3px solid var(--gold);box-shadow:0 14px 34px rgba(18,27,50,.22);padding:8px;list-style:none;margin:0;display:grid;gap:2px}
+nav .submenu-panel a{display:grid;grid-template-columns:46px minmax(0,1fr);align-items:baseline;gap:10px;color:var(--navy);font-size:14px;font-weight:500;line-height:1.35;padding:9px 12px;border-radius:6px;border:0;letter-spacing:0}
+nav .submenu-panel a:hover,nav .submenu-panel a:focus-visible{background:var(--peri-tint);color:var(--navy)}
+nav .submenu-panel a[aria-current="page"]{background:var(--cool);box-shadow:inset 3px 0 0 var(--gold)}
+nav .submenu-panel .sm-id{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--peri);font-variant-numeric:tabular-nums}
+nav .submenu-panel .sm-all{display:block;font-weight:700;font-size:13px;letter-spacing:.04em;border-bottom:1px solid var(--gray);border-radius:6px 6px 0 0;margin-bottom:4px}
+nav .submenu-panel .sm-all::after{content:" \2192";color:var(--gold)}
+@media (max-width:720px){
+  nav .menu-btn{font-size:13px}
+  nav .has-menu{position:static}
+  nav .submenu{left:16px;right:16px;width:auto;padding-top:6px}
+}
+@media (prefers-reduced-motion:reduce){nav .menu-btn svg{transition:none}}
+@media print{nav .submenu{display:none!important}}

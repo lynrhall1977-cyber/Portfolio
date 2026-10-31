@@ -237,7 +237,9 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
   a{color:inherit;text-decoration:none}
 }
 </style>
+<link rel="stylesheet" href="assets/nav.css">
 <script src="assets/analytics.js" defer></script>
+<script src="assets/nav.js" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -247,7 +249,21 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
     <a class="mark" href="index.html" aria-label="Lyn Hall, Security and GRC, portfolio home"><img src="assets/logo-mark-reversed.webp" alt="" width="98" height="112"><span><b>Lyn Hall</b><small>SECURITY &amp; GRC</small></span></a>
     <nav aria-label="Main">
       <ul>
-        <li><a href="index.html#projects">AI Portfolio</a></li>
+        <li class="has-menu">
+          <button class="menu-btn" type="button" aria-expanded="false" aria-controls="projects-menu">Projects<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1 3l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+          <div class="submenu" id="projects-menu">
+          <ul class="submenu-panel">
+            <li><a class="sm-all" href="index.html#projects">All projects</a></li>
+            <li><a href="projects/incident-scoring.html"><span class="sm-id">AI-01</span><span>Incident Scoring System</span></a></li>
+            <li><a href="projects/virtual-ciso.html"><span class="sm-id">AI-02</span><span>Virtual CISO Kit</span></a></li>
+            <li><a href="projects/cve-intelligence.html"><span class="sm-id">AI-03</span><span>Weekly CVE Intelligence &amp; Exposure Review</span></a></li>
+            <li><a href="projects/career-ops.html"><span class="sm-id">AI-04</span><span>Career Operations System</span></a></li>
+            <li><a href="projects/homeschool-gradebook.html"><span class="sm-id">AI-05</span><span>Homeschool Gradebook &amp; Records</span></a></li>
+            <li><a href="projects/access-review.html"><span class="sm-id">AI-06</span><span>Offboarding &amp; Privileged Access Review</span></a></li>
+            <li><a href="projects/curriculum-studio.html"><span class="sm-id">AI-07</span><span>Curriculum Design Studio</span></a></li>
+          </ul>
+          </div>
+        </li>
         <li><a href="resume.html" aria-current="page">Resume</a></li>
         <li><a href="#experience">Experience</a></li>
         <li><a href="#skills">Skills</a></li>

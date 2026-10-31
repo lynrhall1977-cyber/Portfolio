@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI-01 Incident Scoring System | Lyn Hall, Security &amp; GRC</title>
+<meta name="description" content="A stand-alone scorecard that turns a responder&#x27;s assessment into a 0 to 100 severity score, a priority level, an evidence-ready PDF, and a status update…">
+<link rel="icon" type="image/png" href="../assets/favicon.png">
+<link rel="apple-touch-icon" href="../assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=JetBrains+Mono:wght@400;500&family=Montserrat:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/nav.css">
+<script src="../assets/analytics.js" defer></script>
+<script src="../assets/nav.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="bar">
+  <div class="wrap">
+    <a class="mark" href="../index.html" aria-label="Lyn Hall, Security and GRC, portfolio home"><img src="../assets/logo-mark-reversed.webp" alt="" width="98" height="112"><span><b>Lyn Hall</b><small>SECURITY &amp; GRC</small></span></a>
+    <nav aria-label="Main">
+      <ul>
+        <li><a href="../index.html#approach">Approach</a></li>
+        <li class="has-menu">
+          <button class="menu-btn current" type="button" aria-expanded="false" aria-controls="projects-menu">Projects<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1 3l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+          <div class="submenu" id="projects-menu">
+          <ul class="submenu-panel">
+            <li><a class="sm-all" href="../index.html#projects">All projects</a></li>
+            <li><a href="../projects/incident-scoring.html" aria-current="page"><span class="sm-id">AI-01</span><span>Incident Scoring System</span></a></li>
+            <li><a href="../projects/virtual-ciso.html"><span class="sm-id">AI-02</span><span>Virtual CISO Kit</span></a></li>
+            <li><a href="../projects/cve-intelligence.html"><span class="sm-id">AI-03</span><span>Weekly CVE Intelligence &amp; Exposure Review</span></a></li>
+            <li><a href="../projects/career-ops.html"><span class="sm-id">AI-04</span><span>Career Operations System</span></a></li>
+            <li><a href="../projects/homeschool-gradebook.html"><span class="sm-id">AI-05</span><span>Homeschool Gradebook &amp; Records</span></a></li>
+            <li><a href="../projects/access-review.html"><span class="sm-id">AI-06</span><span>Offboarding &amp; Privileged Access Review</span></a></li>
+            <li><a href="../projects/curriculum-studio.html"><span class="sm-id">AI-07</span><span>Curriculum Design Studio</span></a></li>
+          </ul>
+          </div>
+        </li>
+        <li><a href="../index.html#about">About</a></li>
+        <li><a href="../resume.html">Resume</a></li>
+        <li><a href="../index.html#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <section class="sec project-page">
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <ol>
+          <li><a href="../index.html">Portfolio</a></li>
+          <li><a href="../index.html#projects">Projects</a></li>
+          <li><span aria-current="page">AI-01 Incident Scoring System</span></li>
+        </ol>
+      </nav>
+
+    <article class="project" id="incident-scoring" aria-labelledby="p1-h">
+      <div class="p-head">
+        <div class="card-top"><span class="pid">AI-01</span><span class="status">In use</span></div>
+        <h1 id="p1-h">Incident Scoring System</h1>
+        <p>A stand-alone scorecard that turns a responder's assessment into a 0 to 100 severity score, a priority level, an evidence-ready PDF, and a status update for the incident platform. It covers cybersecurity and physical security incidents and can be rebranded and re-weighted for any organization in minutes. It now also runs as a Google app inside Google Workspace, with access limited to approved accounts and PDFs saved straight to a shared drive.</p>
+      </div>
+      <dl class="facts">
+        <div><dt>Domain</dt><dd>Incident response, physical security</dd></div>
+        <div><dt>Frameworks</dt><dd>NIST SP 800-61, CISA NCISS, ODNI threat framework, Purdue model</dd></div>
+        <div><dt>Delivered as</dt><dd>Google Workspace app or single offline HTML file, PDF output, Claude Project branding kit</dd></div>
+      </dl>
+      <div class="callout"><b>What the rebuild caught:</b> the legacy spreadsheet hard-coded its normalization range from an older set of weights. Its own sample incident scored 86.5 (Severe) when the correct result was 62.2 (Medium). The new tool recalculates the range whenever weights change.</div>
+      <div class="shots">
+        <figure><img src="../assets/scorecard-app.webp" alt="The scorecard app showing incident details, a 62.2 Medium score, and radio-button selections with descriptions and examples" width="1300" height="1000" loading="lazy"><figcaption>The app, rebranded from a sample brand guide</figcaption></figure>
+        <figure><img src="../assets/scorecard-pdf.webp" alt="First page of the PDF scorecard showing the score, priority, basis counts, and each category with its selection, basis, and evidence" width="1105" height="886" loading="lazy"><figcaption>PDF for the incident evidence repository</figcaption></figure>
+      </div>
+      <div class="two">
+        <div class="block"><h2>What it does</h2><ul>
+          <li>Weighted scoring across seven or eight categories, normalized to 0 to 100 and mapped to a seven-level priority scale</li>
+          <li>Each option shows a plain description and a real-world example, so different responders score the same way</li>
+          <li>Each category records a basis (Known, Suspected, Unknown) and the evidence behind it</li>
+          <li>Initial and subsequent scorecards with automatic file naming: INC-### Initial Scorecard YYYY-MM-DD HHMM TZ</li>
+          <li>One-click status update for incident.io, Slack, or Teams, with a recommended platform severity</li>
+        </ul></div>
+        <div class="block"><h2>Safeguards</h2><ul>
+          <li>The offline edition runs in a browser with no server, account, or data sent anywhere</li>
+          <li>The Google Workspace edition limits use to approved Google accounts and saves PDFs to the organization's own shared drive</li>
+          <li>Weights, options, and thresholds are editable per company, then can be locked in a distributed copy</li>
+          <li>A Claude Project reads a company's brand guide and produces the branding file, with accessibility contrast checks and licensed-font rules</li>
+          <li>Every PDF names who scored it, when, in which time zone, and what remains unconfirmed</li>
+        </ul></div>
+      </div>
+      <div class="block"><h2>Google Workspace edition</h2><ul>
+        <li>Runs as a Google app inside Google Workspace, so responders sign in with their existing Google accounts</li>
+        <li>Access is limited to the specific Google accounts the organization approves</li>
+        <li>A Settings button lets admins change the scoring weights and where PDFs are saved</li>
+        <li>Setting changes take effect only after a second person approves them, keeping separation of duties between who edits and who approves</li>
+        <li>Settings link a Google shared drive folder, and every scorecard PDF is saved there automatically for the incident evidence record</li>
+      </ul></div>
+      <div class="block"><h2>Sample status update</h2>
+<pre class="code">**INC-042 Cybersecurity scorecard (Subsequent): 62.2 / 100, Medium (Yellow)**
+Recommended incident.io severity: **SEV3**
+Change from prior scorecard: +13.7 (was 48.5, Low). Priority raised to Medium.
+Confidence: 4 Known, 2 Suspected, 1 Unknown.
+
+**Open items to confirm:** Actor Characterization (Suspected), Recoverability (Suspected),
+Potential Impact (Unknown). Re-score when these are confirmed.
+Full scorecard: INC-042 Subsequent Scorecard 2026-10-10 1529 EDT.pdf (Incident Evidence repository)</pre>
+      </div>
+      <div class="actions">
+        <a class="btn btn-cta" href="../demo/incident-scorecard.html" target="_blank" rel="noopener">Try the live demo</a>
+        <span class="note">Fully interactive, including PDF download. Opens in a new tab.</span>
+      </div>
+      <div class="tags"><span>HTML / JavaScript</span><span>Google Workspace</span><span>Google shared drives</span><span>jsPDF</span><span>Claude</span><span>Claude Projects</span><span>Playwright testing</span></div>
+    </article>
+
+      <nav class="pager" aria-label="More projects">
+        <span></span>
+        <a class="next" href="virtual-ciso.html" rel="next"><small>Next &rarr;</small><b><span class="pid">AI-02</span>Virtual CISO Kit</b></a>
+      </nav>
+      <p class="all-link"><a class="back" href="../index.html#projects">View all seven projects</a></p>
+    </div>
+  </section>
+
+  <section class="contact cta-band" aria-labelledby="cta-h">
+    <div class="wrap">
+      <div>
+        <h2 id="cta-h">Let's talk</h2>
+        <p>Questions about this project, or a role where this kind of work fits? Send me a note.</p>
+      </div>
+      <div class="ctas">
+        <a class="btn btn-cta" href="../index.html#contact">Contact me</a>
+        <a class="btn btn-line" href="../resume.html">View my resume</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap"><span>© 2026 Lyn Hall</span><span>Designed and directed by Lyn Hall. Built with Claude. Employer details are anonymized. Visit counts use cookie-free analytics.</span></div>
+</footer>
+</body>
+</html>

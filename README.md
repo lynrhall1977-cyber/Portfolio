@@ -3,8 +3,22 @@
 A static website. No build step, no server code. Upload this whole folder as-is.
 
 ## Folder contents
-- `index.html` - the website
-- `assets/` - screenshots used on the page
+- `index.html` - the home page (hero, approach, project overview cards, about, contact form)
+- `projects/` - one page per project, linked from the AI-01 to AI-07 cards and the Projects menu in the header:
+  `incident-scoring.html` (AI-01), `virtual-ciso.html` (AI-02), `cve-intelligence.html` (AI-03), `career-ops.html` (AI-04),
+  `homeschool-gradebook.html` (AI-05), `access-review.html` (AI-06), `curriculum-studio.html` (AI-07)
+- `resume.html` - the resume page
+- `assets/site.css` - shared styles for the home page and project pages
+- `assets/nav.css`, `assets/nav.js` - the Projects dropdown menu in the header (used on every page)
+- `assets/` - also holds the logo, favicon, analytics script, and screenshots
+
+## Adding a new project page
+1. Copy any file in `projects/` and rename it, for example `projects/new-tool.html`.
+2. Replace the title, description, and the `<article>` content.
+3. Add a card for it on `index.html`, and add a line for it in the Projects menu on every page (search for `projects-menu`).
+4. Update the Previous / Next links on the neighboring project pages.
+
+Old links such as `index.html#access-review` still work: the home page forwards them to the matching project page.
 - `demo/incident-scorecard.html` - live Incident Scoring System demo (works fully, including PDF download)
 - `demo/homeschool-gradebook.html` - live Homeschool Gradebook demo with a fictional sample student (saves only in the visitor's browser)
 - `demo/access-review.html` - live Offboarding & Privileged Access Review demo with invented example.com users, remediation tracking, owner confirmations, and a PDF executive report (runs only in the visitor's browser)

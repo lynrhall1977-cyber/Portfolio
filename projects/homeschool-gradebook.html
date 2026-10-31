@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI-05 Homeschool Gradebook &amp; Records | Lyn Hall, Security &amp; GRC</title>
+<meta name="description" content="A gradebook and records system for a family homeschool, built for two adults who share the school day. It turns a first day and a number of school days…">
+<link rel="icon" type="image/png" href="../assets/favicon.png">
+<link rel="apple-touch-icon" href="../assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=JetBrains+Mono:wght@400;500&family=Montserrat:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/nav.css">
+<script src="../assets/analytics.js" defer></script>
+<script src="../assets/nav.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="bar">
+  <div class="wrap">
+    <a class="mark" href="../index.html" aria-label="Lyn Hall, Security and GRC, portfolio home"><img src="../assets/logo-mark-reversed.webp" alt="" width="98" height="112"><span><b>Lyn Hall</b><small>SECURITY &amp; GRC</small></span></a>
+    <nav aria-label="Main">
+      <ul>
+        <li><a href="../index.html#approach">Approach</a></li>
+        <li class="has-menu">
+          <button class="menu-btn current" type="button" aria-expanded="false" aria-controls="projects-menu">Projects<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1 3l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+          <div class="submenu" id="projects-menu">
+          <ul class="submenu-panel">
+            <li><a class="sm-all" href="../index.html#projects">All projects</a></li>
+            <li><a href="../projects/incident-scoring.html"><span class="sm-id">AI-01</span><span>Incident Scoring System</span></a></li>
+            <li><a href="../projects/virtual-ciso.html"><span class="sm-id">AI-02</span><span>Virtual CISO Kit</span></a></li>
+            <li><a href="../projects/cve-intelligence.html"><span class="sm-id">AI-03</span><span>Weekly CVE Intelligence &amp; Exposure Review</span></a></li>
+            <li><a href="../projects/career-ops.html"><span class="sm-id">AI-04</span><span>Career Operations System</span></a></li>
+            <li><a href="../projects/homeschool-gradebook.html" aria-current="page"><span class="sm-id">AI-05</span><span>Homeschool Gradebook &amp; Records</span></a></li>
+            <li><a href="../projects/access-review.html"><span class="sm-id">AI-06</span><span>Offboarding &amp; Privileged Access Review</span></a></li>
+            <li><a href="../projects/curriculum-studio.html"><span class="sm-id">AI-07</span><span>Curriculum Design Studio</span></a></li>
+          </ul>
+          </div>
+        </li>
+        <li><a href="../index.html#about">About</a></li>
+        <li><a href="../resume.html">Resume</a></li>
+        <li><a href="../index.html#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <section class="sec project-page">
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <ol>
+          <li><a href="../index.html">Portfolio</a></li>
+          <li><a href="../index.html#projects">Projects</a></li>
+          <li><span aria-current="page">AI-05 Homeschool Gradebook &amp; Records</span></li>
+        </ol>
+      </nav>
+
+    <article class="project" id="homeschool-gradebook" aria-labelledby="p5-h">
+      <div class="p-head">
+        <div class="card-top"><span class="pid">AI-05</span><span class="status">In use</span></div>
+        <h1 id="p5-h">Homeschool Gradebook &amp; Records</h1>
+        <p>A gradebook and records system for a family homeschool, built for two adults who share the school day. It turns a first day and a number of school days into a calendar with quarters, reads the year's curriculum workbooks to schedule every lesson and test, and keeps grades, attendance, and a reading log in one place. Report cards and records print on letter paper for the state-required portfolio. It runs as a sign-in web app with a private cloud database, so both adults see the same gradebook on any device.</p>
+      </div>
+      <dl class="facts">
+        <div><dt>Domain</dt><dd>Education records, portfolio documentation</dd></div>
+        <div><dt>Data protection</dt><dd>Email sign-in, members-only row-level security, conflict-checked saves</dd></div>
+        <div><dt>Delivered as</dt><dd>Web app on GitHub Pages with a Supabase database, letter-size PDF output, offline single-file edition</dd></div>
+      </dl>
+      <div class="callout"><b>What testing caught:</b> run against the real spelling workbook, the first importer found 45 tests and no practice pages, because practice pages mention the weekly test in their instructions. Detection now reads only the page header. All five workbooks were then re-run: 98 lessons and 10 unit tests each for science and social studies, and 144 practice pages and 36 tests for spelling.</div>
+      <div class="shots">
+        <figure><img src="../assets/gradebook-app.webp" alt="Gradebook overview showing the current quarter, a quarter timeline, attendance, and letter grades by subject for each quarter" width="1300" height="1000" loading="lazy"><figcaption>Overview with quarter grades (sample student)</figcaption></figure>
+        <figure><img src="../assets/gradebook-report-card.webp" alt="Printed quarter 1 report card with grades by subject, attendance, teacher comments, the grading scale, and signature lines" width="842" height="1107" loading="lazy"><figcaption>Quarter report card, ready for the portfolio</figcaption></figure>
+      </div>
+      <div class="two">
+        <div class="block"><h2>What it does</h2><ul>
+          <li>Builds the school calendar from a first day and a number of school days, skipping weekends and the holidays the family chooses, then splits the year into quarters</li>
+          <li>Reads curriculum workbooks (PDF, Word, Excel, or CSV) by their page labels, such as Cycle / Lesson / Day or Unit / Lesson / Week / Day, and places each lesson on its school day</li>
+          <li>Follows the family's rules: science and social studies on Monday, Wednesday, and Friday, and spelling tests alone on Friday, each moving to a nearby day when a holiday lands</li>
+          <li>Weighted grades by assignment type, with quarter and year averages and the family's own grading scale</li>
+          <li>Attendance, a reading log, and quarterly report cards, each printable or downloadable as a letter-size PDF</li>
+          <li>Starts a new school year with one button and keeps past years available to open, view, and print</li>
+        </ul></div>
+        <div class="block"><h2>Safeguards</h2><ul>
+          <li>Row-level security in the database: only signed-in emails on the gradebook's member list can read or save it, and signed-out visitors get nothing</li>
+          <li>Public sign-ups are off, and the database has no insert or delete rules for the web page, so members are added only by the owner in the database console</li>
+          <li>Only the public, publishable key is in the page; the service key that bypasses security is never used</li>
+          <li>Every save checks a revision number, so two people editing at once never silently overwrite each other's work</li>
+          <li>Signing out clears the copy kept in the browser, and past school years open read-only</li>
+          <li>No student names or grades are in the public code; the demo uses a fictional student</li>
+        </ul></div>
+      </div>
+      <div class="block"><h2>How it was verified</h2><ul>
+        <li>Each real workbook was run through the same PDF library the browser loads, and the lesson and test counts were checked against each book's scope and sequence</li>
+        <li>Lesson placement was checked week by week against the real calendar, including Thanksgiving, winter break, and a first week that starts on a Tuesday</li>
+        <li>Sign-in, two-device sync, simultaneous edits, past-year viewing, and sign-out were tested against a stand-in database that enforces the same access rules</li>
+        <li>Report cards, attendance records, and reading logs were printed to letter-size PDFs and page-counted, which caught a report card that spilled onto a second page</li>
+      </ul></div>
+      <div class="actions">
+        <a class="btn btn-cta" href="../demo/homeschool-gradebook.html" target="_blank" rel="noopener">Try the live demo</a>
+        <span class="note">Sample data for a fictional student. Runs in your browser; nothing is sent anywhere. Opens in a new tab.</span>
+      </div>
+      <div class="tags"><span>HTML / JavaScript</span><span>Supabase</span><span>PostgreSQL row-level security</span><span>GitHub Pages</span><span>pdf.js</span><span>jsPDF</span><span>Claude</span><span>Playwright testing</span></div>
+    </article>
+
+      <nav class="pager" aria-label="More projects">
+        <a class="prev" href="career-ops.html" rel="prev"><small>&larr; Previous</small><b><span class="pid">AI-04</span>Career Operations System</b></a>
+        <a class="next" href="access-review.html" rel="next"><small>Next &rarr;</small><b><span class="pid">AI-06</span>Offboarding &amp; Privileged Access Review</b></a>
+      </nav>
+      <p class="all-link"><a class="back" href="../index.html#projects">View all seven projects</a></p>
+    </div>
+  </section>
+
+  <section class="contact cta-band" aria-labelledby="cta-h">
+    <div class="wrap">
+      <div>
+        <h2 id="cta-h">Let's talk</h2>
+        <p>Questions about this project, or a role where this kind of work fits? Send me a note.</p>
+      </div>
+      <div class="ctas">
+        <a class="btn btn-cta" href="../index.html#contact">Contact me</a>
+        <a class="btn btn-line" href="../resume.html">View my resume</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap"><span>© 2026 Lyn Hall</span><span>Designed and directed by Lyn Hall. Built with Claude. Employer details are anonymized. Visit counts use cookie-free analytics.</span></div>
+</footer>
+</body>
+</html>

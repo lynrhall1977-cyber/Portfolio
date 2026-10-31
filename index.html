@@ -10,211 +10,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=JetBrains+Mono:wght@400;500&family=Montserrat:wght@400;500;600;700&display=swap">
-<style>
-/* Layout: sticky navy bar; navy hero; beige page with white panels; project overview grid that links to one detail section per project. */
-:root{
-  /* Premium Technology brand palette v1.0 */
-  --navy:#121B32; --cool:#F3F5F7; --peri:#6478A8; --gold:#C09A6B; --graphite:#343D50; --white:#FFFFFF;
-  --beige:var(--cool); --orange:var(--gold); --gray:#E3E7ED; --peri-tint:#E8ECF4;
-  --ink:#121B32; --muted:#343D50; --rule:rgba(18,27,50,.12); --on-navy:#F3F5F7; --on-navy-muted:#B9C3D6;
-  --sans:"Montserrat","Segoe UI",system-ui,Arial,sans-serif;
-  --serif:"EB Garamond",Garamond,"Times New Roman",serif;
-  --mono:"JetBrains Mono",ui-monospace,Consolas,Menlo,monospace;
-  --radius:10px; --max:1120px;
-  color-scheme:light;
-}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth;scroll-padding-top:84px}
-body{margin:0;background:var(--cool);color:var(--graphite);font-family:var(--sans);font-size:16px;line-height:1.65}
-img{max-width:100%;height:auto;display:block}
-[hidden]{display:none!important}
-h1,h2,h3,h4,p{margin:0}
-h1,h2,h3{text-wrap:balance;color:var(--navy)}
-a{color:var(--navy);text-decoration-color:var(--orange);text-decoration-thickness:2px;text-underline-offset:4px}
-a:hover{color:var(--orange)}
-:focus-visible{outline:3px solid var(--peri);outline-offset:3px;border-radius:2px}
-.wrap{max-width:var(--max);margin:0 auto;padding-inline:24px}
-.skip{position:absolute;left:-9999px;top:8px;background:var(--white);padding:8px 12px;z-index:100}
-.skip:focus{left:16px}
-
-/* top bar */
-.bar{position:sticky;top:0;z-index:50;background:var(--navy);color:var(--on-navy);border-bottom:2px solid var(--gold)}
-.bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px 24px;min-height:64px;flex-wrap:wrap;padding-block:8px}
-.mark{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--on-navy)}
-.mark img{height:40px;width:auto}
-.mark span{display:grid;gap:4px;padding-left:12px;border-left:1px solid var(--gold)}
-.mark b{font-family:var(--serif);font-weight:500;font-size:21px;letter-spacing:.01em;line-height:1}
-.mark small{font-size:10px;font-weight:600;letter-spacing:.3em;color:var(--on-navy-muted);line-height:1}
-.hero-logo{width:min(380px,100%);height:auto;margin-bottom:28px}
-nav ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px 22px}
-nav a{color:var(--on-navy);text-decoration:none;font-size:14px;font-weight:500;letter-spacing:.02em;padding:6px 0;border-bottom:2px solid transparent}
-nav a:hover{color:var(--white);border-bottom-color:var(--orange)}
-
-/* hero */
-.hero{background:var(--navy);color:var(--on-navy)}
-.hero .wrap{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:48px;padding-block:72px 80px;align-items:center}
-.eyebrow{font-size:13px;font-weight:600;letter-spacing:.18em;text-transform:uppercase}
-.hero .eyebrow{color:var(--on-navy-muted)}
-.hero h1{font-family:var(--serif);font-weight:400;font-size:clamp(42px,5.6vw,64px);line-height:1.08;color:var(--on-navy);margin:14px 0 20px}
-.hero h1 em{font-style:italic;color:var(--gold)}
-.hero p.lede{font-size:17px;color:var(--on-navy);max-width:36em}
-.ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
-.btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--sans);border-radius:var(--radius);padding:12px 22px;line-height:1.2;transition:background .15s,color .15s,border-color .15s}
-.btn-cta{background:var(--navy);color:var(--white);font-size:17px;font-weight:700}
-.btn-cta:hover{background:var(--graphite);color:var(--white)}
-.hero .btn-cta{background:var(--cool);color:var(--navy)}
-.hero .btn-cta:hover{background:var(--gold);color:var(--navy)}
-.btn-line{border:2px solid currentColor;font-size:15px;font-weight:600;color:var(--navy)}
-.btn-line:hover{background:var(--navy);color:var(--white);border-color:var(--navy)}
-.hero .btn-line,.contact .btn-line{color:var(--on-navy)}
-.hero .btn-line:hover,.contact .btn-line:hover{background:var(--on-navy);color:var(--navy);border-color:var(--on-navy)}
-.profile{background:rgba(255,255,255,.05);border:1px solid rgba(192,154,107,.45);border-radius:var(--radius);padding:26px}
-.profile dl{margin:0;display:grid;gap:16px}
-.profile dt{font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--on-navy-muted)}
-.profile dd{margin:3px 0 0;font-size:15px;color:var(--white)}
-
-/* sections */
-section.sec{padding-block:72px}
-.sec-head{display:grid;gap:10px;margin-bottom:36px;max-width:46em}
-.sec-head .eyebrow{color:var(--muted);display:flex;align-items:center;gap:10px}
-.sec-head .eyebrow::before{content:"";width:22px;height:3px;background:var(--orange)}
-.sec-head h2{font-family:var(--sans);font-weight:600;font-size:clamp(24px,2.6vw,30px);line-height:1.2}
-.sec-head p{font-size:17px;color:var(--muted)}
-.alt{background:var(--cool)}
-section.sec+section.sec{border-top:1px solid var(--rule)}
-
-/* approach */
-.principles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
-.principle{background:var(--white);border-radius:var(--radius);padding:24px;border-top:2px solid var(--gold);box-shadow:0 1px 2px rgba(18,27,50,.05)}
-.principle h3{font-size:18px;font-weight:600;margin-bottom:8px}
-.principle p{font-size:15px;color:var(--muted)}
-
-/* project overview */
-.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
-.cards>.card:last-child:nth-child(odd){grid-column:1/-1}
-.card{background:var(--white);border:1px solid var(--rule);border-radius:var(--radius);padding:26px;display:flex;flex-direction:column;gap:12px;text-decoration:none;color:var(--ink);transition:border-color .15s,transform .15s,box-shadow .15s}
-.card:hover{color:var(--ink);border-color:var(--peri);transform:translateY(-2px);box-shadow:0 6px 18px rgba(18,27,50,.07)}
-.card-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.pid{font-size:13px;font-weight:700;letter-spacing:.08em;font-variant-numeric:tabular-nums}
-.status{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:4px 9px;border-radius:3px;background:var(--navy);color:var(--white)}
-.status.ready{background:var(--white);color:var(--navy);box-shadow:inset 0 0 0 1px var(--navy)}
-.card h3{font-family:var(--sans);font-weight:600;font-size:21px;line-height:1.25;padding-bottom:12px;border-bottom:1px solid rgba(192,154,107,.55)}
-.card p{font-size:15px;color:var(--muted);flex:1}
-.more{font-size:14px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:6px}
-.more::after{content:"\2192";color:var(--orange);transition:transform .15s}
-.card:hover .more::after{transform:translateX(4px)}
-.tags{display:flex;flex-wrap:wrap;gap:6px}
-.tags span{font-size:12px;font-weight:500;padding:3px 10px;border-radius:999px;background:var(--peri-tint);border:1px solid rgba(100,120,168,.45);color:var(--navy)}
-
-/* project detail */
-.project{background:var(--white);border-radius:var(--radius);padding:44px;display:grid;gap:28px;margin-bottom:28px;scroll-margin-top:84px}
-.project:last-child{margin-bottom:0}
-.p-head{display:grid;gap:12px}
-.p-head .card-top{justify-content:flex-start;gap:14px}
-.p-head h3{font-family:var(--sans);font-weight:600;font-size:clamp(24px,2.6vw,30px);line-height:1.2}
-.p-head p{font-size:17px;max-width:44em}
-.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:0;border:1px solid var(--gray);border-radius:var(--radius)}
-.facts div{padding:16px 20px;border-left:1px solid var(--gray);min-width:0}
-.facts div:first-child{border-left:0}
-.facts dt{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.facts dd{margin:4px 0 0;font-size:14.5px}
-.callout{border-left:4px solid var(--orange);background:var(--beige);padding:16px 20px;border-radius:0 var(--radius) var(--radius) 0;font-size:16px}
-.callout b{font-weight:700}
-.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px}
-.two>*,.block,figure{min-width:0}
-.block h4{font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px;color:var(--navy);display:flex;align-items:center;gap:10px}
-.block h4::before{content:"";width:14px;height:3px;background:var(--orange)}
-.block ul{margin:0;padding-left:20px;display:grid;gap:8px}
-.block li{font-size:15.5px}
-.block li::marker{color:var(--orange)}
-.block p{font-size:15.5px}
-.note{font-size:14px;color:var(--muted)}
-.shots{display:grid;grid-template-columns:1.25fr 1fr;gap:20px;align-items:start}
-figure{margin:0;display:grid;gap:8px}
-figure img{border:1px solid var(--gray);border-radius:var(--radius)}
-figcaption{font-size:13px;color:var(--muted)}
-pre.code{margin:0;background:var(--navy);color:var(--on-navy);border-radius:var(--radius);padding:18px 20px;font-family:var(--mono);font-size:13.5px;line-height:1.6;overflow-x:auto;white-space:pre}
-.actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px}
-.ladder{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border:1px solid var(--gray);border-radius:var(--radius);overflow:hidden}
-.ladder div{padding:14px;border-left:1px solid var(--gray);display:grid;gap:4px;align-content:start;font-size:13.5px;color:var(--muted);line-height:1.45}
-.ladder div:first-child{border-left:0;background:var(--beige)}
-.ladder b{font-size:13px;color:var(--navy);font-weight:700}
-.tablewrap{overflow-x:auto;border:1px solid var(--gray);border-radius:var(--radius)}
-table{width:100%;border-collapse:collapse;min-width:560px;font-size:14.5px}
-th{background:var(--navy);color:var(--white);text-align:left;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:10px 14px}
-td{padding:10px 14px;border-top:1px solid var(--gray);vertical-align:top}
-td:first-child{font-weight:700;white-space:nowrap}
-td:last-child{white-space:nowrap;font-variant-numeric:tabular-nums}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chips span{font-family:var(--mono);font-size:13px;font-weight:500;padding:6px 12px;border-radius:999px;border:1px solid rgba(100,120,168,.55);color:var(--navy);background:var(--peri-tint)}
-.pilot{border-top:1px solid var(--gray);padding-top:28px;display:grid;gap:18px}
-q{quotes:"\201C" "\201D"}
-.back{font-size:14px;font-weight:600}
-
-/* about */
-.about{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:48px}
-.about p{font-size:17px;margin-bottom:16px;max-width:38em}
-.creds{background:var(--white);border-radius:var(--radius);padding:28px;display:grid;gap:20px;align-content:start}
-.creds h3{font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px}
-.creds ul{margin:0;padding-left:18px;display:grid;gap:4px;font-size:15px}
-.creds li::marker{color:var(--orange)}
-
-/* contact */
-.contact{background:var(--navy);color:var(--on-navy)}
-.contact .wrap{padding-block:64px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:24px}
-.contact h2{font-family:var(--serif);font-weight:400;font-size:clamp(38px,4.2vw,52px);color:var(--on-navy)}
-.contact p{color:var(--on-navy-muted);margin-top:8px}
-footer{background:var(--navy);color:var(--on-navy-muted);border-top:1px solid rgba(192,154,107,.35);font-size:13px}
-footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px}
-
-
-/* contact form */
-.contact-grid{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:48px;align-items:start!important}
-.contact-intro{display:grid;gap:14px;align-content:start}
-.contact-intro p{margin-top:0}
-.contact-meta{font-size:14px}
-.contact-form{background:var(--white);color:var(--ink);border-radius:var(--radius);padding:28px;display:grid;gap:16px;border-top:3px solid var(--gold)}
-.field{display:grid;gap:6px}
-.field label{font-size:13px;font-weight:700;letter-spacing:.02em}
-.opt{font-weight:500;color:var(--muted)}
-.field input,.field textarea{font:inherit;font-size:15px;color:var(--ink);background:var(--white);border:1px solid #B9C2CA;border-radius:4px;padding:10px 12px;width:100%}
-.field textarea{resize:vertical;min-height:120px}
-.field input:focus,.field textarea:focus{outline:3px solid var(--peri);outline-offset:1px;border-color:var(--navy)}
-.field input[aria-invalid="true"],.field textarea[aria-invalid="true"]{border-color:#A3271B}
-.contact-form .btn-cta{justify-self:start;border:0;cursor:pointer}
-.contact-form .btn-cta:disabled{opacity:.6;cursor:not-allowed}
-.contact .contact-form .form-status{font-size:14px;min-height:1.4em;margin:0;color:var(--muted)}
-.contact .contact-form .form-status.ok{color:#1F6B3A;font-weight:600}
-.contact .contact-form .form-status.err{color:#A3271B;font-weight:600}
-.hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
-@media (max-width:860px){.contact-grid{grid-template-columns:1fr;gap:28px}}
-@media (max-width:720px){.contact-form{padding:20px}}
-
-@media (max-width:960px){
-  .hero .wrap{grid-template-columns:1fr;gap:32px;padding-block:52px 56px}
-  .principles{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .about{grid-template-columns:1fr}
-  .shots{grid-template-columns:1fr}
-  .ladder{grid-template-columns:1fr}
-  .ladder div{border-left:0;border-top:1px solid var(--gray)}
-  .ladder div:first-child{border-top:0}
-}
-@media (max-width:720px){
-  .wrap{padding-inline:16px}
-  section.sec{padding-block:52px}
-  .cards,.two,.principles{grid-template-columns:1fr}
-  .facts{grid-template-columns:1fr}
-  .facts div{border-left:0;border-top:1px solid var(--gray)}
-  .facts div:first-child{border-top:0}
-  .project{padding:24px 20px}
-  nav ul{gap:2px 16px}
-  nav a{font-size:13px}
-  html{scroll-padding-top:110px}
-  .project{scroll-margin-top:110px}
-}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
-</style>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/nav.css">
+<script>
+/* Old links such as index.html#incident-scoring now open that project's own page. */
+(function(){var p={'incident-scoring':1,'virtual-ciso':1,'cve-intelligence':1,'career-ops':1,'homeschool-gradebook':1,'access-review':1,'curriculum-studio':1},h=location.hash.slice(1);if(p[h])location.replace('projects/'+h+'.html');})();
+</script>
 <script src="assets/analytics.js" defer></script>
+<script src="assets/nav.js" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -225,7 +28,21 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
     <nav aria-label="Main">
       <ul>
         <li><a href="#approach">Approach</a></li>
-        <li><a href="#projects">Projects</a></li>
+        <li class="has-menu">
+          <button class="menu-btn" type="button" aria-expanded="false" aria-controls="projects-menu">Projects<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1 3l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+          <div class="submenu" id="projects-menu">
+          <ul class="submenu-panel">
+            <li><a class="sm-all" href="#projects">All projects</a></li>
+            <li><a href="projects/incident-scoring.html"><span class="sm-id">AI-01</span><span>Incident Scoring System</span></a></li>
+            <li><a href="projects/virtual-ciso.html"><span class="sm-id">AI-02</span><span>Virtual CISO Kit</span></a></li>
+            <li><a href="projects/cve-intelligence.html"><span class="sm-id">AI-03</span><span>Weekly CVE Intelligence &amp; Exposure Review</span></a></li>
+            <li><a href="projects/career-ops.html"><span class="sm-id">AI-04</span><span>Career Operations System</span></a></li>
+            <li><a href="projects/homeschool-gradebook.html"><span class="sm-id">AI-05</span><span>Homeschool Gradebook &amp; Records</span></a></li>
+            <li><a href="projects/access-review.html"><span class="sm-id">AI-06</span><span>Offboarding &amp; Privileged Access Review</span></a></li>
+            <li><a href="projects/curriculum-studio.html"><span class="sm-id">AI-07</span><span>Curriculum Design Studio</span></a></li>
+          </ul>
+          </div>
+        </li>
         <li><a href="#about">About</a></li>
         <li><a href="resume.html">Resume</a></li>
         <li><a href="https://lynrhall1977-cyber.github.io/Portfolio/#contact">Contact</a></li>
@@ -284,49 +101,49 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
         <p>Choose a project to read how it works, what it produces, and the safeguards built into it.</p>
       </div>
       <div class="cards">
-        <a class="card" href="#incident-scoring">
+        <a class="card" href="projects/incident-scoring.html">
           <div class="card-top"><span class="pid">AI-01</span><span class="status">In use</span></div>
           <h3>Incident Scoring System</h3>
           <p>Scores cybersecurity and physical security incidents from 0 to 100, sets the priority, and produces an evidence-ready PDF and a status update.</p>
           <div class="tags"><span>Incident response</span><span>Google Workspace app</span><span>Offline web app</span></div>
           <span class="more">View project</span>
         </a>
-        <a class="card" href="#virtual-ciso">
+        <a class="card" href="projects/virtual-ciso.html">
           <div class="card-top"><span class="pid">AI-02</span><span class="status ready">Ready to deploy</span></div>
           <h3>Virtual CISO Kit</h3>
           <p>A portable security and governance adviser built on NIST CSF 2.0 that drafts, maps, and assesses, but never approves.</p>
           <div class="tags"><span>Governance</span><span>Claude Project</span></div>
           <span class="more">View project</span>
         </a>
-        <a class="card" href="#cve-intelligence">
+        <a class="card" href="projects/cve-intelligence.html">
           <div class="card-top"><span class="pid">AI-03</span><span class="status ready">Ready to deploy</span></div>
           <h3>Weekly CVE Intelligence &amp; Exposure Review</h3>
           <p>A weekly scheduled review that checks new vulnerabilities against the technology inventory and reports only what the evidence supports.</p>
           <div class="tags"><span>Vulnerability intelligence</span><span>Scheduled task</span></div>
           <span class="more">View project</span>
         </a>
-        <a class="card" href="#career-ops">
+        <a class="card" href="projects/career-ops.html">
           <div class="card-top"><span class="pid">AI-04</span><span class="status">In use</span></div>
           <h3>Career Operations System</h3>
           <p>Runs a senior job search as a managed program, with a standard intake, written fit decisions, and quality-checked documents.</p>
           <div class="tags"><span>Document automation</span><span>Claude Project</span></div>
           <span class="more">View project</span>
         </a>
-        <a class="card" href="#homeschool-gradebook">
+        <a class="card" href="projects/homeschool-gradebook.html">
           <div class="card-top"><span class="pid">AI-05</span><span class="status">In use</span></div>
           <h3>Homeschool Gradebook &amp; Records</h3>
           <p>A sign-in web app that reads curriculum workbooks, schedules every lesson on the school calendar, and produces print-ready report cards, attendance records, and reading logs.</p>
           <div class="tags"><span>Records management</span><span>Supabase</span><span>Web app</span></div>
           <span class="more">View project</span>
         </a>
-        <a class="card" href="#access-review">
+        <a class="card" href="projects/access-review.html">
           <div class="card-top"><span class="pid">AI-06</span><span class="status ready">Ready to deploy</span></div>
           <h3>Offboarding &amp; Privileged Access Review</h3>
           <p>A quarterly user access review that tests offboarding against the HR termination list, flags terminated users who still hold admin rights, asks system owners to confirm privileged access over Slack, Teams, or Google Chat, and keeps a permanent register of every finding to closure.</p>
           <div class="tags"><span>Access reviews</span><span>SOC 2 evidence</span><span>Offline web app</span></div>
           <span class="more">View project</span>
         </a>
-        <a class="card" href="#curriculum-studio">
+        <a class="card" href="projects/curriculum-studio.html">
           <div class="card-top"><span class="pid">AI-07</span><span class="status">In use</span></div>
           <h3>Curriculum Design Studio</h3>
           <p>Writes a matching student workbook and Teacher's Guide for a chosen grade and learning method, with spiral review, measures every printed page, and checks the work before anything prints.</p>
@@ -334,371 +151,6 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;justify-content:spac
           <span class="more">View project</span>
         </a>
       </div>
-    </div>
-  </section>
-
-  <section class="sec" aria-label="Project details">
-    <div class="wrap">
-
-      <article class="project" id="incident-scoring" aria-labelledby="p1-h">
-        <div class="p-head">
-          <div class="card-top"><span class="pid">AI-01</span><span class="status">In use</span></div>
-          <h3 id="p1-h">Incident Scoring System</h3>
-          <p>A stand-alone scorecard that turns a responder's assessment into a 0 to 100 severity score, a priority level, an evidence-ready PDF, and a status update for the incident platform. It covers cybersecurity and physical security incidents and can be rebranded and re-weighted for any organization in minutes. It now also runs as a Google app inside Google Workspace, with access limited to approved accounts and PDFs saved straight to a shared drive.</p>
-        </div>
-        <dl class="facts">
-          <div><dt>Domain</dt><dd>Incident response, physical security</dd></div>
-          <div><dt>Frameworks</dt><dd>NIST SP 800-61, CISA NCISS, ODNI threat framework, Purdue model</dd></div>
-          <div><dt>Delivered as</dt><dd>Google Workspace app or single offline HTML file, PDF output, Claude Project branding kit</dd></div>
-        </dl>
-        <div class="callout"><b>What the rebuild caught:</b> the legacy spreadsheet hard-coded its normalization range from an older set of weights. Its own sample incident scored 86.5 (Severe) when the correct result was 62.2 (Medium). The new tool recalculates the range whenever weights change.</div>
-        <div class="shots">
-          <figure><img src="assets/scorecard-app.webp" alt="The scorecard app showing incident details, a 62.2 Medium score, and radio-button selections with descriptions and examples" width="1300" height="1000" loading="lazy"><figcaption>The app, rebranded from a sample brand guide</figcaption></figure>
-          <figure><img src="assets/scorecard-pdf.webp" alt="First page of the PDF scorecard showing the score, priority, basis counts, and each category with its selection, basis, and evidence" width="1105" height="886" loading="lazy"><figcaption>PDF for the incident evidence repository</figcaption></figure>
-        </div>
-        <div class="two">
-          <div class="block"><h4>What it does</h4><ul>
-            <li>Weighted scoring across seven or eight categories, normalized to 0 to 100 and mapped to a seven-level priority scale</li>
-            <li>Each option shows a plain description and a real-world example, so different responders score the same way</li>
-            <li>Each category records a basis (Known, Suspected, Unknown) and the evidence behind it</li>
-            <li>Initial and subsequent scorecards with automatic file naming: INC-### Initial Scorecard YYYY-MM-DD HHMM TZ</li>
-            <li>One-click status update for incident.io, Slack, or Teams, with a recommended platform severity</li>
-          </ul></div>
-          <div class="block"><h4>Safeguards</h4><ul>
-            <li>The offline edition runs in a browser with no server, account, or data sent anywhere</li>
-            <li>The Google Workspace edition limits use to approved Google accounts and saves PDFs to the organization's own shared drive</li>
-            <li>Weights, options, and thresholds are editable per company, then can be locked in a distributed copy</li>
-            <li>A Claude Project reads a company's brand guide and produces the branding file, with accessibility contrast checks and licensed-font rules</li>
-            <li>Every PDF names who scored it, when, in which time zone, and what remains unconfirmed</li>
-          </ul></div>
-        </div>
-        <div class="block"><h4>Google Workspace edition</h4><ul>
-          <li>Runs as a Google app inside Google Workspace, so responders sign in with their existing Google accounts</li>
-          <li>Access is limited to the specific Google accounts the organization approves</li>
-          <li>A Settings button lets admins change the scoring weights and where PDFs are saved</li>
-          <li>Setting changes take effect only after a second person approves them, keeping separation of duties between who edits and who approves</li>
-          <li>Settings link a Google shared drive folder, and every scorecard PDF is saved there automatically for the incident evidence record</li>
-        </ul></div>
-        <div class="block"><h4>Sample status update</h4>
-<pre class="code">**INC-042 Cybersecurity scorecard (Subsequent): 62.2 / 100, Medium (Yellow)**
-Recommended incident.io severity: **SEV3**
-Change from prior scorecard: +13.7 (was 48.5, Low). Priority raised to Medium.
-Confidence: 4 Known, 2 Suspected, 1 Unknown.
-
-**Open items to confirm:** Actor Characterization (Suspected), Recoverability (Suspected),
-Potential Impact (Unknown). Re-score when these are confirmed.
-Full scorecard: INC-042 Subsequent Scorecard 2026-10-10 1529 EDT.pdf (Incident Evidence repository)</pre>
-        </div>
-        <div class="actions">
-          <a class="btn btn-cta" href="demo/incident-scorecard.html" target="_blank" rel="noopener">Try the live demo</a>
-          <span class="note">Fully interactive, including PDF download. Opens in a new tab.</span>
-        </div>
-        <div class="tags"><span>HTML / JavaScript</span><span>Google Workspace</span><span>Google shared drives</span><span>jsPDF</span><span>Claude</span><span>Claude Projects</span><span>Playwright testing</span></div>
-        <a class="back" href="#projects">Back to all projects</a>
-      </article>
-
-      <article class="project" id="virtual-ciso" aria-labelledby="p2-h">
-        <div class="p-head">
-          <div class="card-top"><span class="pid">AI-02</span><span class="status ready">Ready to deploy</span></div>
-          <h3 id="p2-h">Virtual CISO Kit</h3>
-          <p>A Claude Project that works as a senior security and governance adviser to the accountable CISO. It builds and maintains a risk-based program organized on NIST CSF 2.0, and I can take it to any organization to start a program from a proven baseline.</p>
-        </div>
-        <dl class="facts">
-          <div><dt>Domain</dt><dd>Security governance, risk, and compliance</dd></div>
-          <div><dt>Frameworks</dt><dd>NIST CSF 2.0, ISO/IEC 27001:2022, SOC 2, PCI DSS 4.0.1, NIST SP 800-53, FedRAMP, GovRAMP, GDPR, Canadian Protected B</dd></div>
-          <div><dt>Delivered as</dt><dd>Portable Claude Project with eight operating commands</dd></div>
-        </dl>
-        <div class="callout"><b>Designed around accountability:</b> the adviser cannot certify compliance, accept risk, or approve policy. Those decisions are routed to a named human approver every time.</div>
-        <div class="two">
-          <div class="block"><h4>What it does</h4><ul>
-            <li>Onboards an organization in small batches of questions and builds a context register that separates known, unknown, and assumed facts, with sources</li>
-            <li>Drafts approval-ready policies, standards, procedures, and plans, each with ID, owner, approver, requirements, exceptions, evidence, monitoring, and review cycle</li>
-            <li>Maps controls many-to-many across frameworks and rates each link as identical, partial, related, conflicting, or not mapped, with a confidence level</li>
-            <li>Produces readiness assessments, POA&amp;Ms, risk registers with inherent and residual ratings, and decision-ready CISO briefings</li>
-          </ul></div>
-          <div class="block"><h4>Safeguards</h4><ul>
-            <li>No control is marked Implemented, Tested, or Compliant without objective evidence naming the owner, period, and reviewer</li>
-            <li>Every requirement cites the exact source, version, and control reference. When the text can't be checked, it says "Verification required" and shows how to verify</li>
-            <li>Keeps verified facts, user claims, source requirements, interpretations, and assumptions visibly separate</li>
-            <li>Treats uploaded documents and web pages as untrusted reference material, never as instructions</li>
-            <li>Separates control design, implementation, and operating effectiveness when planning tests</li>
-          </ul></div>
-        </div>
-        <div class="block"><h4>Operating commands</h4>
-          <div class="chips"><span>Onboard the organization</span><span>Draft [document]</span><span>Review [document]</span><span>Map [control/process]</span><span>Assess readiness for [framework]</span><span>Build POA&amp;M</span><span>Prepare CISO briefing</span><span>Challenge this policy</span></div>
-        </div>
-        <div class="tags"><span>Claude Projects</span><span>NIST CSF 2.0</span><span>Control crosswalks</span><span>Policy authoring</span></div>
-        <a class="back" href="#projects">Back to all projects</a>
-      </article>
-
-      <article class="project" id="cve-intelligence" aria-labelledby="p3-h">
-        <div class="p-head">
-          <div class="card-top"><span class="pid">AI-03</span><span class="status ready">Ready to deploy</span></div>
-          <h3 id="p3-h">Weekly CVE Intelligence &amp; Exposure Review</h3>
-          <p>A weekly scheduled review that checks new and updated CVEs, known-exploited listings, exploit likelihood, and vendor and open-source advisories against the organization's technology inventory. Each run produces a branded executive report, a findings register, and a source-coverage log, with the original advisory cited beside every finding.</p>
-        </div>
-        <dl class="facts">
-          <div><dt>Domain</dt><dd>Vulnerability intelligence, exposure management</dd></div>
-          <div><dt>Sources</dt><dd>CISA KEV, NVD CVE 2.0, FIRST EPSS, GitHub Advisories, OSV, applicable vendor PSIRTs</dd></div>
-          <div><dt>Delivered as</dt><dd>Claude Project, weekly scheduled task, optional Python feed collector on GitHub Actions</dd></div>
-        </dl>
-        <div class="callout"><b>Built to avoid false confidence:</b> a vendor-name match is never reported as a confirmed finding, a missing result is never reported as safe, and a finding is never closed just because it dropped out of this week's feed.</div>
-        <div class="two">
-          <div class="block"><h4>How each run works</h4><ul>
-            <li>Records the run time, the window (the previous 7 days plus a 48-hour overlap), the inventory version, and which sources answered</li>
-            <li>Reviews new and modified records, including older CVEs newly added to the KEV catalog, and checks only the vendor bulletins that apply to the inventory</li>
-            <li>Matches advisories to assets by SBOM package or CPE and version range first; product names and categories are research leads only</li>
-            <li>Tracks each finding week over week as New, Continuing, Changed, Resolved (verified), or Unknown history</li>
-          </ul></div>
-          <div class="block"><h4>Every week it delivers</h4><ul>
-            <li>An executive report in the company's brand, or a clearly labeled placeholder if no brand guide is supplied</li>
-            <li>A findings register with one row per CVE and asset, including CVSS version, EPSS date, and KEV status</li>
-            <li>A source-coverage manifest showing what was queried, when, and what failed</li>
-            <li>A triage backlog listing the evidence needed, the owner, and the due date</li>
-          </ul></div>
-        </div>
-        <div class="block"><h4>Applicability ladder</h4>
-          <div class="ladder" role="list">
-            <div role="listitem"><b>Confirmed affected</b>Exact version and configuration validated with direct evidence</div>
-            <div role="listitem"><b>Likely affected</b>Strong product and version evidence, one prerequisite unverified</div>
-            <div role="listitem"><b>Potentially affected</b>Product present, version or configuration incomplete</div>
-            <div role="listitem"><b>Not affected (verified)</b>Documented counter-evidence such as an out-of-range version</div>
-            <div role="listitem"><b>Not assessed</b>Not enough inventory or source access to decide</div>
-          </div>
-        </div>
-        <div class="block"><h4>Default response bands</h4>
-          <div class="tablewrap"><table>
-            <thead><tr><th scope="col">Band</th><th scope="col">When it applies</th><th scope="col">Target</th></tr></thead>
-            <tbody>
-              <tr><td>P0 Emergency</td><td>Confirmed or likely affected, known exploited, with a reachable attack path</td><td>72 hours</td></tr>
-              <tr><td>P1 High</td><td>Affected, high severity, significant exposure</td><td>7 days</td></tr>
-              <tr><td>P2 Medium</td><td>Affected with less exposure</td><td>30 days</td></tr>
-              <tr><td>P3 Routine</td><td>Low-impact exposure or hygiene</td><td>90 days</td></tr>
-              <tr><td>Verification queue</td><td>Possible match with unknown version or configuration</td><td>24 hours if exploited, else 5 business days</td></tr>
-            </tbody>
-          </table></div>
-          <p class="note" style="margin-top:8px">Recommended defaults, replaced by each organization's approved SLAs.</p>
-        </div>
-        <div class="block"><h4>Safeguards</h4><ul>
-          <li>Advisories, web pages, and inventory text are treated as data, never instructions; it never runs supplied commands or follows credential links</li>
-          <li>Inventory details are never sent to outside sites, and redacted inventories are recommended</li>
-          <li>No scanning or intrusive testing without separate authorization</li>
-          <li>When a source fails, the report says so and never gives a clean bill of health</li>
-          <li>Verified with acceptance tests, including a missing inventory, same vendor but different product, unknown version, a source outage, and an open issue with no patch proof</li>
-        </ul></div>
-        <div class="pilot">
-          <div class="block"><h4>First pilot run · October 10, 2026</h4><p class="note">Run against a synthetic 40-asset SaaS inventory with illustrative versions, using a sample brand guide.</p></div>
-          <div class="shots">
-            <figure><img src="assets/cve-report.webp" alt="Top of the weekly CVE report. The key takeaway reads: This was a partial, low-confidence scan. It is not a clean bill of health." width="1300" height="705" loading="lazy"><figcaption>Executive report, generated and branded automatically</figcaption></figure>
-            <div class="block"><ul>
-              <li>Read all 40 assets, recorded the inventory's hash, and applied the brand guide on its own</li>
-              <li>Found four candidate findings on two assets and labeled each Potentially affected or Not assessed, because the inventory versions were examples</li>
-              <li>When the KEV, GitHub, and OSV feeds failed to load, the report led with: <q>This was a partial, low-confidence scan. It is not a clean bill of health.</q></li>
-              <li>Named an owner and a verification date for every open item, and logged every source as success, partial, failed, or not queried</li>
-            </ul></div>
-          </div>
-          <div class="actions">
-            <a class="btn btn-line" href="samples/cve-weekly-report-2026-10-10.html" target="_blank" rel="noopener">Read the sample report</a>
-            <span class="note">Pilot output on synthetic data. CVE details are as reported by the run and have not been independently verified.</span>
-          </div>
-        </div>
-        <div class="tags"><span>Claude Projects</span><span>Scheduled tasks</span><span>Web search</span><span>Python</span><span>GitHub Actions</span><span>CSV and HTML reports</span></div>
-        <a class="back" href="#projects">Back to all projects</a>
-      </article>
-
-      <article class="project" id="career-ops" aria-labelledby="p4-h">
-        <div class="p-head">
-          <div class="card-top"><span class="pid">AI-04</span><span class="status">In use</span></div>
-          <h3 id="p4-h">Career Operations System</h3>
-          <p>A Claude Project that runs a senior job search like a managed program. Every posting goes through the same intake, gets a fit decision with written reasons, and, if approved, gets a tailored resume and cover letter that pass the same quality checks every time.</p>
-        </div>
-        <dl class="facts">
-          <div><dt>Domain</dt><dd>Career operations, document automation</dd></div>
-          <div><dt>Method</dt><dd>Standard intake, fit tiers, standing skip list</dd></div>
-          <div><dt>Delivered as</dt><dd>Claude Project with intake protocol, standing rules, and a resume and cover letter pipeline</dd></div>
-        </dl>
-        <div class="two">
-          <div class="block"><h4>Intake protocol</h4><ul>
-            <li>Checks each posting against a standing skip list of past decisions and their reasons</li>
-            <li>Flags hard blockers first: travel, location, clearances, required certifications</li>
-            <li>Rates fit as Strong, Solid, Aspirational, or Skip, naming each gap</li>
-            <li>Stops and asks before building anything for a likely Skip or a role with stacked gaps</li>
-          </ul></div>
-          <div class="block"><h4>Safeguards</h4><ul>
-            <li>Never states or implies credentials not held</li>
-            <li>Uses calibrated wording, such as "ISO 27001-aligned" instead of "certified"</li>
-            <li>Growth areas are stated briefly and backed by a record of fast, self-directed learning, never as apologies</li>
-            <li>Updates the profile as new, verified context closes a gap</li>
-          </ul></div>
-        </div>
-        <div class="block"><h4>Quality checks on every document</h4><ul>
-          <li>Resume exactly two pages, cover letter one page and under 250 words</li>
-          <li>ATS-clean structure: no tables, columns, tabs, text boxes, or drawings</li>
-          <li>Every metric states what it measures, and no metric is invented</li>
-          <li>The summary opens with a factual line of years and domain, never an empty label like "results-driven professional"</li>
-          <li>Vague phrases like "collaborated with stakeholders" are replaced with the specific team, project, and role, or cut</li>
-          <li>Banned filler verbs, and bullets of varied length so the writing reads as a person's</li>
-        </ul></div>
-        <div class="tags"><span>Claude Projects</span><span>Word (.docx) generation</span><span>ATS verification</span></div>
-        <a class="back" href="#projects">Back to all projects</a>
-      </article>
-
-      <article class="project" id="homeschool-gradebook" aria-labelledby="p5-h">
-        <div class="p-head">
-          <div class="card-top"><span class="pid">AI-05</span><span class="status">In use</span></div>
-          <h3 id="p5-h">Homeschool Gradebook &amp; Records</h3>
-          <p>A gradebook and records system for a family homeschool, built for two adults who share the school day. It turns a first day and a number of school days into a calendar with quarters, reads the year's curriculum workbooks to schedule every lesson and test, and keeps grades, attendance, and a reading log in one place. Report cards and records print on letter paper for the state-required portfolio. It runs as a sign-in web app with a private cloud database, so both adults see the same gradebook on any device.</p>
-        </div>
-        <dl class="facts">
-          <div><dt>Domain</dt><dd>Education records, portfolio documentation</dd></div>
-          <div><dt>Data protection</dt><dd>Email sign-in, members-only row-level security, conflict-checked saves</dd></div>
-          <div><dt>Delivered as</dt><dd>Web app on GitHub Pages with a Supabase database, letter-size PDF output, offline single-file edition</dd></div>
-        </dl>
-        <div class="callout"><b>What testing caught:</b> run against the real spelling workbook, the first importer found 45 tests and no practice pages, because practice pages mention the weekly test in their instructions. Detection now reads only the page header. All five workbooks were then re-run: 98 lessons and 10 unit tests each for science and social studies, and 144 practice pages and 36 tests for spelling.</div>
-        <div class="shots">
-          <figure><img src="assets/gradebook-app.webp" alt="Gradebook overview showing the current quarter, a quarter timeline, attendance, and letter grades by subject for each quarter" width="1300" height="1000" loading="lazy"><figcaption>Overview with quarter grades (sample student)</figcaption></figure>
-          <figure><img src="assets/gradebook-report-card.webp" alt="Printed quarter 1 report card with grades by subject, attendance, teacher comments, the grading scale, and signature lines" width="842" height="1107" loading="lazy"><figcaption>Quarter report card, ready for the portfolio</figcaption></figure>
-        </div>
-        <div class="two">
-          <div class="block"><h4>What it does</h4><ul>
-            <li>Builds the school calendar from a first day and a number of school days, skipping weekends and the holidays the family chooses, then splits the year into quarters</li>
-            <li>Reads curriculum workbooks (PDF, Word, Excel, or CSV) by their page labels, such as Cycle / Lesson / Day or Unit / Lesson / Week / Day, and places each lesson on its school day</li>
-            <li>Follows the family's rules: science and social studies on Monday, Wednesday, and Friday, and spelling tests alone on Friday, each moving to a nearby day when a holiday lands</li>
-            <li>Weighted grades by assignment type, with quarter and year averages and the family's own grading scale</li>
-            <li>Attendance, a reading log, and quarterly report cards, each printable or downloadable as a letter-size PDF</li>
-            <li>Starts a new school year with one button and keeps past years available to open, view, and print</li>
-          </ul></div>
-          <div class="block"><h4>Safeguards</h4><ul>
-            <li>Row-level security in the database: only signed-in emails on the gradebook's member list can read or save it, and signed-out visitors get nothing</li>
-            <li>Public sign-ups are off, and the database has no insert or delete rules for the web page, so members are added only by the owner in the database console</li>
-            <li>Only the public, publishable key is in the page; the service key that bypasses security is never used</li>
-            <li>Every save checks a revision number, so two people editing at once never silently overwrite each other's work</li>
-            <li>Signing out clears the copy kept in the browser, and past school years open read-only</li>
-            <li>No student names or grades are in the public code; the demo uses a fictional student</li>
-          </ul></div>
-        </div>
-        <div class="block"><h4>How it was verified</h4><ul>
-          <li>Each real workbook was run through the same PDF library the browser loads, and the lesson and test counts were checked against each book's scope and sequence</li>
-          <li>Lesson placement was checked week by week against the real calendar, including Thanksgiving, winter break, and a first week that starts on a Tuesday</li>
-          <li>Sign-in, two-device sync, simultaneous edits, past-year viewing, and sign-out were tested against a stand-in database that enforces the same access rules</li>
-          <li>Report cards, attendance records, and reading logs were printed to letter-size PDFs and page-counted, which caught a report card that spilled onto a second page</li>
-        </ul></div>
-        <div class="actions">
-          <a class="btn btn-cta" href="demo/homeschool-gradebook.html" target="_blank" rel="noopener">Try the live demo</a>
-          <span class="note">Sample data for a fictional student. Runs in your browser; nothing is sent anywhere. Opens in a new tab.</span>
-        </div>
-        <div class="tags"><span>HTML / JavaScript</span><span>Supabase</span><span>PostgreSQL row-level security</span><span>GitHub Pages</span><span>pdf.js</span><span>jsPDF</span><span>Claude</span><span>Playwright testing</span></div>
-        <a class="back" href="#projects">Back to all projects</a>
-      </article>
-
-      <article class="project" id="access-review" aria-labelledby="p6-h">
-        <div class="p-head">
-          <div class="card-top"><span class="pid">AI-06</span><span class="status ready">Ready to deploy</span></div>
-          <h3 id="p6-h">Offboarding &amp; Privileged Access Review</h3>
-          <p>A quarterly user access review that tests whether offboarding actually removed access. It compares the HR termination list with the identity provider (Google Workspace or Microsoft Entra ID) and the user list from each critical system, rates every account still active after termination, and pulls every privileged account into a report for its system owner to recertify. Every finding is then tracked to closure, either offboarding completed with evidence or risk accepted under a documented security exception, in a register that builds up quarter after quarter and never deletes a finding. System owners confirm privileged access from a link in a Slack, Teams, or Google Chat message, and the quarter ends with an executive report as a PDF. The output is the auditor's evidence: a remediation tracker, a full test log, a coverage table of each system's controls, and a written workpaper.</p>
-        </div>
-        <dl class="facts">
-          <div><dt>Domain</dt><dd>Identity and access management, SOC 2 CC6.2 / CC6.3 evidence</dd></div>
-          <div><dt>Data protection</dt><dd>Every file is read in the browser; nothing is uploaded or sent anywhere</dd></div>
-          <div><dt>Delivered as</dt><dd>Single-file web app with a PDF executive report and CSV and text exports for the audit file</dd></div>
-        </dl>
-        <div class="callout"><b>Design decision:</b> a terminated user who still holds an admin role is always rated Critical, even inside the one-day deprovisioning window that turns an ordinary leftover account into a Low. A disabled account that still carries an admin role is not an exception, but it is listed in the workpaper for clean-up so the role cannot come back with a re-enabled account.</div>
-        <div class="shots">
-          <figure><img src="assets/access-review-app.webp" alt="Review summary for Q4 2026 with the remediation tracker: counts of open, overdue, in progress, completed and risk-accepted findings, and a findings table with owner, status and due date" width="1300" height="1402" loading="lazy"><figcaption>Quarter summary and remediation tracker (sample data)</figcaption></figure>
-          <figure><img src="assets/access-review-report.webp" alt="First page of the PDF executive report: control rating of Not effective with the reason, four headline figures, a summary, and key findings" width="935" height="1210" loading="lazy"><figcaption>Executive report, page one (PDF)</figcaption></figure>
-        </div>
-        <div class="two">
-          <div class="block"><h4>What it does</h4><ul>
-            <li>Picks the review quarter from today's date, with fiscal-year support and a choice of which terminations are in scope</li>
-            <li>Takes the HR termination list, the identity provider export, an optional admin-role export, and a user list from each critical system, one at a time or all at once</li>
-            <li>Routes bulk uploads by their columns and file names, maps columns automatically from known exports, and fills in answers it can read from the data, such as MFA enrollment</li>
-            <li>Asks the control questions for each system (SSO, MFA, automated provisioning, how accounts are removed) and uses the answers to rate findings and write design notes</li>
-            <li>Rates each active account: Critical for privileged access or a sign-in after termination, High for an active account, Medium when the identity provider already blocks sign-in, Low inside the deprovisioning window</li>
-            <li>Lists every active privileged account by system owner with flags for terminated, not in the identity provider, idle, and no MFA, and drafts the request each owner receives with a due date</li>
-            <li>Lists active app accounts with no identity provider account at all, such as contractors and local admins that never came through HR</li>
-            <li>Tracks each finding with an owner, a due date set by severity, and a ticket, through to offboarding completed with evidence or risk accepted under a numbered security exception with justification, compensating controls, approver, and expiry</li>
-            <li>Re-tests open findings against each newer user list: access that is gone closes the finding as verified, and access that is still there reopens a finding marked complete</li>
-            <li>Keeps one permanent findings register across every quarterly review: findings are only ever closed, and open findings carry into the next quarter marked as carried over</li>
-            <li>Sends each system owner a privileged access confirmation by Slack, Microsoft Teams, or Google Chat, records the date, time, and recipient, and links the owner to a page where they approve current access or request a change, which updates the review automatically</li>
-            <li>Builds a letter-size executive report as a PDF with a control rating, key findings, remediation status, security exceptions, privileged access by owner, every owner confirmation request with its date, time, recipient, and response, coverage, recommendations, and sign-off lines</li>
-          </ul></div>
-          <div class="block"><h4>Safeguards</h4><ul>
-            <li>Runs entirely in the browser; HR and user lists never leave the computer</li>
-            <li>Uploaded lists can be kept off the device on shared machines, while settings and decisions are kept</li>
-            <li>Name-only matches are labeled for manual confirmation rather than treated as certain</li>
-            <li>Service accounts are excluded only by patterns the reviewer sets, so nothing is hidden silently</li>
-            <li>Missing user lists and unanswered control questions are called out in the conclusion, so incomplete coverage cannot pass as a clean review</li>
-            <li>A finding counts as closed only when its evidence or exception record is complete, and an expired exception reopens its finding</li>
-            <li>The executive report can print initials instead of names for wider distribution</li>
-            <li>In the live tool, access rules let system owners read only their own request and write only their own response, recorded with their identity and time; they never see findings, user lists, or other owners' answers</li>
-            <li>The configuration backup holds settings and decisions only, never user data</li>
-          </ul></div>
-        </div>
-        <div class="block"><h4>How it was verified</h4><ul>
-          <li>Built against the column layouts of real exports: Google Workspace user downloads, Entra ID user downloads, and common SaaS admin exports with their own status and role conventions</li>
-          <li>Run end to end in a headless browser on a sample set designed to hit every rating, including a sign-in after termination, a still-active admin, a disabled admin, an identity-provider block, a future-dated termination, and a service account</li>
-          <li>Each result was checked against the expected rating before the demo was published</li>
-          <li>Remediation was tested by uploading a newer user list with accounts deactivated, which closed those findings as verified by re-test, and the PDF was rendered page by page to check layout and page breaks</li>
-          <li>Owner confirmations were tested end to end against a stand-in for the shared database: an owner without edit rights answered a request, the review applied the answer and marked the request responded, and a simulated next quarter carried open findings forward with nothing deleted</li>
-        </ul></div>
-        <div class="actions">
-          <a class="btn btn-cta" href="demo/access-review.html" target="_blank" rel="noopener">Try the live demo</a>
-          <span class="note">Invented example.com users. Update a finding, send and answer an owner confirmation, or download the executive report PDF. Runs in your browser; nothing is sent anywhere. Opens in a new tab.</span>
-        </div>
-        <div class="tags"><span>HTML / JavaScript</span><span>Google Workspace</span><span>Microsoft Entra ID</span><span>SOC 2</span><span>jsPDF</span><span>Claude</span><span>Playwright testing</span></div>
-        <a class="back" href="#projects">Back to all projects</a>
-      </article>
-
-      <article class="project" id="curriculum-studio" aria-labelledby="p7-h">
-        <div class="p-head">
-          <div class="card-top"><span class="pid">AI-07</span><span class="status">In use</span></div>
-          <h3 id="p7-h">Curriculum Design Studio</h3>
-          <p>The system behind a family homeschool's printed curriculum: seven subject workbooks a year, built on spiral review and dyslexia-friendly page rules and checked against state home instruction requirements. This live demo covers one subject, Math Loops. Pick a grade and a learning method, and it writes the first cycle of the year as two linked documents: a student workbook with no answers in it, and a Teacher's Guide with a teaching plan and a full answer key for every lesson. Both come from the same data, so the key always matches the pages, and both print as letter-size PDFs.</p>
-        </div>
-        <dl class="facts">
-          <div><dt>Domain</dt><dd>Curriculum design, accessible print documents</dd></div>
-          <div><dt>Data protection</dt><dd>Runs in the browser; no student data is collected or sent anywhere</dd></div>
-          <div><dt>Delivered as</dt><dd>Single-file web app with print-ready PDF output; the full studio is a Claude Project with skills and a Python page generator</dd></div>
-        </dl>
-        <div class="callout"><b>What testing caught:</b> the first build packed the front of each lesson so tightly that the layout step dropped whole review parts to make pages fit, and some strands came back once in a cycle instead of three times. The in-page check flagged it on all 20 grade and method builds. Review is now scheduled so every strand returns exactly three times, always including yesterday's, and the layout step may trim a row but never a review part.</div>
-        <div class="shots">
-          <figure><img src="assets/curriculum-studio-app.webp" alt="Curriculum Design Studio with grade 3 and the dyslexia-friendly method selected, showing the student workbook cover and tabs for the 23-page workbook and the 24-page Teacher's Guide" width="1300" height="1000" loading="lazy"><figcaption>Choose a grade and a learning method</figcaption></figure>
-          <figure><img src="assets/curriculum-studio-pages.webp" alt="A student lesson page on expanded form beside the matching Teacher's Guide teaching page with goal, materials, timed teaching steps and supports" width="1692" height="1096" loading="lazy"><figcaption>Student lesson and its Teacher's Guide page</figcaption></figure>
-        </div>
-        <div class="two">
-          <div class="block"><h4>What it does</h4><ul>
-            <li>Builds one cycle of Math Loops for grades 1 to 5: ten lessons, one for each math strand, and a two-page test</li>
-            <li>Each lesson is one sheet: a Remember box and the new skill on the front, review, a Think It Through problem, and quick facts on the back</li>
-            <li>Schedules spiral review so every strand returns three times a cycle, using last year's level for strands not taught yet this year</li>
-            <li>Four learning methods change the pages, not just the label: Standard, Dyslexia-friendly (larger type, more spacing, fewer items per line, highlighted symbols), Focus and attention (short parts, a check-off strip, movement breaks), and Hands-on (a build-it-first activity on every lesson)</li>
-            <li>Draws question pictures in full color: clocks, fraction shapes, base-ten blocks, arrays, graphs, tally charts, and a coordinate grid</li>
-            <li>Writes a Teacher's Guide with a how-to page, a cycle-at-a-glance table, a teaching plan with timed steps for the chosen method, and an answer page for every lesson and the test</li>
-            <li>Every problem set is seeded, so the same grade, method, and set number always rebuild the same pages</li>
-          </ul></div>
-          <div class="block"><h4>Safeguards</h4><ul>
-            <li>The student workbook is checked to contain no answers; every answer lives in the Teacher's Guide</li>
-            <li>No problem repeats anywhere in a lesson, front or back, or within the test</li>
-            <li>Every page is measured in the browser after layout; content that does not fit is trimmed a row at a time and put back if room frees up, so nothing runs into the footer</li>
-            <li>Pages with space left get a work area, not a blank band</li>
-            <li>Directions are checked to be one line, 12 words or fewer, and to start with a verb</li>
-            <li>The checks run on every build and show on screen next to the documents</li>
-            <li>The public demo uses no student names; it is sample content for a fictional student</li>
-          </ul></div>
-        </div>
-        <div class="block"><h4>How it was verified</h4><ul>
-          <li>All 60 combinations of grade, learning method, and problem set were loaded in headless Chrome with the real brand fonts, and every one passed every check: no overflow, no repeats, three reviews per strand, and a complete answer key</li>
-          <li>Both documents were printed to PDF and page-counted: 23 letter pages for the workbook and 24 for the Teacher's Guide</li>
-          <li>Contact sheets of fronts, backs, tests, and guide pages were reviewed by eye for crowding, empty space, and readable picture labels</li>
-          <li>Answer keys were spot-checked against the printed problems, including remainders, equivalent fractions, and decimal place value</li>
-        </ul></div>
-        <div class="actions">
-          <a class="btn btn-cta" href="demo/curriculum-studio.html" target="_blank" rel="noopener">Try the live demo</a>
-          <span class="note">Pick a grade and a learning method, switch between the two documents, and print or save either one as a PDF. Runs in your browser; nothing is sent anywhere. Opens in a new tab.</span>
-        </div>
-        <div class="tags"><span>HTML / JavaScript</span><span>SVG</span><span>Print CSS</span><span>Python page generator</span><span>Claude Projects and skills</span><span>Playwright testing</span></div>
-        <a class="back" href="#projects">Back to all projects</a>
-      </article>
-
     </div>
   </section>
 
