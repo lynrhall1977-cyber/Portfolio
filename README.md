@@ -4,9 +4,9 @@ A static website. No build step, no server code. Upload this whole folder as-is.
 
 ## Folder contents
 - `index.html` - the home page (hero, approach, project overview cards, about, contact form)
-- `projects/` - one page per project, linked from the AI-01 to AI-07 cards and the Projects menu in the header:
-  `incident-scoring.html` (AI-01), `virtual-ciso.html` (AI-02), `cve-intelligence.html` (AI-03), `career-ops.html` (AI-04),
-  `homeschool-gradebook.html` (AI-05), `access-review.html` (AI-06), `curriculum-studio.html` (AI-07)
+- `projects/` - one page per project, linked from the AI-01 to AI-05 cards and the Projects menu in the header:
+  `incident-scoring.html` (AI-01), `virtual-ciso.html` (AI-02), `cve-intelligence.html` (AI-03),
+  `homeschool-gradebook.html` (AI-04), `access-review.html` (AI-05), `curriculum-studio.html` (AI-06)
 - `resume.html` - the resume page
 - `assets/site.css` - shared styles for the home page and project pages
 - `assets/nav.css`, `assets/nav.js` - the Projects dropdown menu in the header (used on every page)
